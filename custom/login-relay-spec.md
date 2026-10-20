@@ -560,8 +560,10 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 实测注意：
 
-1. NewAPI 会把 OpenAI 流转成 Claude SSE，但会**重复发 `message_start`**；relay 已只保留第一个，否则 DSH 判 malformed。
-2. NewAPI 的模型列表缺少 `api_capabilities.anthropic_messages`/`client_requirements`，不能直接给 DSH 用。
-3. 上游是 OpenAI 兼容渠道时，NewAPI 负责协议转换；上游是 Anthropic 原生渠道时转换更少，但 relay 的归一化仍建议保留。
+1. 渠道类型选 **Anthropic (14)**、Base URL `https://api.deepseek.com/anthropic` 时，NewAPI 原生透传 DeepSeek 的 Anthropic SSE，不再经过 OpenAI→Claude 转换；`deepseek-flash` / `deepseek-v4-pro` 直接可用。
+2. 若渠道是 OpenAI 兼容类型，NewAPI 转换会**重复发 `message_start`**；relay 的归一化仍需保留（已只保留第一个）。
+3. NewAPI 的 `/v1/models` 仍缺少 `api_capabilities.anthropic_messages`/`client_requirements`，不能直接给 DSH 用。
+4. 上游是 Anthropic 原生渠道时转换更少，但 relay 的归一化仍建议保留。
+5. 登录页的 CSP `form-action` 必须允许 loopback 回调（`http://127.0.0.1:*`、`http://localhost:*`）；否则浏览器会阻止表单 302，登录表现为「一直等待」。
 
 完整启动步骤、环境变量与测试见 [services/relay/README.md](../services/relay/README.md)。

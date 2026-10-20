@@ -103,9 +103,9 @@
 | ID | 需求 | 验收 |
 |---|---|---|
 | E-01 | 一条命令拉起 NewAPI + relay | `docker compose up -d` 后 `:13000` 与 `:18082` 均可访问，`/healthz` 返回 `{"ok":true}` |
-| E-02 | 注册/登录闭环 | 在 `/dsh/authorize` 注册后回到 DSH，账户显示已登录 |
+| E-02 | 注册/登录闭环 | 在 `/dsh/authorize` 注册后回到 DSH，账户显示已登录（已验证） |
 | E-03 | 协议一致性 | 规范 §9 清单通过，含 PKCE、code 单次、40003/401、`/models` schema |
-| E-04 | 推理链路 | DSH 发消息 → relay → NewAPI → 上游，SSE 只有一次 `message_start`，文本正常渲染 |
+| E-04 | 推理链路 | DSH 发消息 → relay → NewAPI → DeepSeek Anthropic 入口，真实返回 `OK`（已验证） |
 | E-05 | 登出/吊销 | 登出后旧 token 立即 401；重启 DSH 后仍保持登录（未过期时） |
 | E-06 | 代码入库 | `services/relay/`、Compose、测试、README、DSH patch 全部可复现 |
 

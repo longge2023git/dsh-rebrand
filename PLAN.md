@@ -175,6 +175,8 @@ DSH ──登录协议/推理──▶ relay :18082 ──Bearer NEWAPI_KEY─�
 
 环境：NewAPI 映射 `127.0.0.1:13000`（本机 3000 被 ssh 占用），relay `127.0.0.1:18082`。完整步骤见 [services/relay/README.md](services/relay/README.md)。
 
+**已用真实上游验证**：NewAPI 渠道类型 `Anthropic (14)`、Base URL `https://api.deepseek.com/anthropic`、模型 `deepseek-flash` / `deepseek-v4-pro`；DSH UI 登录后发消息，真实模型返回 `OK`，事件序列只有一个 `message_start`。若走 OpenAI 兼容渠道，转换路径会重复 `message_start`，relay 已归一化。详见 [custom/assets/relay-e2e.png](custom/assets/relay-e2e.png)。
+
 > NewAPI 是 **AGPLv3**：独立容器运行、不修改源码；不要把它和桌面安装包捆绑分发。
 
 ---

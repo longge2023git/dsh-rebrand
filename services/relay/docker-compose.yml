@@ -8,6 +8,10 @@ services:
       - "127.0.0.1:13000:3000"
     environment:
       TZ: Asia/Shanghai
+      # Optional: make upstream calls through a host-side proxy.
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,new-api}
     volumes:
       - ./data/new-api:/data
 

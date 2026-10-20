@@ -130,6 +130,9 @@ test('dsh relay authorization, models, inference, and logout', async () => {
 
     const page = await fetch(init.data.biz_data.authorize_url)
     assert.equal(page.status, 200)
+    // The browser blocks a form POST redirect to the loopback callback unless
+    // that origin is allowed by form-action.
+    assert.match(page.headers.get('content-security-policy') ?? '', /form-action[^;]*127\.0\.0\.1:\*/u)
     const csrf = csrfFrom(await page.text())
 
     const register = await fetch(`${b.origin}/dsh/authorize`, {

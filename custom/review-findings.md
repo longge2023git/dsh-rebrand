@@ -162,5 +162,7 @@
 1. **NewAPI 原生 Messages 可用**：`POST /v1/messages`、SSE、Bearer 认证均正常；上游是 OpenAI 兼容渠道时由 NewAPI 做转换。
 2. **转换会重复 `message_start`**：DSH 的 `translate.ts` 把第二个 `message_start` 判为 malformed；relay 必须归一化（已验证：输出事件序列只剩一个）。
 3. **NewAPI `/models` 不能直接给 DSH**：缺少 `api_capabilities.anthropic_messages` 与 `client_requirements`，模型会被隐藏；由 relay 生成 DSH schema。
+4. **CSP 会拦截登录表单跳转**：`form-action 'self'` 不允许 302 到 loopback 回调（跨端口），浏览器静默阻止提交；必须允许 `http://127.0.0.1:*` / `http://localhost:*`。已修复并加回归测试。
+5. **容器出网**：宿主机代理若只监听 `127.0.0.1`，NewAPI 容器无法使用；需要一个宿主 LAN IP 上的转发或代理容器（README 已写）。
 
 这三条已写入规范 §13 与 [services/relay/README.md](../services/relay/README.md)。

@@ -39,9 +39,12 @@ docker compose up -d new-api
 
 在管理台：
 
-1. **渠道**：新建渠道，填入你提供的上游 API key，选择模型（或填模型列表），测试通过后启用。
+1. **渠道**：新建渠道，按上游协议选类型，填入 API key。
+   - DeepSeek 官方 Anthropic 入口：类型 **Anthropic (14)**，Base URL `https://api.deepseek.com/anthropic`，自定义模型 `deepseek-flash,deepseek-v4-pro`。
+   - 其他 OpenAI 兼容上游：类型 OpenAI，Base URL 填到 `/v1` 之前。
 2. **模型**：确认渠道模型可用；如果上游模型名与对外要暴露的名字不同，在 relay 的 `MODELS` 里配 `upstream`。
 3. **令牌**：创建一个 API 令牌（`sk-...`），给它访问对应模型分组的权限。
+4. **容器出网**：如果宿主机通过 `127.0.0.1` 代理出网，容器无法直接使用。用 `node tools/host-proxy.mjs 10809 10808 <宿主 LAN IP>` 做转发，再在 `.env` 配 `HTTP_PROXY/HTTPS_PROXY=http://<宿主 LAN IP>:10809`（Compose 已注入 NewAPI）。只在可信网络使用，别把转发绑到 `0.0.0.0`。
 
 ### 2. 配置并启动 relay
 
@@ -126,6 +129,17 @@ npm test
 覆盖：注册 → 登出 → PKCE 换 token → 模型目录 → SSE 透传 → 登出失效 → 非法回调/错误 verifier 负例。
 
 与真实 New API 联调时，按 [登录中转站规范](../../custom/login-relay-spec.md) §9 的清单再跑一遍。
+
+### 实测记录
+
+- 渠道：`type=14`（Anthropic），Base URL `https://api.deepseek.com/anthropic`，模型 `deepseek-flash`、`deepseek-v4-pro`。
+- 直连 NewAPI `/v1/messages`：返回真实 SSE，包含 `thinking` 块与 `signature_delta`。
+- relay `/v1/messages`：同一请求经 relay 归一化后返回 `OK`，事件序列只有一个 `message_start`。
+- NewAPI 的 `/v1/models` 仍缺 `api_capabilities.anthropic_messages`，所以 `/models` 继续由 relay 生成。
+- DSH UI 全链路已验证：登录页注册/登录 → 回到 DSH → 发消息 → 真实 DeepSeek 返回 `OK`。
+- 浏览器会按 CSP 的 `form-action` 检查表单 302 的目标；登录表单跳转到 loopback 回调，所以 CSP 必须允许 `http://127.0.0.1:*` / `http://localhost:*`，否则提交被静默拦截（已内置，并有回归测试）。
+
+![DSH 对话验证](../../custom/assets/relay-e2e.png)
 
 ## 数据与安全
 
