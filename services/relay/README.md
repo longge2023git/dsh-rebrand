@@ -196,3 +196,33 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm start:desktop
 - 桌面 profile 由 Electron 管理，不能用 `dsh --profile desktop --dump-config` 检查（会报 “managed exclusively by the Electron application”）。
 - 宿主日志会打印实际 `DSH_HOME` 和 `dsh web: http://127.0.0.1:<port>/?token=...`；出现 `model listing ... loaded 2 model(s)` 说明已经连到 relay。
 - 桌面与 Web 共用 `~/.dsh-dev`，会话、账号登录态互通；测试时不要同时跑两个会互相抢 profile 的实例。
+
+## Files API 现状（为什么会有 404）
+
+当前 relay 对 `/v1/files` 直接返回 404，原因是：
+
+1. **NewAPI 没有实现 Files API**。v0.10.9 与当前 main 的 `router/relay-router.go` 都把 `/v1/files` 映射到
+   `controller.RelayNotImplemented`；NewAPI 自己也有 open issue
+   [#2299](https://github.com/QuantumNous/new-api/issues/2299) 请求支持。
+2. **DeepSeek 上游是支持的**。Anthropic 兼容端点有 `POST/GET/DELETE /anthropic/v1/files`，
+   需要 `anthropic-beta: files-api-2025-04-14`；文件对象字段是 `type/size_bytes/mime_type`。
+3. **NewAPI 会透传 file 引用**。实测：直接向上游上传得到真实 `file_id`，再经
+   NewAPI `/v1/messages` 发送 `image.source.type=file`，DeepSeek 能读到图片。也就是说缺的只是上传这一段。
+
+DSH 对上传失败的处理是“整请求回退 inline base64”（见 `request-files.ts`），所以 404 不会报错，只是：
+
+- 图片 base64 后 ≤ 20 MiB 时无感；
+- 超过 20 MiB 会报 `IMAGE_OFFLOAD_REQUIRED_CODE`，请求失败；
+- 无法复用已上传文件（每次请求重新 inline）。
+
+### 可选方案
+
+| 方案 | 做法 | 成本 | 取舍 |
+|---|---|---|---|
+| A. relay 直连上游 Files API（推荐） | relay 加 `FILES_UPSTREAM_URL/KEY`，把 `/v1/files*` 转发到 DeepSeek；消息仍走 NewAPI | 1–2 天 | 需要 relay 持有上游 key；要加 file→user 归属校验 |
+| B. 给 NewAPI 加路由 | fork/PR 实现 `/v1/files` 透传 | 3–5 天 + AGPL | 单网关、可复用 NewAPI 鉴权/日志；升级要跟 |
+| C. relay 本地存文件并 inline | 接收上传、存盘，发消息时把 file_id 换成 base64 | 2–3 天 | 不碰上游 key；仍受上游 inline 限制，失去文件复用 |
+| D. 维持 404 fallback | 当前实现 | 0 | 小图可用；大图失败 |
+
+若选 A：NewAPI 渠道与 relay 使用的 key 必须属于**同一个 DeepSeek 账号**（文件按账号共享）；建议给 relay
+单独发一把文件专用 key，并在 relay 里维护 file_id→user_id，防止跨用户引用。
