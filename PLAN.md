@@ -337,6 +337,8 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [custom/review-findings.md](custom/review-findings.md)：四份评审的完整结论与证据。
 - [custom/login-relay-spec.md](custom/login-relay-spec.md)：中转站协议 v1.1。
 - [custom/engineering-process.md](custom/engineering-process.md)：Issue→AI PR→CI→验收流水线。
+- [custom/runbook.md](custom/runbook.md)：本地启动/停止、换网恢复、桌面联调与故障排查。
+- [NOTICE](NOTICE) / [TRADEMARKS.md](TRADEMARKS.md)：上游归属与商标声明。
 
 ---
 

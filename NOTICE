@@ -1,0 +1,16 @@
+This repository is a modified fork of DeepSeek Harness.
+
+Upstream: https://github.com/deepseek-ai/deepseek-harness
+Base tag: dsh-v0.2.1-rc.2
+Base commit: 687f282e8625c6b8d11ff58211a90524be2e4317
+Upstream copyright: Copyright (c) 2026 DeepSeek
+Upstream license: MIT (see LICENSE in this repository)
+
+Modifications in this repository include:
+- planning and review documents under PLAN.md and custom/
+- a local reference relay under services/relay/
+- local DSH profile overlays under custom/profiles/
+- branding, authentication, and RTL work in progress
+
+The upstream LICENSE and THIRD_PARTY_NOTICES.md are retained. Files added by
+this fork remain under the repository's MIT license unless stated otherwise.
