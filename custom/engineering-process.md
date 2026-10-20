@@ -172,6 +172,10 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 
 ## 10. 版本与发布
 
+### 10.0 发布前冻结项
+
+appId、产品名、更新源域名、协议 scheme 在**首个对外版本前**冻结；之后修改会导致更新链断裂与用户数据迁移。品牌名/Logo 到位后先出一版未签名包验证，再冻结。
+
 ### 10.1 版本号
 
 - Electron 要求桌面壳版本 == 根 `package.json` 版本；不能只改一个。

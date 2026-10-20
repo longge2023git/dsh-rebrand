@@ -99,6 +99,7 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 4. 标题改 `DSH_CLIENT_TITLE` 常量；注意 `vite.config.ts` 只替换字面量 `<title>`，两处要同步。
 5. 引导页：优先「禁用内置引导 + 自有欢迎插件」，避免 fork `ui-settings-account`。
 6. 同步修改写死官方品牌/字体的测试。
+7. 只换「名称 + Logo」：字标用 Montserrat 排版生成，app 图标/favicon 从 Logo 导出；**不复用上游鱼标与 DeepSeek 字标**，字体沿用 Montserrat（OFL）。
 
 ### 3.3 验收
 
@@ -134,16 +135,13 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
     baseURL: https://relay.example.com/v1
 ```
 
-### 4.3 托管 Web 的限制（BLOCKING）
+### 4.3 分发形态（已确认）
 
-`loginOrigin` 只接受 loopback HTTP。**域名托管的 Web 无法发起这套登录**；对外 Web 只能：
+**对外只发桌面安装包**（2026-10-20 确认）。因此登录走本机 loopback 回调，完全可用；域名托管的 Web 不在本期范围。
 
-- 改核心放宽回调（成本高、升级冲突），或
-- 网关登录 + `connection/request` 守卫（DSH 侧仍走自己的 token/cookie，另加一层）。
+> 若将来要做 Web：现有 `loginOrigin` 只接受 loopback，需改核心放宽回调，或在网关做登录并用 `connection/request` 守卫，另立 3–5 天方案。
 
-桌面安装包不受影响。
-
-### 4.4 阶段
+### 4.4 阶段### 4.4 阶段
 
 | 阶段 | 内容 | 工期 |
 |---|---|---|
@@ -284,7 +282,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 
 | 风险 | 影响 | 对策 |
 |---|---|---|
-| 托管 Web 需求 | 现有登录不可用 | 先确认分发形态；Web 另立方案 |
+| 将来要托管 Web | 现有登录不可用 | 本期不发 Web；若要做另立方案 |
 | 中转站未实现 `/models` | 自建模型不可选 | 规范 §7.4；联调必测 |
 | inferenceOrigin 不一致 | token 发到官方 | 强制二者相等；启动自检 |
 | RTL 转换遗漏 | 局部错位 | 共享转换器 + RTL harness + 五屏验收 |
@@ -309,7 +307,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 
 ## 11. 下一步
 
-1. 你确认 §10 需求清单里的 **3 个阻塞项**（分发形态、品牌资产、`/models`）。
-2. 建公开仓库并推 `main`、打 `base/0.2.1-rc.2`。
-3. 起 L1（mock 中转站）与 R0（RTL 基础层），互不依赖。
-4. 按 [engineering-process.md](custom/engineering-process.md) 建 Issue 模板、PR 模板、`ci-public.yml`。
+1. 你提供：**品牌名称 + Logo（SVG/1024 PNG）+ 域名 + appId**。其余字标/图标/favicon 由我们从 Logo 生成，字体沿用 Montserrat（OFL）。
+2. 你提供：**中转站测试地址**，我们按规范 §9 跑一致性清单（重点验 `/models` 字段与 SSE 事件顺序）。
+3. 你说「动」之后：建公开仓库并推 `main`、打 `base/0.2.1-rc.2`。
+4. 起 L1（mock 中转站，用于回归）与 R0（RTL 基础层），互不依赖；再按 [engineering-process.md](custom/engineering-process.md) 建 Issue/PR 模板与 `ci-public.yml`。

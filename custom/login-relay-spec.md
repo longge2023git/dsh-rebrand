@@ -3,6 +3,7 @@
 > 适用基线：`dsh-v0.2.1-rc.2`（`deepseek-account-platform`）
 > 目标：你的中转站实现本文档后，**DSH 客户端不改代码**，只改 `platformOrigin` / `inferenceOrigin` 即可完成换登录。
 > 来源：`packages/credentials/deepseek-account-platform/src/{protocol,index,details,logout}.ts`、`packages/llm/llm-deepseek-account/src/index.ts`。
+> 适用范围：**桌面安装包**（已确认）。托管 Web 受 loopback 回调限制，不在本期。
 
 ---
 
