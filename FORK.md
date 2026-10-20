@@ -16,6 +16,8 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/login-relay-spec.md](custom/login-relay-spec.md) | Account/inference relay protocol |
 | [custom/engineering-process.md](custom/engineering-process.md) | Issue → AI PR → CI → acceptance workflow |
 | [custom/runbook.md](custom/runbook.md) | Local start/stop, desktop launch, network recovery |
+| [custom/files-api-research.md](custom/files-api-research.md) | Files API standard, billing, and gateway options |
+| [custom/backlog.md](custom/backlog.md) | Known TODOs, including NewAPI `/v1/files` |
 | [services/relay/README.md](services/relay/README.md) | Local New API + relay implementation |
 
 ## Local stack
