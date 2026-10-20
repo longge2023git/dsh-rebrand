@@ -298,19 +298,88 @@
 
 ---
 
-## 7. 推理调用
+## 7. 推理调用（中转站兼网关）
 
-账户 token 在模型请求中以 **`x-dsh-auth-token`** 发送（不是 `Authorization: Bearer`）：
+中转站同时承担模型入口时，DSH 用同一枚账户 token 调模型。协议是 **Anthropic Messages 风格**，不是 OpenAI Chat Completions。
+
+### 7.1 端点与认证
+
+`baseURL` 配置为 `https://relay.example.com`（或 `.../v1`）；客户端把根解析为：路径已以 `/v1` 结尾则原样，否则追加 `/v1`。
 
 ```
-POST https://relay.example.com/v1/messages
-x-dsh-auth-token: <token>
+POST {root}/messages
+content-type: application/json
+accept: text/event-stream
+x-dsh-auth-token: <token>        # 账户路由（llm-deepseek-account）
+anthropic-version: 2023-06-01
+anthropic-beta: files-api-2025-04-14   # 仅文件/图片请求需要
 ```
 
-- DSH 只在 `inferenceOrigin` 上附带该 token；其他 origin 一律不带。
-- 中转站应校验 token 并决定上游（官方 API / 自建模型 / 转发）。
-- token 失效返回 401，DSH 侧归类 `expired` 并提示重新登录。
-- 若你只想换登录、不代理模型：把 `inferenceOrigin` 保持官方地址会导致 token 不被接受——此时应改用 `llm-deepseek-api-key` 路由，或让中转站同时承担推理入口。
+- API key 路由（`llm-deepseek-api-key`）用 `x-api-key`，与账户路由二选一，不会同时发送。
+- token 只发往 `inferenceOrigin`；其他 origin 一律不带。
+- 请求/响应**拒绝重定向**；token 失效返回 401，DSH 归类 `expired` 并提示重新登录。
+
+### 7.2 请求体
+
+Messages API 结构（`model`、`system`、`messages`、`tools`、`max_tokens`、`stream: true`，以及 thinking / reasoning 相关字段）。DSH 可能附带 provider 扩展字段；中转站不认识时可以忽略，但不要因此 400。
+
+### 7.3 响应：SSE 事件契约
+
+必须按顺序发送 Anthropic 事件：
+
+| 事件 | 必填内容 | 说明 |
+|---|---|---|
+| `message_start` | `message.usage` | 必须最先出现，且只能一次 |
+| `content_block_start` | `index`、`content_block` | 文本/思考/工具调用块；index 不重复 |
+| `content_block_delta` | `index`、`delta` | 文本增量 / 工具参数增量 |
+| `content_block_stop` | `index` | 每个块恰好一次 |
+| `message_delta` | `delta.stop_reason`、可选 `usage` | 结算停止原因与用量 |
+| `message_stop` | — | 必须最后出现；此前所有块必须已关闭且 stop_reason 已给 |
+
+规则：
+
+- 其他事件类型会被忽略，但不要用它们承载正文。
+- 缺少 `message_start`、重复块 index、块未关闭就 `message_stop`、流在 `message_stop` 前结束，都会导致失败。
+- `stop_reason=stop` 且没有任何内容块 → `EMPTY_RESPONSE`。
+- 工具调用的 JSON 必须完整合法（`max_tokens` 截断除外，由客户端保留并丢弃）。
+- 用量字段：`input_tokens`、`output_tokens`，可选缓存字段；客户端会累加并展示。
+
+### 7.4 错误格式
+
+非流式错误返回 JSON：
+
+```json
+{ "error": { "type": "authentication_error", "message": "token expired", "code": "expired" } }
+```
+
+客户端按状态码/类型归类：
+
+| 条件 | 归类 | 客户端行为 |
+|---|---|---|
+| 401 / 403 / `authentication_error` / `permission_error` | `AUTH` | 提示重新登录 |
+| 402 或额度类错误 | `QUOTA` | 提示额度 |
+| 429 / `rate_limit_error` | `RATE_LIMIT` | 按 `retry-after` 重试 |
+| 400 / 413 / `invalid_request_error` | `INVALID_REQUEST` | 不重试 |
+| 5xx / `api_error` / `overloaded_error` | `SERVER` | 退避重试 |
+
+`retry-after`（秒数或 HTTP 日期）与 `request-id`/`x-request-id`/`x-deepseek-request-id` 会被读取，建议返回。
+
+### 7.5 文件 API（可选）
+
+图片/附件走 Files API：
+
+| 方法 | 路径 | 用途 |
+|---|---|---|
+| POST | `/v1/files` | multipart 上传 |
+| GET | `/v1/files?<分页参数>` | 列表/清理 |
+| GET | `/v1/files/{id}` | 元数据 |
+| DELETE | `/v1/files/{id}` | 删除 |
+
+不实现也能跑：上传失败时客户端会回退到 inline base64（有体积上限）。需要 beta 头 `files-api-2025-04-14`。
+
+### 7.6 模型目录
+
+模型列表由客户端配置（`models` 字段）决定，不需要 `/models` 端点；未知 model id 会原样透传。
 
 ---
 
@@ -366,14 +435,19 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 | 项 | 官方行为 | 你的中转站 |
 |---|---|---|
 | 授权页 | `platform.deepseek.com/dsh/authorize` | 你的域名同路径 |
-| 登录方式 | DeepSeek 账号 | 你的 SSO / 手机号 / OAuth |
+| 登录方式 | DeepSeek 账号 | 手机号 / 邮箱注册（中转站自有账号体系） |
 | 钱包 | 真实余额 | 可返回空数组（UI 显示 0） |
 | 赠送金 | 真实活动 | 返回 `[]` |
-| 推理 | `api.deepseek.com` | 你的网关，校验 `x-dsh-auth-token` |
+| 推理 | `api.deepseek.com` | 你的网关（已确认兼做），校验 `x-dsh-auth-token` |
 | 资料页 | 真实邮箱/头像 | 至少返回 `email` 占位 |
 
-待你确认：
+已确认：
 
-1. 中转站是否会同时承担**推理入口**（决定 `inferenceOrigin` 指向哪里）。
-2. 是否保留 DeepSeek 账户的「余额/充值」入口；不保留就返回空钱包并忽略 `/top_up`。
-3. 登录方式的具体协议（OIDC / OAuth2 / 手机号），决定 `/dsh/authorize` 的实现。
+1. 中转站**兼推理入口**：`platformOrigin` 与 `inferenceOrigin` 都指向中转站。
+2. 登录方式是**手机号 / 邮箱注册**，由中转站自己的账号体系承担；不需要 OIDC/OAuth2（只有接入外部 IdP 时才需要）。
+3. 分发范围包含自己、团队、对外：需自建更新源、签名与公证（见 PLAN §7）。
+
+仍需你定：
+
+1. 是否保留「余额/充值」入口；不保留就返回空钱包、忽略 `/top_up`。
+2. 注册/登录页的视觉与文案由谁提供（品牌工作流会复用）。

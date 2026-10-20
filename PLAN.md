@@ -133,7 +133,7 @@ grep -rn "DeepSeek Harness\|DeepSeek AI" --include=*.ts --include=*.tsx --includ
 **不改 DSH 账户代码**，而是让中转站实现与官方 `deepseek-account-platform` 相同的协议，DSH 只改两个配置项。完整规范见 **[custom/login-relay-spec.md](custom/login-relay-spec.md)**（9 个 API 端点 + 2 个浏览器页面 + loopback 回调 + 信封/错误/限制/测试清单）。
 
 ```
-DSH ──auth_init──▶ 中转站 ──▶ 你的 SSO ──▶ 302 回 127.0.0.1/oauth/callback
+DSH ──auth_init──▶ 中转站 ──▶ 注册/登录页（手机/邮箱）──▶ 302 回 127.0.0.1/oauth/callback
     ──auth_exchange(code, verifier)──▶ token
     ──模型请求 x-dsh-auth-token──▶ 中转站网关
 ```
@@ -161,7 +161,7 @@ DSH ──auth_init──▶ 中转站 ──▶ 你的 SSO ──▶ 302 回 12
 | **L0 规范** | 已完成 | 从端上实现反推出协议，写成可交付规范 | ✅ |
 | **L1 Mock** | 我们 | 用 Node/Hono 写本地 mock，跑通规范 §9 一致性清单；验证 DSH 登录全链路 | 1 天 |
 | **L2 配置接线** | 我们 | profile 覆盖 `platformOrigin`/`inferenceOrigin`；桌面/Web 两形态验证 | 0.5 天 |
-| **L3 真实中转站** | 你（+我们联调） | 按规范实现 SSO、token 签发、推理校验 | 你的排期 |
+| **L3 真实中转站** | 你（+我们联调） | 手机号/邮箱注册、登录页、token 签发、推理网关 | 你的排期 |
 | **L4 边界** | 我们 | 登出吊销、token 过期、取消登录、引导页、空钱包显示 | 1 天 |
 
 我方总计 **2.5–3.5 天**（不含中转站实现）。
@@ -179,11 +179,23 @@ DSH ──auth_init──▶ 中转站 ──▶ 你的 SSO ──▶ 302 回 12
 
 | 风险 | 对策 |
 |---|---|
-| 中转站只做登录、不做推理 | `inferenceOrigin` 仍指向官方会拒绝你的 token；要么中转站兼推理，要么改用 API key 路由 |
+| 推理协议不兼容 | 中转站必须实现 Messages 风格 SSE（`message_start` → `content_block_*` → `message_delta` → `message_stop`），不是 OpenAI Chat Completions；规范 §7 有完整事件契约 |
+| 首版不做 Files API | 图片上传失败会回退 inline base64（有大小上限）；建议二期补 `/v1/files` |
 | 钱包/充值页缺失 | 返回空数组 + 简单说明页，避免 UI 404 |
 | 官方协议随版本变动 | 规范基于 `0.2.1-rc.2`；升级时用 `git diff` 看 `deepseek-account-platform` 的协议文件 |
 | 回调只支持 loopback | 远端/容器场景必须让浏览器能访问客户端所在机器的 loopback（SSH 转发即可） |
 | 登录态不进业务层 | 若将来要按用户分会话/额度，再评估自建 `DeepSeekAccount`（成本 7–10 天） |
+
+### 4.5 登录方式：为什么现在不需要 OIDC/OAuth2
+
+你的中转站**自己存账号**（手机号/邮箱注册），登录页就是 `/dsh/authorize`，验证通过后 302 回 DSH 的 loopback 回调并带上 code。DSH 只认「code → token」这一步，不关心你是密码、短信验证码还是扫码。
+
+- **OAuth2** 是「委托第三方授权」的框架：用户点“用微信/Google/飞书登录”，你的站点拿到一个 access token，但**不直接告诉你用户是谁**。
+- **OIDC** 是在 OAuth2 上加了一层身份（ID token / JWT），能回答“这是谁”。企业 SSO、Keycloak、Auth0 走这套。
+
+只有当你**不想自己存密码**、要复用外部 IdP 时才需要它们；现在自建账号最简单，也不用引入额外依赖。以后要接企业 SSO，只需在 `/dsh/authorize` 里加一个 OIDC 分支，DSH 侧仍然零改动。
+
+建议的首版账号形态：邮箱/手机号 + 验证码（或密码哈希用 argon2）、登录会话 cookie、可选 2FA；注册与找回密码都在中转站内完成。
 
 ---
 
@@ -304,9 +316,9 @@ pnpm package:desktop:mac:arm64:unsigned
 | **R1** | 主路径 RTL | 2 d | R0 | 首屏/会话/输入/工具卡正确 |
 | **R2** | 常用面板 RTL | 2 d | R1 | 设置/命令/工作区正确 |
 | **R3** | 低频页面 RTL | 1.5 d | R2 | 逐页验收 |
-| **D** | 打包分发：签名、公证、更新源 | 2 d | A/B/C | 干净机器安装可用 |
+| **D** | 分发三件套：macOS 签名/公证、Windows 安装包、自建更新源；关闭上游遥测 | 3–4 d | A/B/C | 干净机器安装、升级、卸载都正常 |
 
-我方关键路径 = M1 → A → L1/L2/L4 → R0→R1 → D，约 **12–14 个工作日**；R2/R3 可与 L3 并行。
+我方关键路径 = M1 → A → L1/L2/L4 → R0→R1 → D，约 **13–16 个工作日**；R2/R3 可与 L3 并行。
 
 ---
 
@@ -343,6 +355,7 @@ git switch main && git merge --ff-only sync/upstream-YYYYMMDD
 | RTL 遗漏内联样式/图标 | 局部错位 | 基础层统一逻辑化 + 分档清单 + 快照 |
 | 中转站协议偏差 | 登录失败难定位 | 严格按规范信封/路径/限制；先过 mock 一致性清单 |
 | token 只对 `inferenceOrigin` 生效 | 模型请求 401 | 中转站兼推理，或改用 API key 路由 |
+| 上游遥测默认开启 | 对外分发时的隐私合规风险 | 分发前禁用 `desktop-product-telemetry` / `product-analytics` 行，或改指自己的 OTLP 端点；在 NOTICE/隐私说明里写清 |
 | 公开仓库品牌残留 | 商标/背书误解 | 保留 NOTICE/MIT；发布前全局扫描 |
 | 仓库体积 ~308 MB | 首次 clone 慢 | 完整历史只留一份；`node_modules` 不入库 |
 
@@ -350,16 +363,6 @@ git switch main && git merge --ff-only sync/upstream-YYYYMMDD
 
 ## 10. 待确认
 
-1. **中转站是否兼推理入口**？是 → `inferenceOrigin` 指向它；否 → 模型改走 API key 路由。
-2. **登录方式**（OIDC / OAuth2 / 手机号 / 企业 SSO）？决定 `/dsh/authorize` 的实现和回调链路。
-3. **分发范围**：只自己用 / 团队 / 对外发布？对外需要签名、公证、更新源，工期 +2 天。
-
----
-
-## 11. 下一步（按顺序）
-
-1. 设置 git 身份（两条命令，见 §2.1）。
-2. 建公开仓库并推送：`gh repo create longge2023git/dsh-rebrand --public --source=. --remote=origin --push`。
-3. 打基线 tag：`git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2`，提交 `PLAN.md` / `custom/` / `tools/`。
-4. 起 L1：在 `custom/mock-relay/` 写 mock 中转站，按规范 §9 跑一致性清单。
-5. 起 A1/R0 可并行：品牌资产与 RTL 基础层互不依赖。
+1. **余额/充值入口**是否保留？不保留就让中转站返回空钱包、忽略 `/top_up`，账户面板只剩资料与登出。
+2. **注册/登录页的视觉与文案**由谁提供？品牌工作流会复用同一套 token 与字体。
+3. **Windows 是否首发**？对外分发建议 macOS + Windows 同步，Windows 需要代码签名证书（否则 SmartScreen 拦截）。
