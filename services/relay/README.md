@@ -153,3 +153,22 @@ npm test
 
 - 本目录代码随仓库使用 MIT。
 - New API 是 **AGPLv3**，以独立容器运行、不修改源码；不要把它的二进制与桌面安装包捆绑分发，否则会触发 AGPL 义务。
+
+## 故障排查
+
+### `DeepSeek Messages transport failed`
+
+这是 DSH 的传输层错误：请求没有拿到可用的 HTTP 响应，不是模型返回的业务错误。按顺序查：
+
+1. relay 是否在 `127.0.0.1:18082`（`curl :18082/healthz`）。
+2. NewAPI 是否在 `127.0.0.1:13000`（`docker compose ps`）。
+3. NewAPI 容器能否出网：如果宿主机代理只监听 `127.0.0.1`，容器会失败；用 `tools/host-proxy.mjs` 转发并把 `HTTP_PROXY/HTTPS_PROXY` 指向宿主 LAN IP。
+4. 渠道模型是否包含请求的 id（`deepseek-flash` / `deepseek-v4-pro`）。
+
+### 登录后一直显示「Waiting for sign in」
+
+浏览器 CSP 会检查表单 302 的目标；登录页必须允许 loopback 回调（`http://127.0.0.1:*`、`http://localhost:*`）。本实现已内置，改动 CSP 时不要删掉。
+
+### 换网络后容器出网失败
+
+宿主 LAN IP 变了，`.env` 里的 `HTTP_PROXY` 仍是旧地址。更新后 `docker compose up -d --force-recreate new-api`，并重启转发器。
