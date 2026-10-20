@@ -103,7 +103,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | Job | 内容 | Runner | 触发 |
 |---|---|---|---|
 | `ci-static` | `pnpm run typecheck` + `pnpm run lint` + `pnpm run test:docs` | ubuntu-latest | PR |
-| `ci-unit` | `pnpm run test`（可按包过滤） | ubuntu-latest | PR |
+| `ci-unit` | `pnpm run test`（可按包过滤）+ `cd services/relay && npm test` | ubuntu-latest | PR |
 | `ci-browser` | `pnpm run build:artifacts` + `test:web:built`（replay） | ubuntu-latest | PR（UI 相关路径） |
 | `ci-required` | 聚合上面三个，分支保护只要求这一个 | ubuntu-latest | PR |
 | `ci-package` | `macos-14` 未签名打包 + 启动冒烟 | macos-14 | 夜间/手动 |
@@ -165,7 +165,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | `.github/CODEOWNERS` | 核心路径人工评审 |
 | `tools/metrics.mjs` | 周报度量 |
 | `apps/web/tests/rtl/` | RTL 视觉回归 harness |
-| `custom/mock-relay/` | 协议一致性 mock + 测试脚本 |
+| `services/relay/` | 本地参考中转站（NewAPI + relay + 测试） |
 | `NOTICE` | 上游归属与修改声明 |
 
 ---

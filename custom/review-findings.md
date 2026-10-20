@@ -152,3 +152,15 @@
 9. Windows 是否首发？EV 证书 + 硬件 Token + 实体机成本是否接受？
 10. 最终品牌名/域名/appId（决定 userData、协议、更新缓存目录）。
 11. `dir` 是持久化设置还是开发开关？RTL 用英文界面验收可以吗？
+
+---
+
+## 6. 实施验证补充（2026-10-20）
+
+本地 relay + NewAPI 联调时新增三个事实：
+
+1. **NewAPI 原生 Messages 可用**：`POST /v1/messages`、SSE、Bearer 认证均正常；上游是 OpenAI 兼容渠道时由 NewAPI 做转换。
+2. **转换会重复 `message_start`**：DSH 的 `translate.ts` 把第二个 `message_start` 判为 malformed；relay 必须归一化（已验证：输出事件序列只剩一个）。
+3. **NewAPI `/models` 不能直接给 DSH**：缺少 `api_capabilities.anthropic_messages` 与 `client_requirements`，模型会被隐藏；由 relay 生成 DSH schema。
+
+这三条已写入规范 §13 与 [services/relay/README.md](../services/relay/README.md)。

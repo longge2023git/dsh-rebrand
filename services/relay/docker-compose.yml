@@ -1,0 +1,28 @@
+services:
+  new-api:
+    # Pinned so a local upgrade does not change the protocol underneath the relay.
+    image: calciumion/new-api:v0.10.9
+    container_name: dsh-newapi
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:13000:3000"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./data/new-api:/data
+
+  relay:
+    build: .
+    container_name: dsh-relay
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18082:18082"
+    env_file:
+      - .env
+    environment:
+      NEWAPI_BASE_URL: http://new-api:3000
+      DATA_DIR: /data
+    volumes:
+      - ./data/relay:/data
+    depends_on:
+      - new-api

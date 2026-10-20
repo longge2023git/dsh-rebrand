@@ -543,3 +543,25 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 - `x-client-locale` 为 `zh_CN` / `en_US`；授权页与错误页按此本地化。
 - 授权 URL 可能被客户端追加 `theme` 等参数，**忽略未知参数**，不要因此 400。
+
+---
+
+## 13. 本地参考实现（New API + relay）
+
+仓库内 `services/relay/` 是可直接运行的参考实现，用来验证本规范并作为生产中转站的对照。
+
+| 项 | 实现 |
+|---|---|
+| 账户协议 | relay 自己实现 8 个 API、PKCE、SQLite 存储 |
+| 推理 | 转发到 NewAPI 的 `POST /v1/messages`（Bearer `NEWAPI_KEY`） |
+| 模型目录 | relay 用 `MODELS` 生成 DSH schema；NewAPI 的 `/v1/models` 不直接暴露 |
+| Files | 返回 404，DSH 回退 inline |
+| 端口 | relay `127.0.0.1:18082`，NewAPI `127.0.0.1:13000` |
+
+实测注意：
+
+1. NewAPI 会把 OpenAI 流转成 Claude SSE，但会**重复发 `message_start`**；relay 已只保留第一个，否则 DSH 判 malformed。
+2. NewAPI 的模型列表缺少 `api_capabilities.anthropic_messages`/`client_requirements`，不能直接给 DSH 用。
+3. 上游是 OpenAI 兼容渠道时，NewAPI 负责协议转换；上游是 Anthropic 原生渠道时转换更少，但 relay 的归一化仍建议保留。
+
+完整启动步骤、环境变量与测试见 [services/relay/README.md](../services/relay/README.md)。

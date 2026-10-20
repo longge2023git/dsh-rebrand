@@ -20,7 +20,8 @@
 | **B 登录** | 协议兼容中转站（[规范](custom/login-relay-spec.md) v1.1） | **4–5 天**（不含中转站） |
 | **C RTL** | 共享转换器 + `dir` 运行时 + 几何层 + 分批验收 | **10–13 天** |
 | **D 分发** | 签名/公证、Windows、自建更新源、策略服务、关遥测 | **6–8 天 + 外部依赖** |
-| 合计 | 串行 | **约 5–6 周**（不含证书采购与中转站排期） |
+| **E 本地中转站** | NewAPI + relay 适配层（协议、SSE 归一化、`/models`） | **4–5 天** |
+| 合计 | 串行 | **约 6–7 周**（不含证书采购与上游 key 联调） |
 
 四个必须先接受的现实：
 
@@ -70,6 +71,7 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 3. 打包产物必须包含 `LICENSE` / `THIRD_PARTY_NOTICES`（当前 `files/extraResources` 没带，要补）。
 4. 公开仓库无秘密；`@deepseek-ai` scope 不可发布，只能二进制分发或换自己的 scope。
 5. 上游 git 历史可保留；MPL-2.0 的 libreoffice-kit 若改动需公开其修改。
+6. **测试期身份**：appId 用 `com.vv.test.dsh`，图标暂用当前 DSH 图标；这两项只在内部/测试分发使用，对外首版前必须换正式 appId 与自有图标（appId 之后不能再改）。
 
 ---
 
@@ -150,6 +152,30 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 | L3 | 真实中转站联调（登录 + 推理 + 模型目录） | 1 天 |
 | L4 | 登出/过期/取消/空钱包/内嵌页降级 | 1 天 |
 | L5 | 账号生命周期验收（TTL、多设备、吊销） | 1 天 |
+
+### 4.5 本地参考中转站（NewAPI + relay，4–5 天）
+
+已落地：`services/relay/`（Node 22，零依赖，代码进 git）+ Docker Compose 拉起 NewAPI。
+
+```
+DSH ──登录协议/推理──▶ relay :18082 ──Bearer NEWAPI_KEY──▶ NewAPI :13000 ──▶ 上游
+```
+
+| 组件 | 职责 |
+|---|---|
+| NewAPI | 渠道、模型映射、配额/计费、日志、管理台 |
+| relay | DSH 的 8 个账户 API、PKCE、token 签发/吊销、注册登录页、`/models` schema、推理代理、SSE 归一化 |
+
+实测发现（决定 relay 必须存在）：
+
+1. NewAPI 原生支持 `POST /v1/messages`，但认证是 `Authorization: Bearer`；DSH 发的是 `x-dsh-auth-token`，必须翻译。
+2. NewAPI 把 OpenAI 流转成 Claude 格式时会**重复发 `message_start`**，DSH 会判 malformed；relay 已做归一化（只保留第一个）。
+3. NewAPI 的 `/v1/models` 是 OpenAI 风格，缺少 `api_capabilities.anthropic_messages`，DSH 会隐藏这些模型；relay 用 `MODELS` 生成 DSH schema。
+4. `/v1/files` 未实现，返回 404，DSH 自动回退 inline 图片。
+
+环境：NewAPI 映射 `127.0.0.1:13000`（本机 3000 被 ssh 占用），relay `127.0.0.1:18082`。完整步骤见 [services/relay/README.md](services/relay/README.md)。
+
+> NewAPI 是 **AGPLv3**：独立容器运行、不修改源码；不要把它和桌面安装包捆绑分发。
 
 ---
 
@@ -243,6 +269,11 @@ pnpm package:desktop:mac:arm64:unsigned
 | L2 | 配置接线 | 0.5 d | L1 |
 | L3 | 真实中转站联调 | 1 d | L2 + 你的中转站 |
 | L4 | 边界与生命周期 | 1–2 d | L2 |
+| E1 | Compose + NewAPI 渠道/模型/key | 0.5 d | M0 |
+| E2 | relay 账户核心 + 页面 + SQLite | 1.5 d | E1 |
+| E3 | 推理代理 + SSE 归一化 + `/models` | 1 d | E2 |
+| E4 | 集成测试 + DSH 接线 | 1 d | E3 |
+| E5 | 文档/配置/CI | 0.5 d | E4 |
 | R0 | 转换器 + dir + 孤岛 + harness | 3 d | M0 |
 | R1 | 主路径 RTL | 3 d | R0 |
 | R2 | 常用面板 RTL | 3 d | R1 |
@@ -252,7 +283,7 @@ pnpm package:desktop:mac:arm64:unsigned
 | D3 | 更新源 + 强制更新策略 | 2 d | D1/D2 |
 | D4 | 遥测/许可证/发布流程 | 1 d | D1/D2 |
 
-关键路径：M1 → A → L1/L2/L4 → R0→R1 → D，约 **5–6 周**。R2/R3 与 D 可并行。
+关键路径：M1 → A → E → L2/L3 → R0→R1 → D，约 **6–7 周**。R2/R3 与 D 可并行。
 
 ---
 
@@ -283,7 +314,9 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | 风险 | 影响 | 对策 |
 |---|---|---|
 | 将来要托管 Web | 现有登录不可用 | 本期不发 Web；若要做另立方案 |
-| 中转站未实现 `/models` | 自建模型不可选 | 规范 §7.4；联调必测 |
+| 中转站未实现 `/models` | 自建模型不可选 | 规范 §7.4；relay 已实现 schema 转换 |
+| NewAPI 转换不符合 DSH 事件顺序 | 对话直接失败 | relay 已归一化重复 `message_start`；联调时抓 SSE 事件序列 |
+| NewAPI AGPL | 分发合规 | 独立容器、不修改、不捆绑；桌面包只连远程 relay |
 | inferenceOrigin 不一致 | token 发到官方 | 强制二者相等；启动自检 |
 | RTL 转换遗漏 | 局部错位 | 共享转换器 + RTL harness + 五屏验收 |
 | 签名依赖外部证书 | 发布延期 | 提前采购 Apple/Win 证书；先出未签名包 |
@@ -307,7 +340,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 
 ## 11. 下一步
 
-1. 你提供：**品牌名称 + Logo（SVG/1024 PNG）+ 域名 + appId**。其余字标/图标/favicon 由我们从 Logo 生成，字体沿用 Montserrat（OFL）。
-2. 你提供：**中转站测试地址**，我们按规范 §9 跑一致性清单（重点验 `/models` 字段与 SSE 事件顺序）。
-3. 你说「动」之后：建公开仓库并推 `main`、打 `base/0.2.1-rc.2`。
-4. 起 L1（mock 中转站，用于回归）与 R0（RTL 基础层），互不依赖；再按 [engineering-process.md](custom/engineering-process.md) 建 Issue/PR 模板与 `ci-public.yml`。
+1. 你提供：**品牌名称 + Logo（SVG/1024 PNG）**；域名和正式 appId 可以后补（测试期先用 `com.vv.test.dsh` + 现有图标）。
+2. 你提供：**上游 API key**，我们导入 NewAPI 渠道，跑通「DSH 登录 → 对话 → 工具调用」完整链路。
+3. 建公开仓库并推 `main`、打 `base/0.2.1-rc.2`（你说动就做）。
+4. E 的本地实现已就绪；下一步补 DSH UI 端到端（登录页 → 注册 → 对话）与 R0。

@@ -26,8 +26,8 @@
 |---|---|---|---|
 | A-01 | 对外分发**仅桌面安装包** | 已确认；登录走 loopback，无需为 Web 改核心 | 已确认 |
 | A-02 | 你提供**品牌名称 + Logo**（SVG 或 1024 PNG） | 字标由名称排版生成；图标/favicon 从 Logo 导出；字体沿用 Montserrat（OFL） | 部分确认（待文件） |
-| A-13 | 最终 appId 与域名 | 决定 userData、更新缓存、协议注册；首版发布后不可改 | **BLOCKING** |
-| A-14 | 图标/字标从你给的 Logo 派生，不复用上游鱼标与 "DeepSeek" 字标 | 对外分发的商标合规底线；字体可沿用 Montserrat（OFL） | 待确认 |
+| A-13 | 测试期 appId 用 `com.vv.test.dsh` | 只用于内部/测试分发；对外首版前换正式反向域名并冻结 | 已定（测试期） |
+| A-14 | 测试期图标暂用当前 DSH 图标；正式 Logo 到位后替换 | 对外分发前必须换自有图标，避免商标问题 | 已定（测试期） |
 | A-15 | appId 采用反向域名，如 `com.<品牌>.dsh` | 需你的域名；首版发布前冻结 | 建议 |
 
 > **appId 冻结是什么意思**：appId（macOS 的 Bundle Identifier / Windows 安装器的应用标识）是应用在操作系统和更新器里的“身份证”，不是界面上显示的名字。它决定：
@@ -68,6 +68,7 @@
 | B-01 | 注册 | Given 未注册手机/邮箱，When 在 `/dsh/authorize` 注册，Then 可完成注册并回到 DSH 登录成功 |
 | B-02 | 登录持久化 | Given 已登录，When 重启 DSH，Then 仍为登录态（token 未过期） |
 | B-03 | 过期重登 | Given token 失效，When 发消息，Then 提示重新登录，重登后恢复 |
+| B-10 | 本地参考实现 | Given `services/relay` 与 NewAPI，When 按 README 启动，Then E-01～E-05 通过 |
 | B-04 | 登出 | Given 已登录，When 点登出，Then 本地清除且中转站 token 失效 |
 | B-05 | 取消登录 | Given 登录页，When 取消/关闭，Then DSH 回到未登录态，不残留半登录 |
 | B-06 | 推理 | Given 已登录，When 发一条消息，Then 流式返回；工具调用正常 |
@@ -96,6 +97,17 @@
 | DIST-05 | 数据隔离 | 与官方 DSH 并存时，凭据/会话不互相覆盖 |
 | DIST-06 | 遥测 | 安装后抓包，无任何 DeepSeek collector 请求；隐私说明与实际一致 |
 | DIST-07 | 许可证 | 安装包内可找到 LICENSE 与 THIRD_PARTY_NOTICES |
+
+### 3.5 E 本地中转站
+
+| ID | 需求 | 验收 |
+|---|---|---|
+| E-01 | 一条命令拉起 NewAPI + relay | `docker compose up -d` 后 `:13000` 与 `:18082` 均可访问，`/healthz` 返回 `{"ok":true}` |
+| E-02 | 注册/登录闭环 | 在 `/dsh/authorize` 注册后回到 DSH，账户显示已登录 |
+| E-03 | 协议一致性 | 规范 §9 清单通过，含 PKCE、code 单次、40003/401、`/models` schema |
+| E-04 | 推理链路 | DSH 发消息 → relay → NewAPI → 上游，SSE 只有一次 `message_start`，文本正常渲染 |
+| E-05 | 登出/吊销 | 登出后旧 token 立即 401；重启 DSH 后仍保持登录（未过期时） |
+| E-06 | 代码入库 | `services/relay/`、Compose、测试、README、DSH patch 全部可复现 |
 
 ---
 

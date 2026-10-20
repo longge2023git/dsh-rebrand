@@ -1,0 +1,15 @@
+{
+  "name": "dsh-relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local reference relay implementing the DSH account/inference protocol on top of New API",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "scripts": {
+    "start": "node --no-warnings --env-file-if-exists=.env src/main.ts",
+    "dev": "node --no-warnings --env-file-if-exists=.env --watch src/main.ts",
+    "test": "node --no-warnings --test tests/*.test.ts"
+  }
+}
