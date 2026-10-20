@@ -172,3 +172,27 @@ npm test
 ### 换网络后容器出网失败
 
 宿主 LAN IP 变了，`.env` 里的 `HTTP_PROXY` 仍是旧地址。更新后 `docker compose up -d --force-recreate new-api`，并重启转发器。
+
+## 桌面端联调
+
+桌面壳不走 `--patch`，配置要写进 profile：
+
+```bash
+# 一次性：复制官方 desktop profile，并追加 relay 覆盖
+mkdir -p ~/.dsh-dev/profiles
+[ -d ~/.dsh-dev/profiles/desktop ] || cp -R ~/.dsh/profiles/desktop ~/.dsh-dev/profiles/desktop
+cat custom/profiles/local-relay.patch.yml >> ~/.dsh-dev/profiles/desktop/cordis.patch.yml
+
+# 启动 Electron 开发壳（首次会构建并下载 Electron）
+env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
+
+# 第二次起可跳过构建
+env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm start:desktop
+```
+
+注意：
+
+- **必须去掉 `ELECTRON_RUN_AS_NODE`**。当前 shell 里它被设成 `1`，Electron 会被当成 Node 启动，报 `bad option: --remote-debugging-port`。`env -u ELECTRON_RUN_AS_NODE` 就是为此。
+- 桌面 profile 由 Electron 管理，不能用 `dsh --profile desktop --dump-config` 检查（会报 “managed exclusively by the Electron application”）。
+- 宿主日志会打印实际 `DSH_HOME` 和 `dsh web: http://127.0.0.1:<port>/?token=...`；出现 `model listing ... loaded 2 model(s)` 说明已经连到 relay。
+- 桌面与 Web 共用 `~/.dsh-dev`，会话、账号登录态互通；测试时不要同时跑两个会互相抢 profile 的实例。
