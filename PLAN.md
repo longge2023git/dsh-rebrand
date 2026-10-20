@@ -1,30 +1,33 @@
-# DSH 二次开发规划 v3 —— 品牌 / 登录中转站 / RTL
+# DSH 二次开发规划 v4 —— 品牌 / 登录中转站 / RTL / 分发
 
 > 工作区：`/Users/longge/projects/ai/deepseek_rebuild`
 > 更新时间：2026-10-20
 > 上游：<https://github.com/deepseek-ai/deepseek-harness>（MIT）
-> 基线：`dsh-v0.2.1-rc.2`（commit `687f282e`，与在用的桌面版、npm latest 同源）
-> 远端：**公开**仓库 `longge2023git/dsh-rebrand`
+> 基线：`dsh-v0.2.1-rc.2`（commit `687f282e`）
+> 远端：公开仓库 `longge2023git/dsh-rebrand`
 >
-> **目标**：换品牌、换登录（自建中转站）、界面支持 RTL 布局；**不动 Agent 核心能力**；**暂不做阿拉伯语翻译**。
+> **目标**：换品牌、换登录（自建中转站）、RTL 布局、三档分发；不动 Agent 核心；暂不做阿语。
+> **依据**：本计划已通过 4 份独立评审，结论与修正见 [custom/review-findings.md](custom/review-findings.md)。
 
 ---
 
 ## 0. 结论摘要
 
-| 工作流 | 做法 | 改动面 | 预估 |
-|---|---|---|---|
-| 仓库 | 公开 `dsh-rebrand` + `origin`/`upstream` 双远程；MIT 保留 + NOTICE/Trademarks | 无代码 | 0.5 天 |
-| **A 品牌** | 品牌 client 插件替换 sidebar 插槽 + 主题 token；只改 ~6 个上游元数据文件 | 小、可控 | 3–4 天 |
-| **B 登录** | **协议兼容中转站**：中转站按 [规范](custom/login-relay-spec.md) 实现 11 个端点/页面，DSH 只改 `platformOrigin`/`inferenceOrigin` | 配置 + 1 个 mock | 2.5–3.5 天（不含中转站实现） |
-| **C RTL** | 基础层一次做（dir + 构建期逻辑化），再按使用频率 P0→P2 分批；不做阿语 | 2 个构建钩子 + 1 个小插件 + 分档修 | 7 天 |
-| 合计 | 单人串行 | — | **约 3 周** |
+| 工作流 | 做法 | 评审后工期 |
+|---|---|---|
+| 仓库 | 公开 `dsh-rebrand`，`origin`/`upstream` 双远程；merge 同步上游 | 0.5 天 |
+| **A 品牌** | 自有 client 插件占插槽 + 禁用官方行 + 改 ≥15 个触点 | **5–7 天** |
+| **B 登录** | 协议兼容中转站（[规范](custom/login-relay-spec.md) v1.1） | **4–5 天**（不含中转站） |
+| **C RTL** | 共享转换器 + `dir` 运行时 + 几何层 + 分批验收 | **10–13 天** |
+| **D 分发** | 签名/公证、Windows、自建更新源、策略服务、关遥测 | **6–8 天 + 外部依赖** |
+| 合计 | 串行 | **约 5–6 周**（不含证书采购与中转站排期） |
 
-三条关键判断：
+四个必须先接受的现实：
 
-1. **登录不需要改 DSH 代码**。`deepseek-account-platform` 的 `platformOrigin` / `inferenceOrigin` 本来就是配置项；中转站按规范实现后，客户端零改动。这是最省、最稳的换登录方式。
-2. **RTL 不要一把梭**。全仓 209 个 CSS 文件、约 367 处物理方向属性、30 处 `translateX`；但 60% 集中在 `ui-primitives`、`ui-trajectory`、`ui-dockkit`、`ui-workspace` 四个包。基础层一次做对，再按界面使用频率分三批。
-3. **品牌替换的上游改动可压到 6 个文件以内**。侧边栏品牌是插槽（`sidebar.brand.mark` / `sidebar.brand.name`），不是硬编码。
+1. **RTL 比原计划贵一倍**：CSS 走两条不同管线（静态包由 Vite 编译、动态插件由 lightningcss），lightningcss 也不做物理→逻辑的反向转换，必须自己写 visitor；另有 JS 几何层躲不掉。
+2. **品牌不是 6 个文件**：实测 ≥15 个触点，官方品牌插件还受 build profile 控制，单槽重复注册会直接抛错。
+3. **登录规范少了一整个 `/models` 契约**：不实现它，自建模型根本不出现在选择器里。
+4. **对外分发卡在四个外部依赖**：Apple 开发者账号、Windows EV 证书+硬件 Token、强制更新策略服务、更新源托管；生产更新源在代码里写死。
 
 ---
 
@@ -34,111 +37,88 @@
 
 | 项 | 结果 | 影响 |
 |---|---|---|
-| macOS arm64 / 15 核 / 48 GB / 527 GB 可用 | 充足 | 编译、Electron 打包无压力 |
-| Node 22.23.2 | ✅ 满足 `^22.19 \|\| >=24` | 不要升到 23/25 |
-| pnpm 11.28.5 | ✅ 已安装并锁定 | 与上游 `packageManager` 一致 |
+| macOS arm64 / 15 核 / 48 GB / 527 GB | 充足 | 编译、打包无压力 |
+| Node 22.23.2 / pnpm 11.28.5 | ✅ | 与上游一致 |
 | Xcode 26.6 + clang 21 | ✅ | 原生模块可编译 |
-| 全局 git 身份 | ❌ 仍未设置 | 建仓库前必须补 |
-| gh | ✅ `longge2023git`，含 `repo`/`workflow` | 可建公开仓库 |
-| 已装 App | 0.2.1-rc.2，asar，`channel: nightly` | 不要改 App 内部；夜间自动更新会覆盖 |
+| 全局 git 身份 | ❌ 未设置（已用仓库级身份提交） | 换机器前要补 |
+| gh | ✅ `longge2023git` | 可建公开仓库 |
+| 已装 App | 0.2.1-rc.2，nightly 自动更新 | 不要改 App 内部 |
 
-### 1.2 上游代码（决定方案的事实）
+### 1.2 代码事实（评审后）
 
-- **品牌**：`ui-sidebar/src/client/contract/slots.ts` 定义 `sidebar.brand.mark` / `sidebar.brand.name` 两个单占位插槽，`ui-brand-official` 只是内置占用者；`FishLogo`/`BrandWordmark` 仅作 fallback。
-- **登录**：`deepseek-account-platform` 实现 `DeepSeekAccount` 抽象服务，协议是 9 个 JSON 端点 + 2 个浏览器页面 + 1 个 loopback 回调；`platformOrigin` / `inferenceOrigin` 均可配置。
-- **Web 认证**：每个进程生成启动 token，`GET /?token=` 换 30 天签名 cookie（`dsh-auth-*`），未认证 401（已实测：无 token 401、带 token 303）。这是**实例级**准入，不是用户登录。
-- **请求钩子**：认证后的 HTTP 请求经过 `connection/request` waterfall，可拒绝或等待（桌面锁更新用它）。要加用户级校验，这是官方缝隙。
-- **模型凭据**：账户 token 走 `x-dsh-auth-token` 头（不是 Bearer）；API key 路由支持 `apiKeyEnv` + 自定义 `baseURL`。
-- **桌面登录范式**：`apps/desktop/src/policy-test-auth.ts` 用隔离 session、origin 白名单、独立窗口做登录，可复用其模式（但不要复用它的 session）。
-- **RTL 现状**：全仓仅 2 处 `rtl` 字样（均在文档预览测试）；`<html>` 只写 `lang` 不写 `dir`；`locale` 只内置 `zh`/`en`。
+- **品牌**：`sidebar.brand.mark/name` 是单占位插槽，同优先级重复注册直接 throw（`ui-slots/src/index.ts:1222`）；官方占用者只在 `DSH_CLIENT_BUILD_PROFILE === 'official'` 时注册；fallback 仍是鱼标。
+- **登录**：8 个 JSON API + 4 个浏览器页面 + `/models`；`platformOrigin`/`inferenceOrigin` 可配置；回调只接受 loopback；token 无 refresh。
+- **Web 认证**：进程级启动 token → 30 天签名 cookie；这是实例准入，不是用户登录。
+- **RTL**：CSS 管线分叉；全仓无 `dir`、无 `direction:ltr`、无 bidi 隔离；`translateX` 30 处。
+- **分发**：签名构建强制要求强制更新策略服务；生产更新源写死 `download.deepseek.com`；上传器仅 COS；遥测默认开启。
 
 ---
 
 ## 2. 公开仓库与合规
 
-### 2.1 初始化
-
 ```bash
-cd /Users/longge/projects/ai/deepseek_rebuild
 git config --global user.name  "longge"
 git config --global user.email "longge2023git@users.noreply.github.com"
-
-# gh 会创建 origin 远程并推送当前 main；不要再手动 git remote add origin
 gh repo create longge2023git/dsh-rebrand --public --source=. --remote=origin --push
-git push -u origin main
+git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 ```
 
-仓库已经初始化好（`main` = `687f282e`，`upstream` 已配置，依赖已装），只差建远端并推送。也可用 [tools/bootstrap.sh](tools/bootstrap.sh) 在别的机器复现。
+必做项：
 
-### 2.2 公开仓库的四个必做项
-
-1. **保留 MIT 与版权**：`LICENSE` 原文不动；新增 `NOTICE`，写清「基于 DeepSeek Harness（tag/commit）修改」。
-2. **改名**：上游 [BRAND_GUIDELINES.md](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.md) 要求项目名不要直接用 "DeepSeek Harness" 商标；可用 "built on DeepSeek Harness" 描述关系。
-3. **清理品牌残留**：logo、字标、引导页、关于面板、欢迎页全部换掉，避免「官方背书」误解。
-4. **无秘密**：公开仓库不放 `.env`、token、证书；`~/.dsh/.credentials.yaml` 永不入库；签名密钥只进 Secrets。
+1. 保留 MIT `LICENSE`；新增 `NOTICE`（上游 tag/commit、修改范围）。
+2. 项目名不用 "DeepSeek Harness" 全名；用自有名 + "built on DeepSeek Harness"。
+3. 打包产物必须包含 `LICENSE` / `THIRD_PARTY_NOTICES`（当前 `files/extraResources` 没带，要补）。
+4. 公开仓库无秘密；`@deepseek-ai` scope 不可发布，只能二进制分发或换自己的 scope。
+5. 上游 git 历史可保留；MPL-2.0 的 libreoffice-kit 若改动需公开其修改。
 
 ---
 
-## 3. 工作流 A：品牌替换
+## 3. 工作流 A：品牌（5–7 天）
 
-### 3.1 触点清单
+### 3.1 触点（≥15）
 
-| 表面 | 位置 | 改法 | 成本 |
-|---|---|---|---|
-| Web 文档标题 | `apps/web/index.html` + `apps/web/vite.config.ts`（`DSH_CLIENT_TITLE`）+ `ui-layout/src/client/AppFrame.tsx:233` | 构建期注入同名变量，两处一致 | 低 |
-| Web favicon / PWA | `apps/web/public/favicon*.svg`、`manifest.webmanifest` | 替换文件 | 低 |
-| 侧边栏标识 | `ui-sidebar` 两个插槽 | **新 client 插件**占用，不改上游 | 低 |
-| 内置字标/鱼标 | `ui-primitives/src/{BrandWordmark,FishLogo}.tsx` | 仅 fallback | — |
-| 品牌字体 | `ui-theme/src/styles/brand-font.css` + Montserrat woff2/OFL | 换自有字体并保留许可 | 低 |
-| 桌面产品名/包名 | `apps/desktop/scripts/electron-builder-config.mjs`（`productName`、`artifactName`、appId 来自 `DSH_DESKTOP_APP_ID`） | 改常量 + `.env.macos` | 低 |
-| 桌面图标 | `apps/desktop/resources/icon-macos.png`、`icon-windows.png`、`tray-windows.ico` | 1024 源图重新导出 | 低 |
-| 应用菜单/关于 | `apps/desktop/src/locale.ts`（aboutMenu/aboutProduct/quitTitle…）+ `main.ts` 的 `applicationName` | 改文案表 | 低 |
-| 桌面欢迎页 | `apps/desktop/renderer/welcome.html` + `welcome-brand.svg` | 换 SVG/文案 | 低 |
-| 首次引导 | `ui-settings-account/src/client/OnboardingWelcomeStep.tsx` + `assets/*.webp` + `locales/onboarding.ts` | 换图 + 文案；或用自有欢迎插件禁用内置引导 | 中 |
-| 侧栏「本地构建」徽标 | `ui-sidebar/src/client/SidebarRoot.tsx` + `brand.localBuild` | 换文案/隐藏 | 低 |
-| 模型名标签 | `ui-deepseek-model-label-1017` | 禁用或替换 | 低 |
-| 更新源/渠道 | `apps/desktop/.env.macos`、`app-update.yml` | 指向自己的发布源 | 中 |
+| 类别 | 位置 |
+|---|---|
+| 应用名/包名 | `electron-builder-config.mjs:116-118`、`DSH_DESKTOP_APP_ID`、`manifest.webmanifest:2` |
+| 桌面菜单/关于 | `apps/desktop/src/locale.ts:34-133`（中英）、`main.ts:935` |
+| CLI | `apps/cli/src/args.ts:156`、`apps/cli/README*` |
+| Web 标题 | `DSH_CLIENT_TITLE`（`scripts/client-build-environment.ts:20`）+ `ui-layout/AppFrame.tsx:233` |
+| 侧栏品牌 | 插槽 + fallback（`SidebarRoot.tsx:189,225`） |
+| 引导/欢迎 | `ui-settings-account/.../OnboardingWelcomeStep.tsx` + `assets/*.webp` + `locales/onboarding.ts` |
+| 其他文案 | `ui-settings-models`、`ui-plugin-manager`、`ui-sidebar-documentpreview` 的 locales、`locale/src/locales/en.ts:36` |
+| 模型标签 | `ui-deepseek-model-label-1017` |
+| 字体 | `ui-theme/src/styles/brand-font.css` + OFL 许可 |
+| 图标 | `apps/desktop/resources/icon-*.png`、`tray-windows.ico`、`apps/web/public/favicon*` |
+| 测试断言 | `built-boot.expected.e2e.ts:64-78`、`assembled-boot.ts:230`、欢迎页 Montserrat 断言 |
 
-### 3.2 推荐结构
+### 3.2 实现方式
 
-```
-packages/ext/brand-<you>/
-├── package.json          # dsh.bundle.patch + engines.dsh
-├── cordis.patch.yml      # 替换 sidebar.brand.mark / sidebar.brand.name
-└── src/client/
-    ├── BrandMark.tsx     # 你的 logo（SVG）
-    ├── BrandName.tsx     # 你的字标
-    └── index.ts          # 注册插槽 + 主题 token 覆盖
-```
-
-- 插槽替换是**运行时**的，不碰上游文件，升级零冲突。
-- 颜色/圆角/字体走 `ui-theme` 的 `--dsw-*` token（第三方主题可通过 `ctx.theme` 注册 alias 覆盖）。
-- 文案必须进 locale 字典（`verify-client-ui-i18n` 拒绝硬编码），不能写在组件里。
+1. 新建 `packages/ext/brand-<you>/`：`package.json`（`dsh.client` + `dsh.bundle.patch`）、`cordis.patch.yml`、`src/client/index.tsx`、`locales/{zh,en}.ts`。
+2. 在 `packages/bundle/web-app/cordis.patch.yml` **禁用** `ui-brand-official` 行，插入自有行。
+3. 改 fallback（鱼标→自有标），否则插件失效时静默显示官方 logo。
+4. 标题改 `DSH_CLIENT_TITLE` 常量；注意 `vite.config.ts` 只替换字面量 `<title>`，两处要同步。
+5. 引导页：优先「禁用内置引导 + 自有欢迎插件」，避免 fork `ui-settings-account`。
+6. 同步修改写死官方品牌/字体的测试。
 
 ### 3.3 验收
 
-```bash
-grep -rn "DeepSeek Harness\|DeepSeek AI" --include=*.ts --include=*.tsx --include=*.json \
-  --include=*.html --include=*.css packages apps | grep -v -E "LICENSE|NOTICE|docs/"
-```
-
-预期仅剩许可证、NOTICE、出处说明。再加「干净机器首启」截图：欢迎页、侧边栏、关于面板、安装包名、Dock 图标、窗口标题。
+- 全局扫描除 LICENSE/NOTICE/出处外无官方品牌；
+- 首启五屏截图：欢迎、侧栏、会话、输入、关于；
+- 插件卸载后不残留、不抛单槽冲突。
 
 ---
 
-## 4. 工作流 B：登录（协议中转站）
+## 4. 工作流 B：登录中转站（4–5 天，不含中转站实现）
 
-### 4.1 路线
+### 4.1 协议范围（v1.1）
 
-**不改 DSH 账户代码**，而是让中转站实现与官方 `deepseek-account-platform` 相同的协议，DSH 只改两个配置项。完整规范见 **[custom/login-relay-spec.md](custom/login-relay-spec.md)**（9 个 API 端点 + 2 个浏览器页面 + loopback 回调 + 信封/错误/限制/测试清单）。
+- **8 个 JSON API**：`auth_init`、`auth_exchange`、`auth_cancel`、`users/current`、`get_user_summary`、`get_unnotified_bonuses`、`ack_bonus_notified`、`logout`
+- **4 个浏览器页面**：`/dsh/authorize`、`/dsh/authorized`、`/usage`、`/top_up`
+- **1 个模型目录**：`GET {origin}/models`（缺了自建模型不可选）
+- 信封 `{code:0,data:{biz_code,biz_data}}`；顶层 `40003` 或 HTTP 401 = 过期；`biz_code=40003` 不会登出。
+- token 无 refresh；过期重登；`inferenceOrigin` 必须等于 `platformOrigin`，否则 token 会发到官方。
 
-```
-DSH ──auth_init──▶ 中转站 ──▶ 注册/登录页（手机/邮箱）──▶ 302 回 127.0.0.1/oauth/callback
-    ──auth_exchange(code, verifier)──▶ token
-    ──模型请求 x-dsh-auth-token──▶ 中转站网关
-```
-
-配置（profile 的 `cordis.patch.yml`）：
+### 4.2 配置
 
 ```yaml
 - id: deepseek-account
@@ -146,7 +126,7 @@ DSH ──auth_init──▶ 中转站 ──▶ 注册/登录页（手机/邮�
   config:
     platformOrigin: https://relay.example.com
     inferenceOrigin: https://relay.example.com
-    # 补丁整体替换 config：base 层的 desktopPlatform 必须复述，否则桌面端头信息错误
+    # 补丁整体替换 config：必须复述 base 层的 desktopPlatform
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
 
 - id: llm-deepseek-account
@@ -154,110 +134,64 @@ DSH ──auth_init──▶ 中转站 ──▶ 注册/登录页（手机/邮�
     baseURL: https://relay.example.com/v1
 ```
 
-### 4.2 分工与阶段
+### 4.3 托管 Web 的限制（BLOCKING）
 
-| 阶段 | 谁做 | 内容 | 工期 |
-|---|---|---|---|
-| **L0 规范** | 已完成 | 从端上实现反推出协议，写成可交付规范 | ✅ |
-| **L1 Mock** | 我们 | 用 Node/Hono 写本地 mock，跑通规范 §9 一致性清单；验证 DSH 登录全链路 | 1 天 |
-| **L2 配置接线** | 我们 | profile 覆盖 `platformOrigin`/`inferenceOrigin`；桌面/Web 两形态验证 | 0.5 天 |
-| **L3 真实中转站** | 你（+我们联调） | 手机号/邮箱注册、登录页、token 签发、推理网关 | 你的排期 |
-| **L4 边界** | 我们 | 登出吊销、token 过期、取消登录、引导页、空钱包显示 | 1 天 |
+`loginOrigin` 只接受 loopback HTTP。**域名托管的 Web 无法发起这套登录**；对外 Web 只能：
 
-我方总计 **2.5–3.5 天**（不含中转站实现）。
+- 改核心放宽回调（成本高、升级冲突），或
+- 网关登录 + `connection/request` 守卫（DSH 侧仍走自己的 token/cookie，另加一层）。
 
-### 4.3 关键约定（详见规范）
+桌面安装包不受影响。
 
-- 响应信封固定 `{"code":0,"data":{"biz_code":0,"biz_data":...}}`；`401` 或 `40003` = token 过期。
-- 响应体 ≤ 64 KB；API 端点**禁止 3xx**；单请求 30 s 超时。
-- 授权页路径必须是 `/dsh/authorize`，完成页 `/dsh/authorized`，且与 `platformOrigin` 同源。
-- token 必须是可打印 ASCII；生产不要以 `dsh_mock_` 开头。
-- 推理头是 `x-dsh-auth-token`，不是 `Authorization: Bearer`。
-- 用户对象 `email` 必填（可占位）；钱包/赠送金可返回空数组。
+### 4.4 阶段
 
-### 4.4 风险与对策
-
-| 风险 | 对策 |
-|---|---|
-| 推理协议不兼容 | 中转站必须实现 Messages 风格 SSE（`message_start` → `content_block_*` → `message_delta` → `message_stop`），不是 OpenAI Chat Completions；规范 §7 有完整事件契约 |
-| 首版不做 Files API | 图片上传失败会回退 inline base64（有大小上限）；建议二期补 `/v1/files` |
-| 钱包/充值页缺失 | 返回空数组 + 简单说明页，避免 UI 404 |
-| 官方协议随版本变动 | 规范基于 `0.2.1-rc.2`；升级时用 `git diff` 看 `deepseek-account-platform` 的协议文件 |
-| 回调只支持 loopback | 远端/容器场景必须让浏览器能访问客户端所在机器的 loopback（SSH 转发即可） |
-| 登录态不进业务层 | 若将来要按用户分会话/额度，再评估自建 `DeepSeekAccount`（成本 7–10 天） |
-
-### 4.5 登录方式：为什么现在不需要 OIDC/OAuth2
-
-你的中转站**自己存账号**（手机号/邮箱注册），登录页就是 `/dsh/authorize`，验证通过后 302 回 DSH 的 loopback 回调并带上 code。DSH 只认「code → token」这一步，不关心你是密码、短信验证码还是扫码。
-
-- **OAuth2** 是「委托第三方授权」的框架：用户点“用微信/Google/飞书登录”，你的站点拿到一个 access token，但**不直接告诉你用户是谁**。
-- **OIDC** 是在 OAuth2 上加了一层身份（ID token / JWT），能回答“这是谁”。企业 SSO、Keycloak、Auth0 走这套。
-
-只有当你**不想自己存密码**、要复用外部 IdP 时才需要它们；现在自建账号最简单，也不用引入额外依赖。以后要接企业 SSO，只需在 `/dsh/authorize` 里加一个 OIDC 分支，DSH 侧仍然零改动。
-
-建议的首版账号形态：邮箱/手机号 + 验证码（或密码哈希用 argon2）、登录会话 cookie、可选 2FA；注册与找回密码都在中转站内完成。
+| 阶段 | 内容 | 工期 |
+|---|---|---|
+| L1 | Mock 中转站 + 规范一致性脚本（含 `/models`、40003 负例） | 1.5 天 |
+| L2 | DSH 配置接线（桌面/本机 Web） | 0.5 天 |
+| L3 | 真实中转站联调（登录 + 推理 + 模型目录） | 1 天 |
+| L4 | 登出/过期/取消/空钱包/内嵌页降级 | 1 天 |
+| L5 | 账号生命周期验收（TTL、多设备、吊销） | 1 天 |
 
 ---
 
-## 5. 工作流 C：RTL（分批，不做阿语）
+## 5. 工作流 C：RTL（10–13 天）
 
-### 5.1 现状量化（实测）
+### 5.1 关键修正
 
-| 指标 | 数量 |
+| 原方案 | 修正 |
 |---|---|
-| CSS 文件 / CSS Modules | 209 / 199 |
-| 物理方向属性（`margin-left` 等） | ≈367 |
-| 逻辑方向属性 | ≈20 |
-| `translateX` | 30 |
-| TS/TSX 中方向性写法 | ≈300 |
-| 现有 RTL 支持 | 仅 2 处测试 |
+| 在 `tsdown.client.ts` 一处转换 | 共享转换器：`dsh-css-asset` emit 处 + 3 个动态 hook + `apps/web` Vite 插件 |
+| 依赖 lightningcss 自动转换 | 自己写 visitor；**不设 targets**；成对处理 left/right 与四值简写 |
+| 只做 CSS | 另做 `dir` 运行时、LTR 孤岛、JS 几何层 |
+| 7 天 | 10–13 天 |
 
-集中在少数包：
+### 5.2 批次
 
-| 包 | 物理属性 | translateX | 使用频率 |
-|---|---:|---:|---|
-| `ui-primitives` | 96 | 23 | **每次会话**（按钮/菜单/提示/输入） |
-| `ui-trajectory` | 64 | 3 | 低（轨迹视图） |
-| `ui-dockkit` | 48 | 0 | 中（面板停靠） |
-| `ui-workspace` | 35 | 2 | 中高（工作区/文件树） |
-| `ui-chat` | 27 | 2 | **每次会话**（输入框/消息） |
-| `ui-conversation` | 23 | 0 | **每次会话**（会话流） |
-| `ui-schedule` | 20 | 0 | 低 |
-| `ui-sidebar` | 10 | 3 | **每次会话** |
-| `ui-tool` | 9 | 0 | 高（工具卡） |
-| `ui-layout` | 8 | 1 | **每次会话**（框架） |
-| `ui-attachment` | 8 | 2 | 高 |
+| 批次 | 范围 | 工期 |
+|---|---|---|
+| **R0 基础** | 共享转换器 + `dir` 插件/设置/首屏预注入 + LTR 孤岛 + Chromium RTL harness + 几何层清单 | 3 天 |
+| **R1 主路径** | primitives、layout、sidebar（含 files/terminal）、conversation、chat（含 TurnNavigator）、tool、input-trigger、attachment、user-questions、**dockkit**、**workspace** | 3 天 |
+| **R2 常用面板** | 全部 settings、commands、model-selection、plan/goal/jobs、sidebar-right | 3 天 |
+| **R3 低频** | trajectory、schedule、subagent、workflow、plugin market、feedback、deliverables、skill、sidebar-browser | 2 天 |
+| **R4 不做** | experimental、voice、translation、browser/computer-use、inspector | — |
 
-`ui-primitives` 是杠杆点：修它，所有层级同时受益。
+`ui-primitives` 是杠杆点；`ui-dockkit`/`ui-workspace` 每次会话可见，从 R2 提到 R1。
 
-### 5.2 分层交付（按使用频率）
+### 5.3 几何层（构建期无解）
 
-| 批次 | 范围 | 内容 | 工期 |
-|---|---|---|---|
-| **R0 基础** | 全局 | `dir` 运行时插件（Auto/LTR/RTL 设置）+ 构建期物理→逻辑属性（`tsdown.client.ts` + `apps/web` Vite）+ 代码/终端/路径/URL 的 LTR 孤岛 + RTL 快照基线 | 1.5 天 |
-| **R1 主路径** | `ui-primitives`、`ui-layout`、`ui-sidebar`(含 files/terminal)、`ui-conversation`、`ui-chat`、`ui-tool`、`ui-input-trigger`、`ui-attachment`、`ui-user-questions` | 每次会话必经：框架、侧栏、消息流、输入框、工具卡、弹窗/菜单/Tooltip | 2 天 |
-| **R2 常用面板** | `ui-settings*`（general/models/account/shell/agent-loop/subagent/web-search/plugin-inventory）、`ui-commands`、`ui-model-selection`、`ui-workspace`、`ui-dockkit`、`ui-plan`、`ui-goal`、`ui-jobs` | 设置全页、命令面板、模型选择、工作区、面板停靠 | 2 天 |
-| **R3 低频** | `ui-trajectory`、`ui-schedule`、`ui-subagent`、`ui-workflow-run`、`ui-deliverables`、`ui-plugin-manager`/`market`、`ui-message-feedback`、`ui-skill`、`ui-sidebar-browser` | 逐页过一遍，允许非阻塞瑕疵 | 1.5 天 |
-| **R4 不做** | `packages/experimental/*`、voice、translation、browser-use、computer-use、inspector | 按需再说 | — |
+- `ui-layout/AppFrame.tsx:226-231/301/303`：侧栏/右栏拖拽的 `+dx/-dx` 与内联 `left`；
+- `ui-dockkit/TabPanel.tsx:133-134,195-196`：`scrollLeft`、`rect.left/right` 假设 LTR 原点；
+- `ui-primitives/Tooltip.tsx:111-118,163`：`r.right` 物理定位；
+- `ui-sidebar-right/.../SidebarRight.module.css:55`：`translateX` 出屏。
 
-合计 **7 天**。R1 完成即可对外演示；R2/R3 可增量发布。
+按计算出的 `direction` 取符号，不靠 CSS 镜像。
 
-### 5.3 为什么这样排
+### 5.4 验收
 
-- **使用频率**：`layout/sidebar/conversation/chat/primitives/tool` 每次会话都出现，错位最刺眼；settings 偶尔进；trajectory/schedule 只有特定功能才打开。
-- **杠杆率**：`ui-primitives` 96 处物理属性 + 23 处 `translateX`，修一次全站受益，必须排在第一批。
-- **风险控制**：基础层（R0）先做，避免每个批次重复处理方向属性；之后每批只处理图标、坐标、孤岛等真正需要人工判断的部分。
-
-### 5.4 明确不做
-
-- 不做 `ar` 语言包、不做阿语文案翻译；只提供 `dir` 方向能力与设置开关。
-- 不手改 209 个 CSS 文件：用构建期转换，避免与上游每次 UI 迭代冲突。
-
-### 5.5 验收
-
-- `dir=rtl` 下跑关键页面矩阵：首屏、会话流、输入、工具卡、设置、命令面板、终端、文档预览、弹窗/菜单/Tooltip；
-- 检查：无横向溢出、无文字截断、图标方向正确、代码块/终端仍 LTR、滚动条与拖拽手柄在正确一侧；
-- 现有 Web 快照测试加 RTL 变体，防回归。
+- Chromium RTL harness：`dir=rtl` + 截图 + `scrollWidth <= clientWidth` + 关键区 `rect` + `computed direction`；
+- 五屏人工验收：首屏/会话/输入/工具卡/设置；
+- 代码块、终端、路径、URL 仍 LTR。
 
 ---
 
@@ -266,7 +200,7 @@ DSH ──auth_init──▶ 中转站 ──▶ 注册/登录页（手机/邮�
 ```bash
 pnpm install --frozen-lockfile
 pnpm run typecheck
-pnpm run build              # artifacts + check（必须先跑，再单独 build:web）
+pnpm run build              # 先 artifacts，再单独 build:web
 
 pnpm dev:web                # HMR，3080
 DSH_HOME=~/.dsh-dev pnpm dsh web --no-open
@@ -274,95 +208,108 @@ pnpm dev:desktop
 pnpm package:desktop:mac:arm64:unsigned
 ```
 
-- **构建顺序**：`pnpm run build:web` 单独跑会失败，因为前端依赖工作区里尚未构建的 `dsh-experimental-webworker-runtime`。
-- `pnpm-workspace.yaml` 的 `allowBuilds` 是白名单：新增带 install 脚本的依赖必须显式加。
-- `NODE_OPTIONS` 不能含 `--no-experimental-strip-types`。
-- 开发实例用 `DSH_HOME=~/.dsh-dev`：session 格式 v4 迁移单向。
-- 自有脚本放 `tools/`，不要放上游的 `scripts/`。
+- `build:web` 单独跑会失败，依赖 `build:artifacts`。
+- 自有脚本放 `tools/`，不放上游 `scripts/`。
+- 品牌版桌面注入独立 `DSH_HOME`，避免与官方 App 共用 `~/.dsh`。
+- 开发实例用 `~/.dsh-dev`：session 格式迁移单向。
 
-### 6.1 本仓库必须遵守的约定（AGENTS.md）
+### 6.1 仓库约定（AGENTS.md）
 
-- **文案走 locale 字典**，`verify-client-ui-i18n` 拒绝硬编码。
-- **颜色/圆角/字体只用 `--dsw-*` token**。
-- **注册即 effect**：`ctx.effect()` / `ctx.on()`，卸载时回收。
-- 开发用 `build:artifacts`，交付前 `build:check`；`typecheck` + `lint` 是基础门禁。
-- 改到外部可感知面时补 upgrade guide；文件末尾恰一个换行。
+- 文案走 locale 字典（`verify-client-ui-i18n` 会拦硬编码）；
+- 颜色/圆角/字体只用 `--dsw-*` token；
+- 注册即 effect，卸载可回收；
+- 交付前 `build:check`；
+- 改外部可感知面补 upgrade guide。
 
-### 6.2 本次已实测（M0 完成）
+### 6.2 已实测
 
 | 步骤 | 结果 |
 |---|---|
-| `pnpm install --frozen-lockfile` | ✅ 1402 包 / 2m06s |
-| `pnpm run typecheck` | ✅ 5 gate / 60s |
-| `pnpm run build` | ✅ 9 gate / 14s |
-| `DSH_HOME=~/.dsh-dev pnpm dsh web` | ✅ 3080 起服；无 token 401、带 token 303 |
-| `pnpm run build:web` 单独 | ❌ 依赖 artifacts，已记录 |
+| install | ✅ 1402 包 / 2m06s |
+| typecheck | ✅ 5 gate / 60s |
+| build | ✅ 9 gate / 14s |
+| dev web | ✅ 3080；无 token 401、带 token 303 |
 
 ---
 
-## 7. 里程碑与排期
+## 7. 里程碑（约 5–6 周）
 
-| 阶段 | 内容 | 工期 | 依赖 | 验收 |
-|---|---|---|---|---|
-| **M0** | 工具链、基线、install、typecheck、build、冒烟 | ✅ 完成 | — | 已实测 |
-| **M1** | 建 `dsh-rebrand` 公开仓库、推 `main`、打 `base/0.2.1-rc.2` | 0.5 d | M0 | 仓库可访问 |
-| **A1** | 品牌资产：名称、图标、标题、关于面板、欢迎页 | 2 d | M1 | 首启无 DeepSeek 标识 |
-| **A2** | 品牌插件：侧栏插槽 + 主题 token + 引导替换 | 1–2 d | A1 | 侧栏/设置显示自有品牌 |
-| **L1** | Mock 中转站 + 一致性清单 | 1 d | M0 | 规范 1–8 全过 |
-| **L2** | DSH 配置接线（桌面/Web） | 0.5 d | L1 | 登录全链路走 mock |
-| **L3** | 真实中转站联调 | 你的排期 | L2 | 登录 + 推理都通 |
-| **L4** | 登出/过期/取消/引导/空钱包 | 1 d | L2 | 边界用例通过 |
-| **R0** | RTL 基础层 + 快照 | 1.5 d | M0 | `dir=rtl` 可切换 |
-| **R1** | 主路径 RTL | 2 d | R0 | 首屏/会话/输入/工具卡正确 |
-| **R2** | 常用面板 RTL | 2 d | R1 | 设置/命令/工作区正确 |
-| **R3** | 低频页面 RTL | 1.5 d | R2 | 逐页验收 |
-| **D** | 分发三件套：macOS 签名/公证、Windows 安装包、自建更新源；关闭上游遥测 | 3–4 d | A/B/C | 干净机器安装、升级、卸载都正常 |
+| 阶段 | 内容 | 工期 | 依赖 |
+|---|---|---|---|
+| M0 | 基线/工具链/冒烟 | ✅ | — |
+| M1 | 公开仓库 + base tag + 轻量 CI | 0.5 d | M0 |
+| A1 | 品牌资产与标题/图标/关于面板 | 2–3 d | M1 |
+| A2 | 品牌插件 + 禁用官方行 + fallback | 2–3 d | A1 |
+| A3 | 测试/字体/残留清理 | 1 d | A2 |
+| L1 | Mock 中转站 + 一致性脚本 | 1.5 d | M0 |
+| L2 | 配置接线 | 0.5 d | L1 |
+| L3 | 真实中转站联调 | 1 d | L2 + 你的中转站 |
+| L4 | 边界与生命周期 | 1–2 d | L2 |
+| R0 | 转换器 + dir + 孤岛 + harness | 3 d | M0 |
+| R1 | 主路径 RTL | 3 d | R0 |
+| R2 | 常用面板 RTL | 3 d | R1 |
+| R3 | 低频页面 RTL | 2 d | R2 |
+| D1 | macOS 签名/公证 | 2 d | A |
+| D2 | Windows 安装包/签名 | 2–3 d | A |
+| D3 | 更新源 + 强制更新策略 | 2 d | D1/D2 |
+| D4 | 遥测/许可证/发布流程 | 1 d | D1/D2 |
 
-我方关键路径 = M1 → A → L1/L2/L4 → R0→R1 → D，约 **13–16 个工作日**；R2/R3 可与 L3 并行。
+关键路径：M1 → A → L1/L2/L4 → R0→R1 → D，约 **5–6 周**。R2/R3 与 D 可并行。
 
 ---
 
-## 8. 上游跟随与冲突控制
+## 8. 上游同步（公开仓库不重写 main）
 
-自有改动收敛到四类：
-
-1. 新包：`packages/ext/*`（品牌、RTL、登录守卫）——零冲突；
-2. 元数据：`apps/web/index.html`、`apps/web/public/*`、`apps/desktop/resources/*`、`electron-builder-config.mjs`、`apps/desktop/src/locale.ts`——低冲突；
-3. 构建钩子：`apps/web/vite.config.ts`、`packages/client/tsdown.client.ts`——中低冲突，≤30 行；
-4. 桌面登录模块（若做外壳门禁）——新增文件 + `main.ts` 一处接线。
-
-升级 SOP：
+```
+upstream：只做上游 tag 的 fast-forward 镜像
+main：merge 引入 upstream，绝不 force-push
+work/*：从 main 切出，按需 rebase 到 main
+```
 
 ```bash
 git fetch upstream --tags
-git switch -c sync/upstream-YYYYMMDD main
-git rebase --onto <新tag> base/<旧tag>
-pnpm install --frozen-lockfile && pnpm run typecheck && pnpm run build
-git tag -a base/<新tag> -m "upstream baseline"
-git switch main && git merge --ff-only sync/upstream-YYYYMMDD
+git switch -c sync/upstream-<tag> main
+git merge --no-ff <tag>
+# 解冲突、跑门禁
+git switch main && git merge --no-ff sync/upstream-<tag>
 ```
 
-原则：不 merge upstream；自有提交保持「基线之上的一小摞」；升级与业务改动分段提交。
+- 自有改动集中在 `packages/ext/*`、`custom/`、≤30 行/文件的补丁。
+- 发布 tag 不可变；回滚用 `revert` 或回到上一个 `milestone/*`。
+- 每周一次；升级后重跑品牌扫描、登录冒烟、RTL 五屏。
 
 ---
 
-## 9. 风险与对策
+## 9. 风险
 
 | 风险 | 影响 | 对策 |
 |---|---|---|
-| 上游预发布 API 频繁破坏 | 插件/配置失效 | 插件优先、`engines.dsh` 限范围、升级只重验自有包 |
-| 桌面 nightly 自动更新 | 分发包与基线错位 | 自建更新源 + 自有 appId；或关自动更新 |
-| RTL 遗漏内联样式/图标 | 局部错位 | 基础层统一逻辑化 + 分档清单 + 快照 |
-| 中转站协议偏差 | 登录失败难定位 | 严格按规范信封/路径/限制；先过 mock 一致性清单 |
-| token 只对 `inferenceOrigin` 生效 | 模型请求 401 | 中转站兼推理，或改用 API key 路由 |
-| 上游遥测默认开启 | 对外分发时的隐私合规风险 | 分发前禁用 `desktop-product-telemetry` / `product-analytics` 行，或改指自己的 OTLP 端点；在 NOTICE/隐私说明里写清 |
-| 公开仓库品牌残留 | 商标/背书误解 | 保留 NOTICE/MIT；发布前全局扫描 |
-| 仓库体积 ~308 MB | 首次 clone 慢 | 完整历史只留一份；`node_modules` 不入库 |
+| 托管 Web 需求 | 现有登录不可用 | 先确认分发形态；Web 另立方案 |
+| 中转站未实现 `/models` | 自建模型不可选 | 规范 §7.4；联调必测 |
+| inferenceOrigin 不一致 | token 发到官方 | 强制二者相等；启动自检 |
+| RTL 转换遗漏 | 局部错位 | 共享转换器 + RTL harness + 五屏验收 |
+| 签名依赖外部证书 | 发布延期 | 提前采购 Apple/Win 证书；先出未签名包 |
+| 强制更新策略服务 | 签名构建失败 | 中转站加 `check_client_update` 或打无策略补丁 |
+| 生产更新源写死 | 无法自建更新 | 小补丁改固定 origin；用静态桶 |
+| 遥测默认开启 | 隐私合规 | bundle 置 disabled；发版前抓包验证 |
+| 与官方 App 共用 home | 数据互相污染 | 独立 `DSH_HOME` + 迁移脚本 |
+| 版本 bump 面大 | 发布流程重 | 用 `release:dsh`；测试版 `0.2.2-test.*` |
+| 上游 pre-stable | 升级破坏 | 固定 base tag、merge 同步、每周复验 |
 
 ---
 
-## 10. 待确认
+## 10. 需求与流程文档
 
-1. **余额/充值入口**是否保留？不保留就让中转站返回空钱包、忽略 `/top_up`，账户面板只剩资料与登出。
-2. **注册/登录页的视觉与文案**由谁提供？品牌工作流会复用同一套 token 与字体。
-3. **Windows 是否首发**？对外分发建议 macOS + Windows 同步，Windows 需要代码签名证书（否则 SmartScreen 拦截）。
+- [custom/requirements.md](custom/requirements.md)：已冻结/待确认需求与验收标准。
+- [custom/review-findings.md](custom/review-findings.md)：四份评审的完整结论与证据。
+- [custom/login-relay-spec.md](custom/login-relay-spec.md)：中转站协议 v1.1。
+- [custom/engineering-process.md](custom/engineering-process.md)：Issue→AI PR→CI→验收流水线。
+
+---
+
+## 11. 下一步
+
+1. 你确认 §10 需求清单里的 **3 个阻塞项**（分发形态、品牌资产、`/models`）。
+2. 建公开仓库并推 `main`、打 `base/0.2.1-rc.2`。
+3. 起 L1（mock 中转站）与 R0（RTL 基础层），互不依赖。
+4. 按 [engineering-process.md](custom/engineering-process.md) 建 Issue 模板、PR 模板、`ci-public.yml`。

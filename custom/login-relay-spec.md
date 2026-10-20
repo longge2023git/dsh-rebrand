@@ -1,4 +1,4 @@
-# DSH 登录中转站协议规范 v1
+# DSH 登录中转站协议规范 v1.1
 
 > 适用基线：`dsh-v0.2.1-rc.2`（`deepseek-account-platform`）
 > 目标：你的中转站实现本文档后，**DSH 客户端不改代码**，只改 `platformOrigin` / `inferenceOrigin` 即可完成换登录。
@@ -87,7 +87,8 @@
 | 服务端返回 | 客户端归类 | 备注 |
 |---|---|---|
 | HTTP 401（且请求带 `x-dsh-auth-token`） | `expired` | 触发客户端清除本地 grant 并提示重新登录 |
-| HTTP 200 + `{"code":40003}`（带 token 时） | `expired` | 同上 |
+| HTTP 200 + **顶层** `{"code":40003}`（带 token 时） | `expired` | 同上；`code` 不是 `0`，**不要**放进 `data.biz_code` |
+| HTTP 200 + `data.biz_code = 40003` | `protocol` | **不会**登出，只会显示通用失败；不要这样返回 |
 | 其他非 2xx / 无响应 / 超时 | `network` / `no-response` | 可重试 |
 | 信封不合法、`biz_code≠0`、字段类型不符 | `protocol` | 不可重试，UI 报通用失败 |
 
@@ -118,6 +119,8 @@
 
 ## 4. 端点总表
 
+共 **8 个 JSON API + 4 个浏览器页面**。
+
 | # | 方法 | 路径 | 用途 | 鉴权 |
 |---|---|---|---|---|
 | 1 | POST | `/auth-api/v0/dsh/auth_init` | 创建登录事务，返回授权页地址 | 无 |
@@ -129,8 +132,9 @@
 | 7 | GET | `/api/v0/users/get_unnotified_bonuses` | 未读赠送金 | token |
 | 8 | POST | `/api/v0/users/ack_bonus_notified` | 标记赠送金已读 | token |
 | 9 | POST | `/auth-api/v0/users/logout` | 吊销 token | token |
-| 10 | GET | `/dsh/authorized` | 登录完成页（浏览器） | 无 |
-| 11 | GET | `/usage`、`/top_up` | 用量/充值页（UI 链接） | 浏览器会话 |
+| 10 | GET | `/models` | 模型目录（账户路由拉取） | token |
+| 11 | GET | `/dsh/authorized` | 登录完成页（浏览器） | 无 |
+| 12 | GET | `/usage`、`/top_up` | 用量/充值页（UI 链接与桌面内嵌） | 浏览器会话 |
 
 ---
 
@@ -215,6 +219,8 @@
 - 校验 `base64url(SHA256(code_verifier)) === code_challenge`，并校验 `redirect_uri` 与 init 一致；code 单次使用，重复兑换返回失败。
 - `token` 必须匹配可打印 ASCII `^[\x21-\x7e]+$`（无空格）；建议 ≥ 32 字节熵。
 - **生产 token 不要以 `dsh_mock_` 开头**：客户端会拒绝用它访问官方推理 origin。
+- token 与 `platformOrigin` 绑定：客户端保存 `{token, issuer=platformOrigin}`，换 origin 即视为未登录。
+- **协议没有 refresh token**：token 过期只能重新登录。有效期建议 7–30 天；401 会被当作 `expired` 并删除本地凭据。
 - `authorized_url` 同样必须 origin 匹配、pathname 精确为 `/dsh/authorized`、无 fragment；客户端会追加 `login_source`。
 - `user` 可选；提供时按 §6.1 校验，失败只丢弃该字段，不影响登录成功。
 
@@ -278,7 +284,7 @@
 
 | 字段 | 必填 | 类型 | 说明 |
 |---|---|---|---|
-| `id` | 否 | string \| null | 稳定用户 ID；用于浏览器偏好存储分区 |
+| `id` | **是**（赠送金接口要求） | string \| null | 稳定用户 ID；为空时赠送金接口直接报 `protocol` |
 | `email` | **是** | string | 资料页联系人兜底；无邮箱也要给占位值 |
 | `mobile` / `mobile_number` | 否 | string | 任一存在即作为优先联系人 |
 | `id_profile` | 否 | `{ name: string\|null, picture?: string\|null }` | 显示名/头像 |
@@ -316,16 +322,11 @@ anthropic-beta: files-api-2025-04-14   # 仅文件/图片请求需要
 ```
 
 - API key 路由（`llm-deepseek-api-key`）用 `x-api-key`，与账户路由二选一，不会同时发送。
-- token 只发往 `inferenceOrigin`；其他 origin 一律不带。
-- 请求/响应**拒绝重定向**；token 失效返回 401，DSH 归类 `expired` 并提示重新登录。
+- token 只发往 `inferenceOrigin`；**强建议 `inferenceOrigin === platformOrigin`**，否则中转站签发的 token 会被发到官方 API（跨源泄漏，见 §11）。
+- 请求/响应**拒绝重定向**；token 失效返回 401，DSH 归类 `expired` 并删除本地凭据。
+- 请求体是 Messages API（`model`、`system`、`messages`、`tools`、`max_tokens`、`stream: true`，以及 thinking/reasoning 字段）。DSH 可能附带 provider 扩展字段；不认识时忽略，不要因此 400。
 
-### 7.2 请求体
-
-Messages API 结构（`model`、`system`、`messages`、`tools`、`max_tokens`、`stream: true`，以及 thinking / reasoning 相关字段）。DSH 可能附带 provider 扩展字段；中转站不认识时可以忽略，但不要因此 400。
-
-### 7.3 响应：SSE 事件契约
-
-必须按顺序发送 Anthropic 事件：
+### 7.2 响应：SSE 事件契约
 
 | 事件 | 必填内容 | 说明 |
 |---|---|---|
@@ -339,34 +340,73 @@ Messages API 结构（`model`、`system`、`messages`、`tools`、`max_tokens`�
 规则：
 
 - 其他事件类型会被忽略，但不要用它们承载正文。
-- 缺少 `message_start`、重复块 index、块未关闭就 `message_stop`、流在 `message_stop` 前结束，都会导致失败。
+- 缺少 `message_start`、重复块 index、块未关闭就 `message_stop`、流在 `message_stop` 前结束，都会失败。
 - `stop_reason=stop` 且没有任何内容块 → `EMPTY_RESPONSE`。
-- 工具调用的 JSON 必须完整合法（`max_tokens` 截断除外，由客户端保留并丢弃）。
-- 用量字段：`input_tokens`、`output_tokens`，可选缓存字段；客户端会累加并展示。
+- 工具调用的 JSON 必须完整合法（`max_tokens` 截断除外）。
+- **用量是「覆盖」不是「累加」**：`message_start.message.usage` 给输入用量，`message_delta.usage` 必须给**累计值**（output 至少是累计输出），否则统计会错。
+- 未识别的 `delta` 类型、`stop_reason`、块类型会直接失败；请只发客户端支持的取值。
 
-### 7.4 错误格式
-
-非流式错误返回 JSON：
+### 7.3 错误格式与映射
 
 ```json
 { "error": { "type": "authentication_error", "message": "token expired", "code": "expired" } }
 ```
 
-客户端按状态码/类型归类：
-
-| 条件 | 归类 | 客户端行为 |
-|---|---|---|
-| 401 / 403 / `authentication_error` / `permission_error` | `AUTH` | 提示重新登录 |
-| 402 或额度类错误 | `QUOTA` | 提示额度 |
-| 429 / `rate_limit_error` | `RATE_LIMIT` | 按 `retry-after` 重试 |
-| 400 / 413 / `invalid_request_error` | `INVALID_REQUEST` | 不重试 |
-| 5xx / `api_error` / `overloaded_error` | `SERVER` | 退避重试 |
+| 条件 | 归类 |
+|---|---|
+| 401 / 403 / `authentication_error` / `permission_error` | `AUTH` |
+| 402 或额度类错误 | `QUOTA` |
+| 429 / `rate_limit_error` | `RATE_LIMIT` |
+| 400 / 413 / `invalid_request_error` | `INVALID_REQUEST` |
+| 上下文超限（错误文本含 context/window/token 上限） | `CONTEXT_WINDOW_EXCEEDED` |
+| 5xx / `api_error` / `overloaded_error` | `SERVER` |
+| 其他状态码 | `HTTP_<status>` |
 
 `retry-after`（秒数或 HTTP 日期）与 `request-id`/`x-request-id`/`x-deepseek-request-id` 会被读取，建议返回。
 
-### 7.5 文件 API（可选）
+### 7.4 模型目录 `GET /models`（账户路由必需）
 
-图片/附件走 Files API：
+账户路由**不允许**在配置里写 `models`（写了直接启动失败）；模型列表来自 `GET {origin}/models`，注意是 **origin + `/models`**，不是 `/v1/models`。
+
+请求头：`x-dsh-auth-token`、`accept: application/json`。
+
+响应：
+
+```json
+{
+  "data": [
+    {
+      "id": "your-model-id",
+      "name": "Your Model",
+      "input_modalities": ["text", "image"],
+      "output_modalities": ["text"],
+      "context_window": 200000,
+      "max_output_tokens": 8192,
+      "api_capabilities": {
+        "anthropic_messages": { "system_prompt_update": "in-history" }
+      },
+      "client_requirements": {
+        "deepseek-harness": { "min_version": "0.2.1-rc.2" }
+      }
+    }
+  ]
+}
+```
+
+字段规则：
+
+| 字段 | 规则 |
+|---|---|
+| `data` | 必须是非空数组；无可用条目 → 列表失败 |
+| `id` | 必填、非空、不重复 |
+| `input_modalities` / `output_modalities` | 只认 `text` / `image`；输出必须含 `text` |
+| `context_window` / `max_output_tokens` | 可选，正整数 |
+| `api_capabilities.anthropic_messages` | **必填**，缺失则该模型不可用 |
+| `client_requirements["deepseek-harness"].min_version` | 可选；低于此版本的客户端隐藏该模型 |
+
+失败行为：请求失败或响应非法时，账户路由回退到内置 `deepseek-flash` / `deepseek-v4-pro`（这两个 id 会原样发给中转站）。**如果不实现 `/models`，你的自建模型不会出现在选择器里。**
+
+### 7.5 文件 API（可选）
 
 | 方法 | 路径 | 用途 |
 |---|---|---|
@@ -375,11 +415,13 @@ Messages API 结构（`model`、`system`、`messages`、`tools`、`max_tokens`�
 | GET | `/v1/files/{id}` | 元数据 |
 | DELETE | `/v1/files/{id}` | 删除 |
 
-不实现也能跑：上传失败时客户端会回退到 inline base64（有体积上限）。需要 beta 头 `files-api-2025-04-14`。
+上传需 `expires_after[anchor]=created_at`、`expires_after[seconds]=...`。文件对象至少返回：
 
-### 7.6 模型目录
+```json
+{ "id": "file_x", "type": "file", "mime_type": "image/png", "size_bytes": 1234, "created_at": "2026-10-20T00:00:00Z", "filename": "a.png" }
+```
 
-模型列表由客户端配置（`models` 字段）决定，不需要 `/models` 端点；未知 model id 会原样透传。
+不实现也能跑：上传失败会回退 inline base64（有体积上限）。
 
 ---
 
@@ -414,6 +456,9 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 6. `logout` 后，同一 token 再调 `users/current` 必须 401。
 7. 所有 API 端点 **不返回 3xx**；响应体 < 64 KB。
 8. 用桌面端跑完整登录：系统浏览器打开、回调、窗口关闭、账户面板显示你的用户名。
+9. `GET /models` 返回非空 `data`，每个模型带 `api_capabilities.anthropic_messages`；模型选择器能看到你的模型。
+10. 负例：把 40003 放进 `data.biz_code`，客户端应只报通用失败、**不**登出；放顶层 `code` 才登出。
+11. 负例：把 `platformOrigin` 配成官方域名、推理仍走中转站，确认 token 不会被发到官方（应由 `inferenceOrigin` 一致性强约束）。
 
 > 建议先写一个本地 mock（Node/Hono 或 Express），把 1–8 跑通，再让真实中转站对齐——DSH 侧不改一行代码即可切换。
 
@@ -443,11 +488,57 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 已确认：
 
-1. 中转站**兼推理入口**：`platformOrigin` 与 `inferenceOrigin` 都指向中转站。
-2. 登录方式是**手机号 / 邮箱注册**，由中转站自己的账号体系承担；不需要 OIDC/OAuth2（只有接入外部 IdP 时才需要）。
-3. 分发范围包含自己、团队、对外：需自建更新源、签名与公证（见 PLAN §7）。
+1. 中转站**兼推理入口**：`platformOrigin` 与 `inferenceOrigin` 都指向中转站，且必须相等。
+2. 登录方式是**手机号 / 邮箱注册**，由中转站自己的账号体系承担；不需要 OIDC/OAuth2。
+3. 分发范围包含自己、团队、对外：需自建更新源、签名与公证。
+
+新增必须项（评审后）：
+
+4. **实现 `GET /models`**（§7.4），否则自建模型不会出现在选择器。
+5. **token 生命周期**（§12.2）：有效期、吊销、多设备策略；协议无 refresh。
+6. 若签名构建需要一个强制更新策略服务：中转站补 `GET /api/v0/check_client_update`，否则要打补丁关闭策略（见 PLAN §9）。
 
 仍需你定：
 
 1. 是否保留「余额/充值」入口；不保留就返回空钱包、忽略 `/top_up`。
 2. 注册/登录页的视觉与文案由谁提供（品牌工作流会复用）。
+3. 完整需求清单见 [requirements.md](requirements.md)。
+
+---
+
+## 12. 注册、令牌生命周期与账号安全（中转站内部）
+
+这些不经过 DSH 协议，但决定产品能否对外。建议作为中转站的验收项：
+
+### 12.1 注册与登录
+
+| 项 | 建议 |
+|---|---|
+| 注册方式 | 手机号或邮箱 + 验证码；密码可选（验证码优先，减少找回成本） |
+| 验证码 | 6 位、5 分钟有效、单次使用、按手机号/IP 限流 |
+| 密码（如启用） | argon2id；至少 8 位；禁止弱口令表 |
+| 找回 | 邮箱/短信重置链接，单次、短 TTL |
+| 锁定 | 连续失败 5 次锁 15 分钟；异常 IP 触发二次验证 |
+| 防刷 | 注册/发码接口按 IP + 设备指纹限流；短信成本单独配额 |
+| 协议 | 注册页展示用户协议与隐私政策，留痕同意时间 |
+
+### 12.2 令牌
+
+| 项 | 建议 |
+|---|---|
+| 格式 | 不透明随机串（≥32 字节），不使用可解析 JWT 也可 |
+| 有效期 | 7–30 天；**没有 refresh**，过期即重登 |
+| 吊销 | 登出、改密、封禁、风控立即失效；服务端保存可撤销记录 |
+| 多设备 | 明确策略：允许并存 or 新登录踢旧；当前 DSH 单账户单 token |
+| 审计 | 记录签发/吊销/失败原因，不记录 token 明文 |
+
+### 12.3 账号切换与数据
+
+- DSH 每个进程只有一个账户；换号 = 登出再登录。
+- 切换 `platformOrigin` 会导致 issuer 不匹配，客户端视为未登录（预期行为）。
+- 桌面内嵌的 `/usage`、`/top_up` 页需要注入 `window.dsh.getAuthToken`（`preload-platform-account.ts`）；不做就隐藏这两个入口。
+
+### 12.4 文案
+
+- `x-client-locale` 为 `zh_CN` / `en_US`；授权页与错误页按此本地化。
+- 授权 URL 可能被客户端追加 `theme` 等参数，**忽略未知参数**，不要因此 400。
