@@ -1,3 +1,7 @@
+> **This is an independent fork** based on `dsh-v0.2.1-rc.2`; it is not affiliated with or endorsed by DeepSeek.
+> Start with [FORK.md](FORK.md), [PLAN.md](PLAN.md), and [custom/runbook.md](custom/runbook.md).
+> The upstream README follows unchanged.
+
 # DeepSeek Harness
 
 English | [中文](README.zh.md)
