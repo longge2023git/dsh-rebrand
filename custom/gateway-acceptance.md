@@ -29,6 +29,13 @@ relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 �
 - 带 `file_id` 的 Messages **不带** `anthropic-beta` 也返回 200（`FileChannelPin` 自动注入）；
 - DSH Web 直连 13000 的文本与图片均通过；网关日志有 `POST /v1/files 200` + `POST /v1/messages 200`。
 
+## 桌面端补测（2026-10-21）
+
+- 启动 `pnpm start:desktop`，桌面壳正常连到 13000；与 Web 共用登录态。
+- 新建会话发送 `Reply with exactly: DESKTOMGW`：1 秒完成，回复 `DESKTOMGW`，PASS。
+- 图片附件：macOS 原生文件选择器无法被 Playwright/CDP 注入（`setInputFiles`、CDP `DOM.setFileInputFiles`、drag/drop、剪贴板粘贴均未触发附件），因此桌面图片路径**未完成自动化验证**，需手工点一次“添加文件 → 文件 → blue.png”。
+- Web 端图片附件已 PASS，桌面与 Web 共用同一 composer/attachment 实现，但不要把桌面图片记为已验证。
+
 ## 已知限制（非 P0）
 
 1. 旧 relay token 不迁移；合并后首次需要重新登录一次。
