@@ -1,6 +1,6 @@
 services:
   new-api:
-    # Pinned so a local upgrade does not change the protocol underneath the relay.
+    # Pinned to the tested baseline; this is the only service started by default.
     image: ${NEWAPI_IMAGE:-calciumion/new-api:v0.10.9}
     container_name: dsh-newapi
     restart: unless-stopped
@@ -20,6 +20,8 @@ services:
       - ./data/new-api:/data
 
   relay:
+    # Archived reference only. `docker compose up -d` does not start this profile.
+    profiles: ["relay-reference"]
     build: .
     container_name: dsh-relay
     restart: unless-stopped

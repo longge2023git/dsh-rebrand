@@ -1,6 +1,6 @@
 # ADR-001：DSH 协议适配层为什么外挂在 NewAPI 之外
 
-- 状态：Accepted（2026-10-21），可在触发条件下重新评估
+- 状态：**Superseded by [ADR-002](adr-002-merge-relay-into-newapi.md)（2026-10-21）**；保留为历史决策记录
 - 相关：[PLAN](../PLAN.md)、[登录规范](login-relay-spec.md)、[NewAPI `/v1/files` 待办 #11](https://github.com/longge2023git/dsh-rebrand/issues/11)
 
 ## 背景

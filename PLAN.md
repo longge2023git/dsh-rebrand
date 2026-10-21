@@ -20,7 +20,7 @@
 | **B 登录** | 协议兼容中转站（[规范](custom/login-relay-spec.md) v1.1） | **4–5 天**（不含中转站） |
 | **C RTL** | 共享转换器 + `dir` 运行时 + 几何层 + 分批验收 | **10–13 天** |
 | **D 分发** | 签名/公证、Windows、自建更新源、策略服务、关遥测 | **6–8 天 + 外部依赖** |
-| **E 本地中转站** | NewAPI + relay 适配层（协议、SSE 归一化、`/models`） | **4–5 天** |
+| **E 单网关** | NewAPI 二开：账户协议、token、`/models`、Files、SSE/渠道（已完成） | **4–5 天** |
 | 合计 | 串行 | **约 6–7 周**（不含证书采购与上游 key 联调） |
 
 四个必须先接受的现实：
@@ -127,14 +127,14 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 - id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:
-    platformOrigin: https://relay.example.com
-    inferenceOrigin: https://relay.example.com
+    platformOrigin: https://gateway.example.com
+    inferenceOrigin: https://gateway.example.com
     # 补丁整体替换 config：必须复述 base 层的 desktopPlatform
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
 
 - id: llm-deepseek-account
   config:
-    baseURL: https://relay.example.com/v1
+    baseURL: https://gateway.example.com/v1
 ```
 
 ### 4.3 分发形态（已确认）
@@ -143,43 +143,41 @@ git tag -a base/0.2.1-rc.2 -m "upstream baseline" dsh-v0.2.1-rc.2
 
 > 若将来要做 Web：现有 `loginOrigin` 只接受 loopback，需改核心放宽回调，或在网关做登录并用 `connection/request` 守卫，另立 3–5 天方案。
 
-### 4.4 阶段### 4.4 阶段
+### 4.4 阶段
 
 | 阶段 | 内容 | 工期 |
 |---|---|---|
 | L1 | Mock 中转站 + 规范一致性脚本（含 `/models`、40003 负例） | 1.5 天 |
 | L2 | DSH 配置接线（桌面/本机 Web） | 0.5 天 |
-| L3 | 真实中转站联调（登录 + 推理 + 模型目录） | 1 天 |
+| L3 | 真实网关联调（登录 + 推理 + 模型目录） | 1 天 |
 | L4 | 登出/过期/取消/空钱包/内嵌页降级 | 1 天 |
 | L5 | 账号生命周期验收（TTL、多设备、吊销） | 1 天 |
 
-### 4.5 本地参考中转站（NewAPI + relay，4–5 天）
+### 4.5 单网关实现（NewAPI 二开，已完成）
 
-已落地：`services/relay/`（Node 22，零依赖，代码进 git）+ Docker Compose 拉起 NewAPI。
+DSH 账户协议已合并进 `new-api-deepseek`，不再运行独立 relay。
 
 ```
-DSH ──登录协议/推理──▶ relay :18082 ──Bearer NEWAPI_KEY──▶ NewAPI :13000 ──▶ 上游
+DSH ──登录协议/推理/Files──▶ NewAPI :13000 ──▶ 上游
 ```
 
 | 组件 | 职责 |
 |---|---|
-| NewAPI | 渠道、模型映射、配额/计费、日志、管理台 |
-| relay | DSH 的 8 个账户 API、PKCE、token 签发/吊销、注册登录页、`/models` schema、推理代理、SSE 归一化 |
+| NewAPI 二开 | 渠道、模型、配额/计费、日志、DSH 8 个账户 API、PKCE 登录页、token、`/models`、`/v1/messages`、`/v1/files` |
+| `services/relay/` | 仅保留为协议参考和一致性测试，不再启动 |
 
-实测发现（决定 relay 必须存在）：
+实现要点：
 
-1. NewAPI 原生支持 `POST /v1/messages`，但认证是 `Authorization: Bearer`；DSH 发的是 `x-dsh-auth-token`，必须翻译。
-2. NewAPI 把 OpenAI 流转成 Claude 格式时会**重复发 `message_start`**，DSH 会判 malformed；relay 已做归一化（只保留第一个）。
-3. NewAPI 的 `/v1/models` 是 OpenAI 风格，缺少 `api_capabilities.anthropic_messages`，DSH 会隐藏这些模型；relay 用 `MODELS` 生成 DSH schema。
-4. `/v1/files` 未实现，返回 404，DSH 自动回退 inline 图片。
+1. DSH 只发 `x-dsh-auth-token`，网关中间件转换成 NewAPI 的 Bearer；DSH token 就是 NewAPI Token.Key。
+2. 每次登录新建独立 token，logout 只吊销当前 token，多设备互不踢。
+3. `/models` 由 `DSH_MODELS` 生成 DSH schema；`deepseek-flash` 声明 `image: true`。
+4. `/v1/files` 已实现；`source.type=file` 的 Messages 会校验归属、钉住渠道并自动补 `anthropic-beta`。
+5. DeepSeek Anthropic 原生渠道 SSE 正常；OpenAI 兼容渠道的转换可能重复 `message_start`，当前未在 Go 侧实现归一化，需避免使用或后续补 normalizer。
+6. 上游 401 对 DSH 请求映射为 502，避免 DSH 误删 grant。
 
-环境：NewAPI 映射 `127.0.0.1:13000`（本机 3000 被 ssh 占用），relay `127.0.0.1:18082`。完整步骤见 [services/relay/README.md](services/relay/README.md)。
+环境：仅 NewAPI `127.0.0.1:13000`；18082 已停止。完整启动见 [runbook](custom/runbook.md)，验收见 [gateway-acceptance](custom/gateway-acceptance.md)。
 
-**已用真实上游验证**：NewAPI 渠道类型 `Anthropic (14)`、Base URL `https://api.deepseek.com/anthropic`、模型 `deepseek-flash` / `deepseek-v4-pro`；DSH UI 登录后发消息，真实模型返回 `OK`，事件序列只有一个 `message_start`。若走 OpenAI 兼容渠道，转换路径会重复 `message_start`，relay 已归一化。详见 [custom/assets/relay-e2e.png](custom/assets/relay-e2e.png)。
-
-> NewAPI 是 **AGPLv3**：独立容器运行、不修改源码；不要把它和桌面安装包捆绑分发。
-
----
+> NewAPI 是 **AGPLv3**，本仓库已是二开分支；对外分发/提供服务时需履行 AGPL 源码义务并保留归属。
 
 ## 5. 工作流 C：RTL（10–13 天）
 
@@ -272,8 +270,8 @@ pnpm package:desktop:mac:arm64:unsigned
 | L3 | 真实中转站联调 | 1 d | L2 + 你的中转站 |
 | L4 | 边界与生命周期 | 1–2 d | L2 |
 | E1 | Compose + NewAPI 渠道/模型/key | 0.5 d | M0 |
-| E2 | relay 账户核心 + 页面 + SQLite | 1.5 d | E1 |
-| E3 | 推理代理 + SSE 归一化 + `/models` | 1 d | E2 |
+| E2 | DSH 账户核心 + PKCE 页面 + NewAPI token | 1.5 d | E1 |
+| E3 | `/models` + `/v1/messages` + `/v1/files` 复用 | 1 d | E2 |
 | E4 | 集成测试 + DSH 接线 | 1 d | E3 |
 | E5 | 文档/配置/CI | 0.5 d | E4 |
 | R0 | 转换器 + dir + 孤岛 + harness | 3 d | M0 |
@@ -316,9 +314,9 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | 风险 | 影响 | 对策 |
 |---|---|---|
 | 将来要托管 Web | 现有登录不可用 | 本期不发 Web；若要做另立方案 |
-| 中转站未实现 `/models` | 自建模型不可选 | 规范 §7.4；relay 已实现 schema 转换 |
-| NewAPI 转换不符合 DSH 事件顺序 | 对话直接失败 | relay 已归一化重复 `message_start`；联调时抓 SSE 事件序列 |
-| NewAPI AGPL | 分发合规 | 独立容器、不修改、不捆绑；桌面包只连远程 relay |
+| 网关未实现 `/models` | 自建模型不可选 | 二开已用 `DSH_MODELS` 生成 schema；见 `/models` 验收 |
+| OpenAI 兼容渠道转换不符合 DSH 事件顺序 | 对话直接失败 | 当前只验证 Anthropic 原生渠道；OpenAI 渠道需补 Go 侧 normalizer |
+| NewAPI AGPL | 分发合规 | 已是二开分支：履行 AGPL 源码义务、保留归属；桌面包只连远程网关 |
 | inferenceOrigin 不一致 | token 发到官方 | 强制二者相等；启动自检 |
 | RTL 转换遗漏 | 局部错位 | 共享转换器 + RTL harness + 五屏验收 |
 | 签名依赖外部证书 | 发布延期 | 提前采购 Apple/Win 证书；先出未签名包 |
@@ -340,7 +338,8 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [custom/runbook.md](custom/runbook.md)：本地启动/停止、换网恢复、桌面联调与故障排查。
 - [NOTICE](NOTICE) / [TRADEMARKS.md](TRADEMARKS.md)：上游归属与商标声明。
 - [custom/files-api-research.md](custom/files-api-research.md)：Files API 标准、计费与网关方案调研。
-- [custom/backlog.md](custom/backlog.md)：已明确但未做的待办（含 NewAPI `/v1/files`）。
+- [custom/backlog.md](custom/backlog.md)：已明确但未做的待办。
+- [custom/progress.md](custom/progress.md)：单一进度入口（里程碑/当前运行/已知限制）。
 - [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md)：早期外挂 relay 的决策（已被 ADR-002 取代）。
 - [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md)：relay 合并进 NewAPI 的单网关决策。
 - [FORK.md](FORK.md)：公开仓库入口与文档索引。

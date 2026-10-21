@@ -103,7 +103,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | Job | 内容 | Runner | 触发 |
 |---|---|---|---|
 | `ci-static` | `pnpm run typecheck` + `pnpm run lint` + `pnpm run test:docs` | ubuntu-latest | PR |
-| `ci-unit` | `pnpm run test`（可按包过滤）+ `cd services/relay && npm test` | ubuntu-latest | PR |
+| `ci-unit` | `pnpm run test`（可按包过滤）；NewAPI 二开在独立仓库跑 `go test ./...` | ubuntu-latest | PR |
 | `ci-browser` | `pnpm run build:artifacts` + `test:web:built`（replay） | ubuntu-latest | PR（UI 相关路径） |
 | `ci-required` | 聚合上面三个，分支保护只要求这一个 | ubuntu-latest | PR |
 | `ci-package` | `macos-14` 未签名打包 + 启动冒烟 | macos-14 | 夜间/手动 |
@@ -165,7 +165,8 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 | `.github/CODEOWNERS` | 核心路径人工评审 |
 | `tools/metrics.mjs` | 周报度量 |
 | `apps/web/tests/rtl/` | RTL 视觉回归 harness |
-| `services/relay/` | 本地参考中转站（NewAPI + relay + 测试） |
+| `services/relay/` | 归档的 relay 参考实现（不再启动；生产协议在 `new-api-deepseek`） |
+| `new-api-deepseek` | 独立私有仓库：NewAPI 二开（DSH 协议 + Files + 渠道/配额） |
 | `NOTICE` | 上游归属与修改声明 |
 
 ---

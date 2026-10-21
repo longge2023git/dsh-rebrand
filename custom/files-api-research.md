@@ -1,6 +1,6 @@
 # Files API 调研（2026-10-21）
 
-> 结论：`/v1/files` 是 Anthropic 的标准 Files API；上传/管理操作不单独计费，文件内容进入 Messages 时按输入 token 计费。DeepSeek 官方实现遵循同一模式。NewAPI 目前未实现该路由，已建二开待办 [#11](https://github.com/longge2023git/dsh-rebrand/issues/11)。
+> 结论：`/v1/files` 是 Anthropic 的标准 Files API；上传/管理操作不单独计费，文件内容进入 Messages 时按输入 token 计费。DeepSeek 官方实现遵循同一模式。该能力已在 `new-api-deepseek` 二开实现并验收（Issue #11 已关闭）；本文保留原生 NewAPI 的对比与方案调研。
 
 ---
 
@@ -52,14 +52,14 @@ Anthropic 兼容端点：`https://api.deepseek.com/anthropic`
 - 上传失败（404/5xx/超时）→ `FileResolutionFailure` → 整请求改为 inline base64。
 - inline 上限：默认 20 MiB（base64 后）；超过会报 `IMAGE_OFFLOAD_REQUIRED_CODE`。
 - 文件引用块：`image.source = {type:"file", file_id}`，DSH 会带 `anthropic-beta`。
-- 因此 relay 返回 404 不是 bug，而是触发降级；只是大图会失败、无法跨请求复用。
+- 因此网关未启用 Files 时返回 404 不是 bug，而是触发降级；只是大图会失败、无法跨请求复用。
 
 代码位置：
 - `packages/llm/llm-deepseek/src/request-files.ts`
 - `packages/llm/llm-deepseek/src/adapter.ts`
 - `packages/llm/llm-deepseek/src/serialize.ts`
 
-## 4. NewAPI 的现状
+## 4. 原生 NewAPI 的现状（二开已补齐）
 
 - v0.10.9 与 main 的 `router/relay-router.go` 都把 `/v1/files` 映射到 `controller.RelayNotImplemented`。
 - 直接请求会先被 `/v1` 组的 `Distribute` 中间件拦下（要求 model），即使绕过也会 501。
@@ -73,7 +73,7 @@ Anthropic 兼容端点：`https://api.deepseek.com/anthropic`
 | A. 网关直连上游 Files API | 网关实现 `/v1/files*`，转发到 DeepSeek/Anthropic，记录 file→user | 1–2 天 | 单上游、想保留大文件与复用 |
 | B. NewAPI 二开 | 在 NewAPI 里实现路由与透传 | 3–5 天 + AGPL | 所有流量统一走 NewAPI |
 | C. 网关本地存 + inline | 网关存文件，Messages 时换 base64 | 2–3 天 | 多上游、不想持有上游 key |
-| D. 维持 404 fallback | 当前 relay | 0 | 小图足够 |
+| D. 维持 404 fallback | 网关不实现 Files（历史 fallback） | 0 | 小图足够 |
 
 ## 6. 给二开网关的建议
 
@@ -87,4 +87,4 @@ Anthropic 兼容端点：`https://api.deepseek.com/anthropic`
 
 ## 7. 待办
 
-NewAPI 二开支持 `/v1/files`：已在 `new-api-deepseek` 实现并合并到 `main`（上传/列表/查询/删除、`file_owners` 归属、Messages 渠道绑定）。DSH UI 图片附件已验收：`POST /v1/files 200` → `/v1/messages 200`，模型正确识别图片。Issue [#11](https://github.com/longge2023git/dsh-rebrand/issues/11) 跟踪验收。
+NewAPI 二开支持 `/v1/files`：已在 `new-api-deepseek` 实现并合并到 `main`（上传/列表/查询/删除、`file_owners` 归属、Messages 渠道绑定）。DSH Web 图片附件已验收：`POST /v1/files 200` → `/v1/messages 200`，模型正确识别图片；Issue [#11](https://github.com/longge2023git/dsh-rebrand/issues/11) 已关闭。桌面端图片附件仍需手工确认（原生文件选择器无法自动化）。

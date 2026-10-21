@@ -1,4 +1,4 @@
-> **已合并进 NewAPI（2026-10-21）。** 生产/本地联调请直接启动 `new-api-deepseek` 的 13000 端口；本目录仅保留为 DSH 账户协议的参考实现和一致性测试，不再作为运行依赖。见 [ADR-002](../../custom/adr-002-merge-relay-into-newapi.md)。
+> **ARCHIVED / 已合并（2026-10-21）。** 当前生产/本地联调只启动 `new-api-deepseek` 的 13000 端口；本目录仅保留为 DSH 账户协议的参考实现和一致性测试，**不要按本文的 18082 启动流程运行生产**。见 [ADR-002](../../custom/adr-002-merge-relay-into-newapi.md) 和 [progress](../../custom/progress.md)。
 
 # DSH 本地参考中转站（New API + relay）
 

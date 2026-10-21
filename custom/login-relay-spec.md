@@ -1,7 +1,7 @@
-# DSH 登录中转站协议规范 v1.1
+# DSH 登录/网关协议规范 v1.1
 
 > 适用基线：`dsh-v0.2.1-rc.2`（`deepseek-account-platform`）
-> 目标：你的中转站实现本文档后，**DSH 客户端不改代码**，只改 `platformOrigin` / `inferenceOrigin` 即可完成换登录。
+> 目标：你的网关实现本文档后，**DSH 客户端不改代码**，只改 `platformOrigin` / `inferenceOrigin` 即可完成换登录。
 > 来源：`packages/credentials/deepseek-account-platform/src/{protocol,index,details,logout}.ts`、`packages/llm/llm-deepseek-account/src/index.ts`。
 > 适用范围：**桌面安装包**（已确认）。托管 Web 受 loopback 回调限制，不在本期。
 
@@ -11,7 +11,7 @@
 
 ```
 ┌──────────────┐   ① auth_init                        ┌──────────────────┐
-│ DSH Host     │ ───────────────────────────────────▶ │ 你的中转站        │
+│ DSH Host     │ ───────────────────────────────────▶ │ 你的网关        │
 │ (桌面 / Web) │ ◀── authorize_url / authorize_id ─── │ (HTTPS)          │
 │              │                                      │                  │
 │ 系统浏览器    │ ② 打开 authorize_url ──────────────▶ │ /dsh/authorize   │
@@ -39,8 +39,8 @@
 - id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:
-    platformOrigin: https://relay.example.com     # 必须是 HTTPS origin（无 path/query/hash）
-    inferenceOrigin: https://relay.example.com    # 允许带账户 token 的唯一推理 origin
+    platformOrigin: https://gateway.example.com     # 必须是 HTTPS origin（无 path/query/hash）
+    inferenceOrigin: https://gateway.example.com    # 允许带账户 token 的唯一推理 origin
     allowLoopbackHttp: false                      # 仅本地 mock 时对 loopback 放开 http
     # 补丁会整体替换该行的 config，因此必须复述 base 层原有的 desktopPlatform，
     # 否则桌面端会被当成 web，发出的客户端头不正确。
@@ -54,7 +54,7 @@
 ```yaml
 - id: llm-deepseek-account
   config:
-    baseURL: https://relay.example.com/v1
+    baseURL: https://gateway.example.com/v1
 ```
 
 约束：
@@ -160,7 +160,7 @@
 
 ```json
 {
-  "authorize_url": "https://relay.example.com/dsh/authorize?tx=...",
+  "authorize_url": "https://gateway.example.com/dsh/authorize?tx=...",
   "authorize_id": "tx_...",
   "expires_in": 300
 }
@@ -205,7 +205,7 @@
 ```json
 {
   "token": "opaque-printable-ascii",
-  "authorized_url": "https://relay.example.com/dsh/authorized",
+  "authorized_url": "https://gateway.example.com/dsh/authorized",
   "user": {
     "id": "u_123",
     "email": "user@example.com",
@@ -311,7 +311,7 @@
 
 ### 7.1 端点与认证
 
-`baseURL` 配置为 `https://relay.example.com`（或 `.../v1`）；客户端把根解析为：路径已以 `/v1` 结尾则原样，否则追加 `/v1`。
+`baseURL` 配置为 `https://gateway.example.com`（或 `.../v1`）；客户端把根解析为：路径已以 `/v1` 结尾则原样，否则追加 `/v1`。
 
 ```
 POST {root}/messages
@@ -447,7 +447,7 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 ## 9. 一致性测试清单
 
-在你的中转站上按顺序跑通：
+在你的网关上按顺序跑通：
 
 1. `auth_init` 返回 200，信封合法，`authorize_url` 的 origin/path 正确，`expires_in > 0`。
 2. 浏览器打开 `authorize_url`，登录后 302 到 `redirect_uri`，且 `state` 与 init 一致、`code` 只出现一次。
@@ -478,7 +478,7 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 ## 11. 与官方实现的差异与待确认
 
-| 项 | 官方行为 | 你的中转站 |
+| 项 | 官方行为 | 你的网关 |
 |---|---|---|
 | 授权页 | `platform.deepseek.com/dsh/authorize` | 你的域名同路径 |
 | 登录方式 | DeepSeek 账号 | 手机号 / 邮箱注册（中转站自有账号体系） |

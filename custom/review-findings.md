@@ -1,3 +1,5 @@
+> **历史文档。** 这是 v1 计划阶段的评审结论，其中“relay 外挂”方案已被 [ADR-002](adr-002-merge-relay-into-newapi.md) 取代；文中 relay 相关描述仅用于解释当时的发现，不代表当前架构。
+
 # 深度评审结论（v1）
 
 > 评审对象：[PLAN.md](../PLAN.md) v3 + [login-relay-spec.md](login-relay-spec.md) v1

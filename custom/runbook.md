@@ -31,6 +31,7 @@ DSH 桌面/Web ──▶ NewAPI 127.0.0.1:13000 ──▶ api.deepseek.com/anthr
 
 ```bash
 # 1) 宿主代理转发（容器无法访问宿主 127.0.0.1）
+#    compose 文件仍放在 services/relay/，但默认只启动 new-api。
 cd services/relay
 node tools/host-proxy.mjs 10810 10808 0.0.0.0
 

@@ -21,7 +21,8 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md) | Early external-relay decision (superseded) |
 | [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md) | Merge relay into NewAPI: single-gateway design |
 | [custom/gateway-acceptance.md](custom/gateway-acceptance.md) | Single-gateway acceptance matrix and known limits |
-| [services/relay/README.md](services/relay/README.md) | Local New API + relay implementation |
+| [custom/progress.md](custom/progress.md) | Single progress dashboard |
+| [services/relay/README.md](services/relay/README.md) | Archived relay reference implementation (not started) |
 
 ## Local stack
 
