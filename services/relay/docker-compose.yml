@@ -1,7 +1,7 @@
 services:
   new-api:
     # Pinned so a local upgrade does not change the protocol underneath the relay.
-    image: calciumion/new-api:v0.10.9
+    image: ${NEWAPI_IMAGE:-calciumion/new-api:v0.10.9}
     container_name: dsh-newapi
     restart: unless-stopped
     ports:
@@ -12,6 +12,7 @@ services:
       HTTP_PROXY: ${HTTP_PROXY:-}
       HTTPS_PROXY: ${HTTPS_PROXY:-}
       NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,new-api}
+      FILE_CHANNEL_ID: ${FILE_CHANNEL_ID:-}
     volumes:
       - ./data/new-api:/data
 

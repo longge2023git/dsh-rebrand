@@ -309,6 +309,47 @@ export function createRelay(config: RelayConfig): Relay {
     Readable.fromWeb(upstream.body as import('node:stream/web').ReadableStream).pipe(res)
   }
 
+  async function handleFiles(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
+    if (liveUser(req) === undefined) return jsonError(res, 401, 'account token is missing or expired')
+    if (config.newapiKey === undefined) {
+      return jsonError(res, 503, 'NEWAPI_KEY is not configured; add a New API key to the relay environment')
+    }
+    const headers: Record<string, string> = {
+      authorization: `Bearer ${config.newapiKey}`,
+      accept: typeof req.headers.accept === 'string' ? req.headers.accept : 'application/json',
+    }
+    const contentType = req.headers['content-type']
+    if (typeof contentType === 'string') headers['content-type'] = contentType
+    const beta = req.headers['anthropic-beta']
+    headers['anthropic-beta'] = typeof beta === 'string' ? beta : 'files-api-2025-04-14'
+    if (typeof req.headers['content-length'] === 'string') headers['content-length'] = req.headers['content-length']
+    const init: RequestInit & { duplex?: 'half' } = { method: req.method, headers, redirect: 'error' }
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      init.body = Readable.toWeb(req) as unknown as ReadableStream<Uint8Array>
+      init.duplex = 'half'
+    }
+    const controller = new AbortController()
+    res.on('close', () => { if (!res.writableEnded) controller.abort() })
+    init.signal = controller.signal
+    let upstream: Response
+    try {
+      upstream = await fetch(`${config.newapiBaseUrl}${url.pathname}${url.search}`, init)
+    } catch {
+      return jsonError(res, 502, 'could not reach the New API file upstream')
+    }
+    const outgoing: Record<string, string> = { 'cache-control': 'no-store' }
+    for (const name of ['content-type', 'request-id', 'x-request-id', 'retry-after']) {
+      const value = upstream.headers.get(name)
+      if (value !== null) outgoing[name] = value
+    }
+    res.writeHead(upstream.status, outgoing)
+    if (upstream.body === null) {
+      res.end()
+      return
+    }
+    Readable.fromWeb(upstream.body as import('node:stream/web').ReadableStream).pipe(res)
+  }
+
   async function handleAuthorizePage(req: IncomingMessage, res: ServerResponse, url: URL): Promise<void> {
     const tx = loadTx(url.searchParams.get('tx') ?? '')
     const session = sessionUser(req)
@@ -390,8 +431,8 @@ export function createRelay(config: RelayConfig): Relay {
     if (method === 'POST' && url.pathname === '/auth-api/v0/users/logout') return handleLogout(req, res)
     if (method === 'GET' && url.pathname === '/models') return handleModels(req, res)
     if (method === 'POST' && url.pathname === '/v1/messages') return handleMessages(req, res)
-    if (method === 'POST' && url.pathname.startsWith('/v1/files')) {
-      return sendJson(res, 404, { error: { type: 'not_found_error', message: 'files are not supported by this relay' } })
+    if (url.pathname === '/v1/files' || url.pathname.startsWith('/v1/files/')) {
+      return handleFiles(req, res, url)
     }
     if (method === 'GET' && url.pathname === '/dsh/authorize') return handleAuthorizePage(req, res, url)
     if (method === 'POST' && url.pathname === '/dsh/authorize') return handleAuthorizePost(req, res)

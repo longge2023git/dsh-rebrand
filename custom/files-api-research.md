@@ -87,4 +87,4 @@ Anthropic 兼容端点：`https://api.deepseek.com/anthropic`
 
 ## 7. 待办
 
-NewAPI 二开支持 `/v1/files`：见 [#11](https://github.com/longge2023git/dsh-rebrand/issues/11)。
+NewAPI 二开支持 `/v1/files`：已在 `new-api-deepseek` 的 `feat/files-api` 分支实现（上传/列表/查询/删除、`file_owners` 归属、Messages 渠道绑定），待合并到 `main`。Issue [#11](https://github.com/longge2023git/dsh-rebrand/issues/11) 跟踪验收。

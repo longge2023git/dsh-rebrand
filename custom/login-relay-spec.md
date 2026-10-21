@@ -555,7 +555,7 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 | 账户协议 | relay 自己实现 8 个 API、PKCE、SQLite 存储 |
 | 推理 | 转发到 NewAPI 的 `POST /v1/messages`（Bearer `NEWAPI_KEY`） |
 | 模型目录 | relay 用 `MODELS` 生成 DSH schema；NewAPI 的 `/v1/models` 不直接暴露 |
-| Files | 返回 404，DSH 回退 inline |
+| Files | relay 代理到 NewAPI 二开；NewAPI 未启用时 404，DSH 回退 inline |
 | 端口 | relay `127.0.0.1:18082`，NewAPI `127.0.0.1:13000` |
 
 实测注意：

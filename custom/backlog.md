@@ -4,7 +4,7 @@
 
 | ID | 状态 | 事项 | 关联 |
 |---|---|---|---|
-| **F-01** | **待办** | **NewAPI 二开支持 `/v1/files`（Anthropic Files API 透传）** | [#11](https://github.com/longge2023git/dsh-rebrand/issues/11)、[调研](files-api-research.md) |
+| **F-01** | **已实现，待合并** | **NewAPI 二开支持 `/v1/files`（Anthropic Files API 透传）** | `new-api-deepseek` `feat/files-api`、[#11](https://github.com/longge2023git/dsh-rebrand/issues/11)、[调研](files-api-research.md) |
 | F-02 | 待确认 | 是否为网关增加 `file_id → 用户/租户` 归属映射 | F-01 的前置安全项 |
 | B-01 | 阻塞 | 品牌名称 + Logo（正式 appId/域名可后补） | [requirements](requirements.md) |
 | D-01 | 待办 | macOS 签名/公证、Windows EV 证书、更新源与强制更新策略 | [PLAN](../PLAN.md) §7 |

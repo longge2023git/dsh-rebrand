@@ -197,32 +197,28 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm start:desktop
 - 宿主日志会打印实际 `DSH_HOME` 和 `dsh web: http://127.0.0.1:<port>/?token=...`；出现 `model listing ... loaded 2 model(s)` 说明已经连到 relay。
 - 桌面与 Web 共用 `~/.dsh-dev`，会话、账号登录态互通；测试时不要同时跑两个会互相抢 profile 的实例。
 
-## Files API 现状（为什么会有 404）
+## Files API 现状
 
-当前 relay 对 `/v1/files` 直接返回 404，原因是：
+relay 的 `/v1/files*` 现在会代理到 NewAPI；NewAPI 二开（`new-api-deepseek` 的 `feat/files-api`）负责真正的上传/管理：
 
-1. **NewAPI 没有实现 Files API**。v0.10.9 与当前 main 的 `router/relay-router.go` 都把 `/v1/files` 映射到
-   `controller.RelayNotImplemented`；NewAPI 自己也有 open issue
-   [#2299](https://github.com/QuantumNous/new-api/issues/2299) 请求支持。
-2. **DeepSeek 上游是支持的**。Anthropic 兼容端点有 `POST/GET/DELETE /anthropic/v1/files`，
-   需要 `anthropic-beta: files-api-2025-04-14`；文件对象字段是 `type/size_bytes/mime_type`。
-3. **NewAPI 会透传 file 引用**。实测：直接向上游上传得到真实 `file_id`，再经
-   NewAPI `/v1/messages` 发送 `image.source.type=file`，DeepSeek 能读到图片。也就是说缺的只是上传这一段。
+- `FILE_CHANNEL_ID` 指定用于 Files API 的 Anthropic 渠道，必须与消息渠道属于同一上游账号；
+- 上传成功后 NewAPI 记录 `file_owners`（file_id、user_id、token_id、channel_id）；
+- `/v1/messages` 里出现 `source.type=file` 时，NewAPI 校验归属并把请求钉到文件所属渠道；
+- 未配置 `FILE_CHANNEL_ID`、渠道不支持或旧版 NewAPI 时返回 404/501，DSH 会自动回退 inline base64（默认上限 20 MiB）。
 
-DSH 对上传失败的处理是“整请求回退 inline base64”（见 `request-files.ts`），所以 404 不会报错，只是：
+如果 NewAPI 没有启用 Files API，行为与之前一致：404 → inline fallback。
 
-- 图片 base64 后 ≤ 20 MiB 时无感；
-- 超过 20 MiB 会报 `IMAGE_OFFLOAD_REQUIRED_CODE`，请求失败；
-- 无法复用已上传文件（每次请求重新 inline）。
+### 为什么不能只靠 NewAPI 的 `/v1/files`
 
-### 可选方案
+NewAPI v0.10.9 把该路由映射到 `RelayNotImplemented`，且 `/v1` 组先跑 `Distribute`（要求 `model`）；上传请求没有 model，所以二开必须：
 
-| 方案 | 做法 | 成本 | 取舍 |
-|---|---|---|---|
-| A. relay 直连上游 Files API（推荐） | relay 加 `FILES_UPSTREAM_URL/KEY`，把 `/v1/files*` 转发到 DeepSeek；消息仍走 NewAPI | 1–2 天 | 需要 relay 持有上游 key；要加 file→user 归属校验 |
-| B. 给 NewAPI 加路由 | fork/PR 实现 `/v1/files` 透传 | 3–5 天 + AGPL | 单网关、可复用 NewAPI 鉴权/日志；升级要跟 |
-| C. relay 本地存文件并 inline | 接收上传、存盘，发消息时把 file_id 换成 base64 | 2–3 天 | 不碰上游 key；仍受上游 inline 限制，失去文件复用 |
-| D. 维持 404 fallback | 当前实现 | 0 | 小图可用；大图失败 |
+1. 把文件路由注册在 `Distribute` 之外；
+2. 用 `FILE_CHANNEL_ID` 选择文件渠道；
+3. 维护文件归属表，不能让用户引用别人的 file_id；
+4. 在 Messages 路由前把渠道钉死。
 
-若选 A：NewAPI 渠道与 relay 使用的 key 必须属于**同一个 DeepSeek 账号**（文件按账号共享）；建议给 relay
-单独发一把文件专用 key，并在 relay 里维护 file_id→user_id，防止跨用户引用。
+### 上游
+
+DeepSeek 的 Anthropic Files API 位于 `https://api.deepseek.com/anthropic/v1/files`，需要
+`anthropic-beta: files-api-2025-04-14`。文件按账号共享；上传/管理不单独计费，内容进入 Messages 按
+input tokens 计费。详见 [Files API 调研](../../custom/files-api-research.md)。
