@@ -13,6 +13,9 @@ services:
       HTTPS_PROXY: ${HTTPS_PROXY:-}
       NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,new-api}
       FILE_CHANNEL_ID: ${FILE_CHANNEL_ID:-}
+      DSH_ALLOW_REGISTRATION: ${DSH_ALLOW_REGISTRATION:-true}
+      DSH_PUBLIC_ORIGIN: ${DSH_PUBLIC_ORIGIN:-http://127.0.0.1:13000}
+      DSH_NEW_USER_QUOTA: ${DSH_NEW_USER_QUOTA:-1000000000}
     volumes:
       - ./data/new-api:/data
 

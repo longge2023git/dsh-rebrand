@@ -546,24 +546,25 @@ initializing ──▶ waiting-browser ──▶ exchanging ──▶ committing
 
 ---
 
-## 13. 本地参考实现（New API + relay）
+## 13. 本地实现（New API 单网关）
 
-仓库内 `services/relay/` 是可直接运行的参考实现，用来验证本规范并作为生产中转站的对照。
+DSH 账户协议已合并进 `new-api-deepseek`（Go），不再运行独立 relay。`services/relay/` 只保留为参考实现和一致性测试。
 
 | 项 | 实现 |
 |---|---|
-| 账户协议 | relay 自己实现 8 个 API、PKCE、SQLite 存储 |
-| 推理 | 转发到 NewAPI 的 `POST /v1/messages`（Bearer `NEWAPI_KEY`） |
-| 模型目录 | relay 用 `MODELS` 生成 DSH schema；NewAPI 的 `/v1/models` 不直接暴露 |
-| Files | relay 代理到 NewAPI 二开；NewAPI 未启用时 404，DSH 回退 inline |
-| 端口 | relay `127.0.0.1:18082`，NewAPI `127.0.0.1:13000` |
+| 账户协议 | NewAPI 二开 `router/dsh-router.go` + `controller/dsh_*`；新增 `dsh_auth_transactions` 一张表 |
+| 用户/令牌 | DSH 用户 = NewAPI User；DSH token = NewAPI Token.Key（每次登录新建，TTL 30 天） |
+| 推理 | 直接走 NewAPI 的 `POST /v1/messages`（`x-dsh-auth-token` 由中间件翻译） |
+| 模型目录 | `DSH_MODELS` 生成 DSH schema，默认 `deepseek-flash`（image）+ `deepseek-v4-pro` |
+| Files | 同一网关的 `/v1/files` + `file_owners` + Messages 渠道钉死 |
+| 端口 | 仅 NewAPI `127.0.0.1:13000` |
 
 实测注意：
 
-1. 渠道类型选 **Anthropic (14)**、Base URL `https://api.deepseek.com/anthropic` 时，NewAPI 原生透传 DeepSeek 的 Anthropic SSE，不再经过 OpenAI→Claude 转换；`deepseek-flash` / `deepseek-v4-pro` 直接可用。
-2. 若渠道是 OpenAI 兼容类型，NewAPI 转换会**重复发 `message_start`**；relay 的归一化仍需保留（已只保留第一个）。
-3. NewAPI 的 `/v1/models` 仍缺少 `api_capabilities.anthropic_messages`/`client_requirements`，不能直接给 DSH 用。
-4. 上游是 Anthropic 原生渠道时转换更少，但 relay 的归一化仍建议保留。
-5. 登录页的 CSP `form-action` 必须允许 loopback 回调（`http://127.0.0.1:*`、`http://localhost:*`）；否则浏览器会阻止表单 302，登录表现为「一直等待」。
+1. 渠道类型选 **Anthropic (14)**、Base URL `https://api.deepseek.com/anthropic` 时，NewAPI 原生透传 DeepSeek 的 Anthropic SSE；`deepseek-flash` / `deepseek-v4-pro` 直接可用。
+2. 若渠道是 OpenAI 兼容类型，NewAPI 转换可能**重复发 `message_start`**；当前单网关没有 relay 的归一化，需避免用该渠道或后续在 Go 侧补 normalizer。
+3. NewAPI 的 `/v1/models` 仍缺少 `api_capabilities.anthropic_messages`/`client_requirements`，DSH 使用单独的 `/models`。
+4. 登录页的 CSP `form-action` 必须允许 loopback 回调（`http://127.0.0.1:*`、`http://localhost:*`）；否则浏览器会阻止表单 302，登录表现为「一直等待」。
+5. 上游 401 对 DSH 请求会被映射为 502，避免 DSH 把供应商故障当成 token 失效。
 
-完整启动步骤、环境变量与测试见 [services/relay/README.md](../services/relay/README.md)。
+完整启动步骤见 [ADR-002](adr-002-merge-relay-into-newapi.md) 和 [runbook](runbook.md)。

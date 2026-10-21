@@ -18,13 +18,16 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/runbook.md](custom/runbook.md) | Local start/stop, desktop launch, network recovery |
 | [custom/files-api-research.md](custom/files-api-research.md) | Files API standard, billing, and gateway options |
 | [custom/backlog.md](custom/backlog.md) | Known TODOs, including NewAPI `/v1/files` |
-| [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md) | Why the DSH adapter sits outside NewAPI |
+| [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md) | Early external-relay decision (superseded) |
+| [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md) | Merge relay into NewAPI: single-gateway design |
 | [services/relay/README.md](services/relay/README.md) | Local New API + relay implementation |
 
 ## Local stack
 
 ```
-DSH desktop/web → relay :18082 → New API :13000 → DeepSeek Anthropic API
+DSH desktop/web → New API :13000 → DeepSeek Anthropic API
+
+`services/relay/` is retained as a protocol reference and conformance test only; it is not started.
 ```
 
 See the runbook for prerequisites, desktop launch (`env -u ELECTRON_RUN_AS_NODE ...`), and the

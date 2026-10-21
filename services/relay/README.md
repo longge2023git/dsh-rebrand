@@ -1,3 +1,5 @@
+> **已合并进 NewAPI（2026-10-21）。** 生产/本地联调请直接启动 `new-api-deepseek` 的 13000 端口；本目录仅保留为 DSH 账户协议的参考实现和一致性测试，不再作为运行依赖。见 [ADR-002](../../custom/adr-002-merge-relay-into-newapi.md)。
+
 # DSH 本地参考中转站（New API + relay）
 
 在本地跑通「DSH 登录 → 模型调用」的完整链路，作为生产中转站的参考实现与回归夹具。
@@ -80,10 +82,10 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:18082/dsh/authorized  
 Web（本机调试）：
 
 ```bash
-DSH_HOME=~/.dsh-dev pnpm dsh web --patch custom/profiles/local-relay.patch.yml
+DSH_HOME=~/.dsh-dev pnpm dsh web --patch custom/profiles/local-gateway.patch.yml
 ```
 
-桌面开发壳：把 `custom/profiles/local-relay.patch.yml` 的内容合并进
+桌面开发壳：把 `custom/profiles/local-gateway.patch.yml` 的内容合并进
 `~/.dsh-dev/profiles/desktop/cordis.patch.yml`，再 `DSH_HOME=~/.dsh-dev pnpm dev:desktop`。
 
 打开应用 → 账户 → 登录：会打开 relay 的注册/登录页，注册后自动回到 DSH。
@@ -192,7 +194,7 @@ MODELS=[{"id":"deepseek-flash","name":"DeepSeek Flash","context_window":1000000,
 # 一次性：复制官方 desktop profile，并追加 relay 覆盖
 mkdir -p ~/.dsh-dev/profiles
 [ -d ~/.dsh-dev/profiles/desktop ] || cp -R ~/.dsh/profiles/desktop ~/.dsh-dev/profiles/desktop
-cat custom/profiles/local-relay.patch.yml >> ~/.dsh-dev/profiles/desktop/cordis.patch.yml
+cat custom/profiles/local-gateway.patch.yml >> ~/.dsh-dev/profiles/desktop/cordis.patch.yml
 
 # 启动 Electron 开发壳（首次会构建并下载 Electron）
 env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop

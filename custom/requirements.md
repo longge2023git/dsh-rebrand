@@ -68,7 +68,7 @@
 | B-01 | 注册 | Given 未注册手机/邮箱，When 在 `/dsh/authorize` 注册，Then 可完成注册并回到 DSH 登录成功 |
 | B-02 | 登录持久化 | Given 已登录，When 重启 DSH，Then 仍为登录态（token 未过期） |
 | B-03 | 过期重登 | Given token 失效，When 发消息，Then 提示重新登录，重登后恢复 |
-| B-10 | 本地参考实现 | Given `services/relay` 与 NewAPI，When 按 README 启动，Then E-01～E-05 通过 |
+| B-10 | 本地参考实现 | Given NewAPI 二开单网关，When 按 runbook 启动，Then E-01～E-05 通过；`services/relay` 仅作协议参考 |
 | B-04 | 登出 | Given 已登录，When 点登出，Then 本地清除且中转站 token 失效 |
 | B-05 | 取消登录 | Given 登录页，When 取消/关闭，Then DSH 回到未登录态，不残留半登录 |
 | B-06 | 推理 | Given 已登录，When 发一条消息，Then 流式返回；工具调用正常 |
@@ -102,12 +102,12 @@
 
 | ID | 需求 | 验收 |
 |---|---|---|
-| E-01 | 一条命令拉起 NewAPI + relay | `docker compose up -d` 后 `:13000` 与 `:18082` 均可访问，`/healthz` 返回 `{"ok":true}` |
+| E-01 | 一条命令拉起 NewAPI 单网关 | `docker compose up -d` 后 `:13000` 可访问，`/api/status` 返回 200 |
 | E-02 | 注册/登录闭环 | 在 `/dsh/authorize` 注册后回到 DSH，账户显示已登录（已验证） |
 | E-03 | 协议一致性 | 规范 §9 清单通过，含 PKCE、code 单次、40003/401、`/models` schema |
-| E-04 | 推理链路 | DSH 发消息 → relay → NewAPI → DeepSeek Anthropic 入口，真实返回 `OK`（已验证） |
+| E-04 | 推理链路 | DSH 发消息 → NewAPI → DeepSeek Anthropic 入口，真实返回 `OK`（已验证） |
 | E-05 | 登出/吊销 | 登出后旧 token 立即 401；重启 DSH 后仍保持登录（未过期时） |
-| E-06 | 代码入库 | `services/relay/`、Compose、测试、README、DSH patch 全部可复现 |
+| E-06 | 代码入库 | `new-api-deepseek`、Compose、测试、README、DSH patch 全部可复现 |
 
 ---
 
