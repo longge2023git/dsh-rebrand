@@ -82,11 +82,12 @@ curl -sN http://127.0.0.1:13000/v1/messages \
   -d '{"model":"deepseek-flash","max_tokens":16,"stream":true,"messages":[{"role":"user","content":"hi"}]}'
 ```
 
-已验证（2026-10-20）：
+已验证（2026-10-21，单网关）：
 
-- NewAPI 二开 `go test ./...` 全绿；
-- 真实协议 14/14（注册、PKCE、`/models`、单次 `message_start`/`message_stop`、登出）；
-- DSH Web 与桌面 `Harness Dev` 均能发消息并收到真实回复；
+- NewAPI 二开 `go build ./...`、`go test ./... -count=1` 全绿；
+- 独立测试：注册/PKCE、重复邮箱、code 重放、多设备 token 隔离、跨用户文件隔离、`/models`、SSE 单次 start/stop、logout 401；
+- DSH Web 直连 13000：登录、文本、图片附件均通过；日志 `/v1/files 200` + `/v1/messages 200`；
+- 上游 401→502、file_id 自动补 beta 已验证；
 - git 中无 API key。
 
 ## 6. 停止

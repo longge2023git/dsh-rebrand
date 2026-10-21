@@ -57,6 +57,14 @@ DSH Web/Desktop ──▶ NewAPI :13000 ──▶ DeepSeek Anthropic API
 
 回滚：保留 relay 代码和旧 profile patch，把 DSH 指回 18082 即可；NewAPI 的 DSH 路由不影响原有 `/v1`。
 
+## 验收（2026-10-21）
+
+- NewAPI `go build ./...`、`go test ./... -count=1` 全绿；
+- 独立测试 agent：注册/PKCE/exchange、重复邮箱、code 重放、多设备 token 隔离、跨用户文件隔离、`/models`、SSE 单 start/stop、logout 后 401 均 PASS，无 P0；
+- 主线程 DSH Web：Sign in → 注册 → 文本 `GATEWAYOK` → 附件 blue.png → 模型识别颜色；NewAPI 日志 `/v1/files 200` + `/v1/messages 200`；
+- 上游 401→502 用真实 Relay 链路验证：DSH 头 502、普通 Authorization 仍 401；
+- 带 file_id 的 Messages 不带 beta 头也返回 200（网关自动注入）。
+
 ## 未解决
 
 - 多实例注册同一邮箱仍可能重复（Email 非唯一索引；单实例已用事务 + 互斥锁）。
