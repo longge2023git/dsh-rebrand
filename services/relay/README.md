@@ -154,6 +154,17 @@ npm test
 - 本目录代码随仓库使用 MIT。
 - New API 是 **AGPLv3**，以独立容器运行、不修改源码；不要把它的二进制与桌面安装包捆绑分发，否则会触发 AGPL 义务。
 
+## 图片附件提示“模型不支持图片”
+
+DSH 在发送附件前会检查 `/models` 的 `input_modalities`。如果 relay 的 `MODELS` 没给模型加 `image: true`，UI 会直接拒绝附件，不会走到 Files API。
+
+```bash
+MODELS=[{"id":"deepseek-flash","name":"DeepSeek Flash","context_window":1000000,"max_output_tokens":256000,"image":true}, ...]
+```
+
+注意：只有 `deepseek-flash` 支持图像理解；`deepseek-v4-pro` 不要加 `image`。
+改完 `.env` 后重启 relay，并重启/刷新 DSH，让客户端重新拉取模型目录。
+
 ## 故障排查
 
 ### `DeepSeek Messages transport failed`
