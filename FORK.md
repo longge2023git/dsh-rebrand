@@ -18,6 +18,7 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/runbook.md](custom/runbook.md) | Local start/stop, desktop launch, network recovery |
 | [custom/files-api-research.md](custom/files-api-research.md) | Files API standard, billing, and gateway options |
 | [custom/backlog.md](custom/backlog.md) | Known TODOs, including NewAPI `/v1/files` |
+| [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md) | Why the DSH adapter sits outside NewAPI |
 | [services/relay/README.md](services/relay/README.md) | Local New API + relay implementation |
 
 ## Local stack

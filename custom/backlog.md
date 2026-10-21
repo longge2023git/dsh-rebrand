@@ -9,6 +9,7 @@
 | B-01 | 阻塞 | 品牌名称 + Logo（正式 appId/域名可后补） | [requirements](requirements.md) |
 | D-01 | 待办 | macOS 签名/公证、Windows EV 证书、更新源与强制更新策略 | [PLAN](../PLAN.md) §7 |
 | R-01 | 待办 | RTL 基础层（转换器 + `dir` + LTR 孤岛 + Chromium harness） | [PLAN](../PLAN.md) §5 |
+| A-01 | 待评估 | 是否把 relay 合并进 NewAPI 二开网关 | [ADR-001](adr-001-relay-boundary.md) |
 
 ## F-01 摘要
 

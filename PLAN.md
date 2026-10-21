@@ -341,6 +341,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [NOTICE](NOTICE) / [TRADEMARKS.md](TRADEMARKS.md)：上游归属与商标声明。
 - [custom/files-api-research.md](custom/files-api-research.md)：Files API 标准、计费与网关方案调研。
 - [custom/backlog.md](custom/backlog.md)：已明确但未做的待办（含 NewAPI `/v1/files`）。
+- [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md)：relay 外挂 vs 合并进 NewAPI 的架构决策。
 - [FORK.md](FORK.md)：公开仓库入口与文档索引。
 
 ---
