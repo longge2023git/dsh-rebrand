@@ -16,6 +16,8 @@ services:
       DSH_ALLOW_REGISTRATION: ${DSH_ALLOW_REGISTRATION:-true}
       DSH_PUBLIC_ORIGIN: ${DSH_PUBLIC_ORIGIN:-http://127.0.0.1:13000}
       DSH_NEW_USER_QUOTA: ${DSH_NEW_USER_QUOTA:-1000000000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data/new-api:/data
 

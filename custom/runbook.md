@@ -35,9 +35,10 @@ DSH 桌面/Web ──▶ NewAPI 127.0.0.1:13000 ──▶ api.deepseek.com/anthr
 cd services/relay
 node tools/host-proxy.mjs 10810 10808 0.0.0.0
 
-# 2) NewAPI（先确保 .env 的 HTTP_PROXY/HTTPS_PROXY 指向当前宿主 IP）
-IP=$(ipconfig getifaddr en0)
-# 编辑 .env: HTTP_PROXY=http://$IP:10810  HTTPS_PROXY=http://$IP:10810
+# 2) NewAPI（代理使用 Docker host-gateway，不再写死 Wi-Fi IP）
+# .env: HTTP_PROXY=http://host.docker.internal:10810
+#      HTTPS_PROXY=http://host.docker.internal:10810
+# compose 已声明 extra_hosts: host.docker.internal:host-gateway
 docker compose up -d new-api
 
 # 3) DSH Web（可选；直连 NewAPI）
@@ -66,14 +67,15 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
 症状：DSH 报 `DeepSeek Messages transport failed`，或 NewAPI 日志出现 `proxyconnect ... connection refused`。
 
 ```bash
-IP=$(ipconfig getifaddr en0)
 cd services/relay
-# 把 .env 的 HTTP_PROXY/HTTPS_PROXY 改成 http://$IP:10810
+# .env 固定使用 http://host.docker.internal:10810；compose 已加 host-gateway
 docker compose up -d --force-recreate new-api
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:13000/api/status
 ```
 
-如果 IP 在多个网卡之间来回切，检查 `ipconfig getifaddr en0` 后再重建；`host-proxy.mjs` 绑 `0.0.0.0` 可以跟随当前地址，但容器里的代理 URL 仍是固定值，必须更新。
+如果容器仍报 `lookup host.docker.internal ... server misbehaving`，确认 compose 的 `extra_hosts: host.docker.internal:host-gateway` 已生效；不要在 `.env` 里写宿主 Wi-Fi IP。
+
+`host-proxy.mjs` 绑 `0.0.0.0`；容器通过 `host.docker.internal` 访问宿主，不再依赖当前 Wi-Fi IP。
 
 ## 5. 验证命令
 
