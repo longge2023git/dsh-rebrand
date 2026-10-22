@@ -596,6 +596,8 @@ it('dismisses a collapsed menu and hands its login dialog to the API-key onboard
   expect(operations.showLogin).toHaveBeenLastCalledWith(false)
   fireEvent.click(screen.getByRole('button', { name: en.addApiKey }))
   expect(openOnboarding).toHaveBeenCalledExactlyOnceWith('deepseek-official')
+  fireEvent.click(screen.getByRole('button', { name: en.gatewayApiKey }))
+  expect(openOnboarding).toHaveBeenLastCalledWith('deepseek-gateway')
   snapshot = { ...snapshot, onboarding: true }
   view.rerender(<AccountMenu {...props} />)
   expect(screen.queryByRole('dialog')).toBeNull()

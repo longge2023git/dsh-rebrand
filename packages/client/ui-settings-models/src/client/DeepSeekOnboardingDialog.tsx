@@ -56,10 +56,12 @@ function assertNever(_value: never): never {
  * @returns the onboarding modal or null when onboarding needs no intervention.
  */
 export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): ReactNode {
-  const { complete, controller, useModels, operations, schema, t, renderSlot, automatic, explicit = false } = props
+  const { complete, controller, useModels, operations, schema, t, renderSlot, automatic, explicit = false, stepId } = props
   const [apiKey, setApiKey] = useState(explicit)
+  const [providerOverride, setProviderOverride] = useState<string | undefined>(undefined)
+  const targetProvider = providerOverride ?? (stepId === 'deepseek-gateway' ? 'deepseek-gateway' : 'deepseek-official')
   const state = useModels(snapshot => snapshot)
-  const readiness = onboardingReadiness(state)
+  const readiness = onboardingReadiness(state, targetProvider)
 
   useEffect(() => {
     if ((automatic || explicit) && state.status === 'idle') void controller.load()
@@ -92,10 +94,9 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
   }
 
   const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
+    candidate.entry.provider === targetProvider
     && candidate.entry.settingsPath.length === 0)
-  const namespace = state.namespaces.get('llm-deepseek')
+  const namespace = row === undefined ? undefined : state.namespaces.get(row.entry.settingsNs)
   /* v8 ignore next 2 -- credential-missing is derived only from this exact joined row. */
   if (row === undefined || namespace === undefined) return null
 
@@ -108,8 +109,8 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
   }
 
   const editor = (
-    <OnboardingModal title={t('onboardingTitle')}>
-      <p className={styles.description}>{t('onboardingDescription')}</p>
+    <OnboardingModal title={t(targetProvider === 'deepseek-gateway' ? 'onboardingGatewayTitle' : 'onboardingTitle')}>
+      <p className={styles.description}>{t(targetProvider === 'deepseek-gateway' ? 'onboardingGatewayDescription' : 'onboardingDescription')}</p>
       <div className={styles.editor}>
         <ProviderEditor
           provider={row.entry.provider}
@@ -133,5 +134,9 @@ export function DeepSeekOnboardingDialog(props: DeepSeekOnboardingDialogProps): 
       </div>
     </OnboardingModal>
   )
-  return apiKey ? editor : renderSlot('settings.models.sign-in', { complete, useApiKey: () => { setApiKey(true) } }, { fallback: editor })
+  return apiKey ? editor : renderSlot('settings.models.sign-in', {
+    complete,
+    useApiKey: () => { setApiKey(true) },
+    useGatewayApiKey: () => { setProviderOverride('deepseek-gateway'); setApiKey(true) },
+  }, { fallback: editor })
 }

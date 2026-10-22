@@ -28,6 +28,15 @@ it.each([en, zh])('offers sign in or the existing API key editor', async (copy) 
   expect(props.useApiKey).toHaveBeenCalledOnce()
   expect(props.start).not.toHaveBeenCalled()
 })
+it('opens the gateway API-key entry when supplied', () => {
+  const props = dialogProps(null)
+  const useGatewayApiKey = vi.fn()
+  render(<SignInDialog {...props} useGatewayApiKey={useGatewayApiKey} />)
+  fireEvent.click(screen.getByRole('button', { name: en.gatewayApiKey }))
+  expect(useGatewayApiKey).toHaveBeenCalledOnce()
+  expect(props.useApiKey).not.toHaveBeenCalled()
+})
+
 it.each([en, zh])('requires a user action after timeout', async (copy) => {
   const props = mount({ id, phase: 'expired', errorCode: 'expired' }, copy)
   expect(props.start).not.toHaveBeenCalled()

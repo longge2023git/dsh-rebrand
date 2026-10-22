@@ -53,6 +53,14 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
 # 之后可跳过构建：pnpm start:desktop
 ```
 
+## 3.1 用网关 API Key（不登录账号）
+
+登录弹窗 / 未登录页选择 **使用网关 API Key**，粘贴 NewAPI 控制台创建的 `sk-...`。baseURL 由 `deepseek-gateway` provider 固定为 `http://127.0.0.1:13000`；不用邮箱密码。
+
+模型菜单选择 `DSH Gateway` 下的 `DeepSeek-V4.1-Flash` / `DeepSeek-V4-Pro`。key 存于 `$DSH_HOME/.credentials.yaml` 的 `DSH_GATEWAY_API_KEY`。
+
+官方 `Add API Key` 入口在发版前仍保留；发版时移除（见 [gateway-api-key-plan](gateway-api-key-plan.md) 第二步）。
+
 ## 4. 换网络后的恢复
 
 症状：DSH 报 `DeepSeek Messages transport failed`，或 NewAPI 日志出现 `proxyconnect ... connection refused`。

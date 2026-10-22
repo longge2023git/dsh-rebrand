@@ -1,1 +1,1 @@
-Get startedSign in to your DeepSeek account or add an API Key to get started. Your projects and files are stored locally.Add API KeySign in
+Get startedSign in to your DeepSeek account, use a gateway API key, or add an official API key to get started. Your projects and files are stored locally.Add API KeySign in

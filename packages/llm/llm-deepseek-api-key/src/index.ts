@@ -12,9 +12,9 @@ export type { Options, ResolvedDeepSeekOptions } from './config.ts'
 export const name = 'llm-deepseek-api-key'
 export const inject = ['llm']
 
-const PROVIDER = 'deepseek-official'
-
 export function apply(ctx: Context, config: Config): void {
+  const provider = config.provider
+  const providerName = provider === 'deepseek-gateway' ? 'DSH Gateway' : 'DeepSeek'
   const options = () => resolveAdapterOptions(plainOptions(config), launchEnvironmentOf(ctx))
   options()
   const resolveApiKey = async (connection: ResolvedDeepSeekOptions): Promise<string> => {
@@ -28,16 +28,16 @@ export function apply(ctx: Context, config: Config): void {
       if (ambient !== undefined && ambient.value.length > 0) return assertUsableApiKey(ambient.value, 'llm-deepseek', ref)
     }
     throw new LlmError(
-      `llm-deepseek: no API key for provider route "${PROVIDER}"; store ${ref} through the credentials`
+      `llm-deepseek: no API key for provider route "${provider}"; store ${ref} through the credentials`
       + ` service (the web Models page writes it), or export ${ref} in the launching environment`,
       'MISSING_CREDENTIAL',
     )
   }
   ctx.llm.registerConfigurableProviders([
-    { provider: PROVIDER, displayName: 'DeepSeek', settingsNs: ctx.fiber.entry?.options.id ?? name, settingsPath: [] },
+    { provider, displayName: providerName, settingsNs: ctx.fiber.entry?.options.id ?? name, settingsPath: [] },
   ])
-  registerDeepSeekProvider(ctx, PROVIDER, {
-    options, providerName: 'DeepSeek',
+  registerDeepSeekProvider(ctx, provider, {
+    options, providerName,
     resolveAuth: async connection => ({ headers: { 'x-api-key': await resolveApiKey(connection) } }),
     discoverModels: async (provider) => {
       const connection = options()

@@ -10,6 +10,8 @@
 | D-01 | 待办 | macOS 签名/公证、Windows EV 证书、更新源与强制更新策略 | [PLAN](../PLAN.md) §7 |
 | R-01 | 待办 | RTL 基础层（转换器 + `dir` + LTR 孤岛 + Chromium harness） | [PLAN](../PLAN.md) §5 |
 | A-01 | **已完成** | relay 合并进 NewAPI 二开网关 | [ADR-002](adr-002-merge-relay-into-newapi.md)、`new-api-deepseek` `feat/dsh-gateway` |
+| G-01 | **已完成** | Gateway API Key 模式（第一步） | [计划](gateway-api-key-plan.md) |
+| G-02 | 待办 | 发版时移除官方 API Key 入口（第二步） | [计划](gateway-api-key-plan.md) |
 
 ## F-01 摘要
 

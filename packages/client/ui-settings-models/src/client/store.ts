@@ -371,7 +371,7 @@ export type OnboardingReadiness =
  * @param state - current shared Models join snapshot.
  * @returns the onboarding state without reading a parallel fact source.
  */
-export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadiness {
+export function onboardingReadiness(state: ModelsSettingsState, provider = 'deepseek-official'): OnboardingReadiness {
   if ((state.status === 'idle' || state.status === 'loading') && state.rows.length === 0) {
     return { kind: 'loading' }
   }
@@ -383,8 +383,7 @@ export function onboardingReadiness(state: ModelsSettingsState): OnboardingReadi
   }
   if (state.rows.some(providerUsable)) return { kind: 'provider-ready' }
   const row = state.rows.find(candidate =>
-    candidate.entry.provider === 'deepseek-official'
-    && candidate.entry.settingsNs === 'llm-deepseek'
+    candidate.entry.provider === provider
     && candidate.entry.settingsPath.length === 0)
   if (row === undefined) return { kind: 'adapter-absent' }
   if (!row.entry.active) {

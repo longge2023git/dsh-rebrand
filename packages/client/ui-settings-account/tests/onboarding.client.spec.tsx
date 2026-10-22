@@ -27,7 +27,7 @@ it('claims onboarding while loading, offers API key fallback, and completes afte
   const props = {
     ...globals,
     hasRunningAccountTasks: vi.fn(async () => false),
-    complete: vi.fn(), useApiKey: vi.fn(), setOnboarding: vi.fn(), showLogin: vi.fn(),
+    complete: vi.fn(), useApiKey: vi.fn(), useGatewayApiKey: vi.fn(), setOnboarding: vi.fn(), showLogin: vi.fn(),
     useAccount: <T,>(select: (snapshot: AccountSnapshot) => T) => select(account),
     useTheme: <T,>(select: (snapshot: ThemeSnapshot) => T) => select(theme),
     start: vi.fn(async () => {}), cancel: vi.fn(async () => {}), signOut: vi.fn(async () => {}),
@@ -43,6 +43,8 @@ it('claims onboarding while loading, offers API key fallback, and completes afte
   fireEvent.click(screen.getByRole('button', { name: en.addApiKey }))
   expect(props.showLogin).toHaveBeenLastCalledWith(false)
   expect(props.useApiKey).toHaveBeenCalledOnce()
+  fireEvent.click(screen.getByRole('button', { name: en.gatewayApiKey }))
+  expect(props.useGatewayApiKey).toHaveBeenCalledOnce()
   fireEvent.click(screen.getByRole('button', { name: en.close }))
   expect(props.complete).toHaveBeenCalledOnce()
   account = { ...account, view: { ...account.view!, status: 'credential-stored' } }
