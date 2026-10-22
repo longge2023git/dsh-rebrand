@@ -17,7 +17,7 @@
 |---|---|---|
 | 仓库 | 公开 `dsh-rebrand`，`origin`/`upstream` 双远程；merge 同步上游 | 0.5 天 |
 | **A 品牌** | 自有 client 插件占插槽 + 禁用官方行 + 改 ≥15 个触点 | **5–7 天** |
-| **B 登录** | 协议兼容中转站（[规范](custom/login-relay-spec.md) v1.1） | **4–5 天**（不含中转站） |
+| **B 登录** | 协议兼容中转站（[规范](custom/login-relay-spec.md) v1.1）+ 网关 API Key 模式 | **4–5 天**（不含中转站） |
 | **C RTL** | 共享转换器 + `dir` 运行时 + 几何层 + 分批验收 | **10–13 天** |
 | **D 分发** | 签名/公证、Windows、自建更新源、策略服务、关遥测 | **6–8 天 + 外部依赖** |
 | **E 单网关** | NewAPI 二开：账户协议、token、`/models`、Files、SSE/渠道（已完成） | **4–5 天** |
@@ -340,6 +340,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [custom/files-api-research.md](custom/files-api-research.md)：Files API 标准、计费与网关方案调研。
 - [custom/backlog.md](custom/backlog.md)：已明确但未做的待办。
 - [custom/progress.md](custom/progress.md)：单一进度入口（里程碑/当前运行/已知限制）。
+- [custom/gateway-api-key-plan.md](custom/gateway-api-key-plan.md)：Gateway API Key 两步计划（第一步已完成）。
 - [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md)：早期外挂 relay 的决策（已被 ADR-002 取代）。
 - [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md)：relay 合并进 NewAPI 的单网关决策。
 - [FORK.md](FORK.md)：公开仓库入口与文档索引。
