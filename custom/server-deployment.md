@@ -70,6 +70,22 @@ scp /tmp/dsh-newapi-image.tar.gz root@104.248.155.54:/opt/dsh-gateway/image.tar.
 ssh root@104.248.155.54 'cd /opt/dsh-gateway && docker load -i image.tar.gz && docker compose up -d'
 ```
 
+## 账号页用量/充值链接
+
+DSH 的 `deepseek-account-platform` 新增可配置路径，生产 profile 使用：
+
+```yaml
+usagePath: /console/log
+topUpPath: /console/topup
+```
+
+因此：
+
+- “前往开放平台查看” / “查询用量” → `https://ds.openrouters.org/console/log`
+- “充值” → `https://ds.openrouters.org/console/topup`
+
+用户用注册邮箱/密码登录 NewAPI 控制台后即可看到自己的 token、额度、用量和充值页；不再跳 DeepSeek 官方平台。官方 provider 的默认路径仍是 `/usage`、`/top_up`。
+
 ## 验收（2026-10-22）
 
 - `https://ds.openrouters.org/api/status` → 200

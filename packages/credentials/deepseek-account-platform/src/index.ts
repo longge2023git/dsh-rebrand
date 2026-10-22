@@ -27,6 +27,10 @@ export interface Config {
   desktopPlatform?: 'darwin' | 'win32' | null
   /** Optional frontend deployment selector for embedded Usage and Top-up pages. */
   embeddedPageDist?: string
+  /** Platform path opened by the Usage action; defaults to the official `/usage`. */
+  usagePath?: string
+  /** Platform path opened by the Top-up action; defaults to the official `/top_up`. */
+  topUpPath?: string
   /** Exact HTTP(S) origin allowed to receive account tokens for inference and files. */
   inferenceOrigin?: string
   /** Allow HTTP only on loopback for the development Mock. */
@@ -53,6 +57,8 @@ export const Config = Schema.object({
   platformOrigin: Schema.string().default('https://platform.deepseek.com'),
   desktopPlatform: Schema.union([Schema.const('darwin'), Schema.const('win32'), Schema.const(null)]).default(null),
   embeddedPageDist: Schema.string().default(''),
+  usagePath: Schema.string().default('/usage'),
+  topUpPath: Schema.string().default('/top_up'),
   inferenceOrigin: Schema.string().default('https://api.deepseek.com'),
   allowLoopbackHttp: Schema.boolean().default(false),
   rewriteBrowserOrigin: Schema.boolean().default(false),
@@ -86,6 +92,8 @@ export class PlatformAccount extends DeepSeekAccount {
   static Config = Config
   private readonly origin: string
   private readonly embeddedPageDist: string
+  private readonly usagePath: string
+  private readonly topUpPath: string
   private readonly inferenceOrigin: string
   private readonly rewriteBrowserOrigin: boolean
   private readonly platform: 'darwin' | 'win32' | null
@@ -114,6 +122,8 @@ export class PlatformAccount extends DeepSeekAccount {
     installAccountTaskCancellation(ctx)
     const resolved = Config(config)
     this.embeddedPageDist = resolved.embeddedPageDist
+    this.usagePath = resolved.usagePath
+    this.topUpPath = resolved.topUpPath
     this.origin = platformOrigin(resolved.platformOrigin, resolved.allowLoopbackHttp)
     const inference = new URL(resolved.inferenceOrigin)
     if (!['http:', 'https:'].includes(inference.protocol) || inference.username || inference.password
@@ -184,7 +194,10 @@ export class PlatformAccount extends DeepSeekAccount {
       status: record === undefined ? 'signed-out' : 'credential-stored',
       // Credential removal can notify watchers before sign-out finishes clearing the attempt.
       attempt: record === undefined && attempt?.phase === 'succeeded' ? null : attempt,
-      links: { usageUrl: new URL('/usage', this.origin).href, topUpUrl: new URL('/top_up', this.origin).href },
+      links: {
+        usageUrl: new URL(this.usagePath, this.origin).href,
+        topUpUrl: new URL(this.topUpPath, this.origin).href,
+      },
     }
   }
 

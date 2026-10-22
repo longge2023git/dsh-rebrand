@@ -12,6 +12,7 @@
 | A-01 | **已完成** | relay 合并进 NewAPI 二开网关 | [ADR-002](adr-002-merge-relay-into-newapi.md)、`new-api-deepseek` `feat/dsh-gateway` |
 | G-01 | **已完成** | Gateway API Key 模式（第一步） | [计划](gateway-api-key-plan.md) |
 | G-02 | 待办 | 发版时移除官方 API Key 入口（第二步） | [计划](gateway-api-key-plan.md) |
+| G-03 | **已完成** | 账号页“查询用量/充值”指向 NewAPI 控制台 | `usagePath`/`topUpPath` |
 | S-01 | 待办 | 网关域名切换到 https://deepseek-fa.org | [#13](https://github.com/longge2023git/dsh-rebrand/issues/13)、[迁移清单](deepseek-fa-domain-migration.md) |
 
 ## F-01 摘要

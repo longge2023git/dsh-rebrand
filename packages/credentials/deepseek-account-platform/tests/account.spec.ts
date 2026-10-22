@@ -35,6 +35,8 @@ async function fixture(
   embeddedPageDist = '',
   desktopPlatform: 'darwin' | 'win32' | null = null,
   balanceTimeoutMs = 30_000,
+  usagePath = '/usage',
+  topUpPath = '/top_up',
 ) {
   const home = await mkdtemp(join(tmpdir(), 'dsh-account-'))
   cleanups.push(() => rm(home, { recursive: true, force: true }))
@@ -159,7 +161,7 @@ async function fixture(
   await beforeAccount?.(ctx, origin)
   const provider = ctx.plugin(PlatformAccount, {
     platformOrigin: origin, inferenceOrigin, embeddedPageDist, desktopPlatform,
-    allowLoopbackHttp: true, requestHeaders, accountRequestHeaders,
+    usagePath, topUpPath, allowLoopbackHttp: true, requestHeaders, accountRequestHeaders,
     rewriteBrowserOrigin, logoutRetryDelayMs: 1, balanceTimeoutMs,
   })
   await provider
@@ -387,6 +389,15 @@ it('derives every portal link from the private platform origin', async () => {
   expect((await f.account.getState()).links).toEqual({ usageUrl: `${f.origin}/usage`, topUpUrl: `${f.origin}/top_up` })
   await f.account.startSignIn(clientMetadata(), f.callbackOrigin, 'desktop')
   expect((await f.wait('waiting-browser')).attempt?.authorizeUrl).toBe(`${f.origin}/dsh/authorize?authorize_id=test`)
+})
+
+it('uses configured console paths for usage and top-up links', async () => {
+  const f = await fixture(undefined, {}, false, {}, 'https://api.deepseek.com', undefined, '', null, 30_000,
+    '/console/log', '/console/topup')
+  expect((await f.account.getState()).links).toEqual({
+    usageUrl: `${f.origin}/console/log`,
+    topUpUrl: `${f.origin}/console/topup`,
+  })
 })
 
 async function storeAccount(f: Awaited<ReturnType<typeof fixture>>) {

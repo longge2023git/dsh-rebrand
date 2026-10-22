@@ -11,6 +11,8 @@
   config:
     platformOrigin: https://ds.openrouters.org
     inferenceOrigin: https://ds.openrouters.org
+    usagePath: /console/log
+    topUpPath: /console/topup
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
 
 - id: llm-deepseek-account
