@@ -12,10 +12,21 @@
 | NewAPI | 唯一网关：DSH 账户协议、模型渠道、Files、配额、日志 |
 | relay | `services/relay/`，已合并进 NewAPI，仅保留为协议参考/一致性测试，不再启动 |
 
+## 1.1 当前生产入口（2026-10-22 起）
+
+DSH 本地测试已切到：
+
+```text
+DSH ──▶ https://ds.openrouters.org ──▶ NewAPI 容器 :3104 ──▶ api.deepseek.com/anthropic
+```
+
+服务器 `104.248.155.54`，部署细节见 [server-deployment](server-deployment.md)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
+
 ## 2. 拓扑与端口
 
 ```
-DSH 桌面/Web ──▶ NewAPI 127.0.0.1:13000 ──▶ api.deepseek.com/anthropic
+DSH 桌面/Web ──▶ https://ds.openrouters.org（生产）
+               或 127.0.0.1:13000（本地回退）
                          ▲
        宿主代理转发 0.0.0.0:10810 ──▶ 127.0.0.1:10808
 ```
@@ -44,12 +55,12 @@ docker compose up -d new-api
 # 3) DSH Web（可选；直连 NewAPI）
 cd ../..
 DSH_HOME=$HOME/.dsh-dev pnpm dsh --profile web \
-  --patch custom/profiles/local-gateway.patch.yml --no-open
+  --patch custom/profiles/server-gateway.patch.yml --no-open
 
 # 4) 桌面开发壳
 mkdir -p ~/.dsh-dev/profiles
 [ -d ~/.dsh-dev/profiles/desktop ] || cp -R ~/.dsh/profiles/desktop ~/.dsh-dev/profiles/desktop
-cat custom/profiles/local-gateway.patch.yml >> ~/.dsh-dev/profiles/desktop/cordis.patch.yml
+cat custom/profiles/server-gateway.patch.yml >> ~/.dsh-dev/profiles/desktop/cordis.patch.yml
 env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
 # 之后可跳过构建：pnpm start:desktop
 ```

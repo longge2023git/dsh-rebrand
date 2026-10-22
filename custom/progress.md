@@ -19,6 +19,8 @@
 | M-05 | 桌面端文本 | 完成 | `DESKTOMGW` |
 | M-06 | 桌面端图片附件 | **待手工确认** | 原生文件选择器无法自动化 |
 | M-07 | Gateway API Key 模式（第一步） | 完成 | [计划](gateway-api-key-plan.md)、网关 key E2E |
+| M-08 | 生产部署 `https://ds.openrouters.org` | 完成 | [部署记录](server-deployment.md) |
+| M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
 | V-01 | 发版时移除官方 API Key 入口（第二步） | 未开始 | 计划 §第二步 |
 | B-01 | 品牌名称 + Logo | **阻塞** | 需要用户提供 |
 | R-01 | RTL 基础层 | 未开始 | PLAN §5 |
@@ -28,8 +30,9 @@
 
 | 服务 | 地址 |
 |---|---|
-| NewAPI 单网关 | `http://127.0.0.1:13000` |
-| DSH Web 测试 | `http://127.0.0.1:3080` |
+| NewAPI 单网关（生产） | `https://ds.openrouters.org` |
+| 本地回退 | `http://127.0.0.1:13000`（可选） |
+| DSH Web 测试 | `http://127.0.0.1:3080`（指向生产） |
 | 宿主代理转发 | `0.0.0.0:10810` |
 | relay | **已停止**（仅参考代码） |
 

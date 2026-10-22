@@ -5,7 +5,7 @@
 relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 项全部 PASS，无 P0。
 
 - 网关：`new-api-deepseek` main `e2c7907d9`（合并 commit `f01087a21`，协议实现 `b96c7945e`）
-- DSH 配置：`custom/profiles/local-gateway.patch.yml`；桌面 profile 已同步到 `~/.dsh-dev/profiles/desktop/cordis.patch.yml`
+- DSH 配置：`custom/profiles/server-gateway.patch.yml`；桌面 profile 已同步到 `~/.dsh-dev/profiles/desktop/cordis.patch.yml`
 - relay：`services/relay/` 仅保留为参考实现/一致性测试，18082 不再监听
 
 ## 验收矩阵
@@ -36,6 +36,14 @@ relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 �
 - 图片附件：macOS 原生文件选择器无法被 Playwright/CDP 注入（`setInputFiles`、CDP `DOM.setFileInputFiles`、drag/drop、剪贴板粘贴均未触发附件），因此桌面图片路径**未完成自动化验证**，需手工点一次“添加文件 → 文件 → blue.png”。
 - Web 端图片附件已 PASS，桌面与 Web 共用同一 composer/attachment 实现，但不要把桌面图片记为已验证。
 
+## 生产部署补测（2026-10-22）
+
+- `https://ds.openrouters.org/api/status` 200；
+- 远端完整 E2E（注册/PKCE/models/SSE/files/file_id/logout）全 PASS；
+- 本地 DSH 通过 server 登录页注册并成功（服务器日志有 `/api/...`、`/v1/messages`）；
+- Gateway API Key 模式 baseURL 改为 `https://ds.openrouters.org`，文本与图片 PASS；
+- 旧 `ds` 透明代理配置已备份并替换，其它站点未动。
+
 ## 已知限制（非 P0）
 
 1. 旧 relay token 不迁移；合并后首次需要重新登录一次。
@@ -58,7 +66,7 @@ cd services/relay && docker compose up -d new-api
 # DSH Web
 cd ../..
 DSH_HOME=$HOME/.dsh-dev pnpm dsh --profile web \
-  --patch custom/profiles/local-gateway.patch.yml --no-open
+  --patch custom/profiles/server-gateway.patch.yml --no-open
 ```
 
 更细的决策见 [ADR-002](adr-002-merge-relay-into-newapi.md)，运维见 [runbook](runbook.md)。

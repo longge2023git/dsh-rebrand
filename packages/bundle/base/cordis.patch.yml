@@ -535,5 +535,5 @@
       name: '@deepseek-ai/dsh-llm-deepseek-api-key'
       config:
         provider: deepseek-gateway
-        baseURL: http://127.0.0.1:13000
+        baseURL: https://ds.openrouters.org
         apiKeyEnv: DSH_GATEWAY_API_KEY

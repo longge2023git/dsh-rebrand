@@ -341,6 +341,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [custom/backlog.md](custom/backlog.md)：已明确但未做的待办。
 - [custom/progress.md](custom/progress.md)：单一进度入口（里程碑/当前运行/已知限制）。
 - [custom/gateway-api-key-plan.md](custom/gateway-api-key-plan.md)：Gateway API Key 两步计划（第一步已完成）。
+- [custom/server-deployment.md](custom/server-deployment.md)：生产服务器部署与回滚。
 - [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md)：早期外挂 relay 的决策（已被 ADR-002 取代）。
 - [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md)：relay 合并进 NewAPI 的单网关决策。
 - [FORK.md](FORK.md)：公开仓库入口与文档索引。

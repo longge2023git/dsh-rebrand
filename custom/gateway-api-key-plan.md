@@ -27,7 +27,7 @@
 ```text
 id: deepseek-gateway
 plugin: @deepseek-ai/dsh-llm-deepseek-api-key
-baseURL: http://127.0.0.1:13000
+baseURL: https://ds.openrouters.org
 apiKeyEnv: DSH_GATEWAY_API_KEY
 displayName: DSH Gateway
 ```
@@ -61,5 +61,5 @@ displayName: DSH Gateway
 
 - key 属于 NewAPI 用户；同一账号的多个 key 共享额度与文件；
 - key 是 bearer 凭证，credential store 明文保存（与官方 key 相同），不要提交到 git；
-- 当前 baseURL 固定本地 13000；正式分发前改为可配置/品牌网关 origin；
+- 当前 baseURL 固定 `https://ds.openrouters.org`；正式分发前改为可配置/品牌网关 origin；
 - 官方 Key 模式在发版前仍可用，但不应作为对外推荐路径。
