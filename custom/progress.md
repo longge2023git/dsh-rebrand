@@ -22,6 +22,7 @@
 | M-08 | 生产部署 `https://ds.openrouters.org` | 完成 | [部署记录](server-deployment.md) |
 | M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
 | V-01 | 发版时移除官方 API Key 入口（第二步） | 未开始 | 计划 §第二步 |
+| S-01 | 网关域名切换到 deepseek-fa.org | 待办 | #13、证书已存本地 |
 | B-01 | 品牌名称 + Logo | **阻塞** | 需要用户提供 |
 | R-01 | RTL 基础层 | 未开始 | PLAN §5 |
 | D-01 | 签名/公证/更新源 | 未开始 | PLAN §7 |
