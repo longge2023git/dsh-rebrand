@@ -25,7 +25,7 @@ SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
 ```
 
 - 容器：`dsh-newapi`
-- 镜像：`dsh/new-api-deepseek:20261022b`
+- 镜像：`dsh/new-api-deepseek:20261022c`
 - 端口：`127.0.0.1:3104 -> 3000`
 - 重启策略：`unless-stopped`
 - 数据：SQLite `/opt/dsh-gateway/data/one-api.db`
@@ -60,8 +60,8 @@ SESSION_SECRET=<random>
 # 本地 amd64 构建
 cd /Users/longge/projects/ai/new-api-deepseek
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/newapi-image/new-api .
-cd /tmp/newapi-image && docker build --platform linux/amd64 -t dsh/new-api-deepseek:20261022b .
-docker save dsh/new-api-deepseek:20261022b | gzip > /tmp/dsh-newapi-image.tar.gz
+cd /tmp/newapi-image && docker build --platform linux/amd64 -t dsh/new-api-deepseek:20261022c .
+docker save dsh/new-api-deepseek:20261022c | gzip > /tmp/dsh-newapi-image.tar.gz
 
 # 服务器
 ssh root@104.248.155.54 'mkdir -p /opt/dsh-gateway/data'
@@ -86,7 +86,9 @@ topUpPath: /console/topup
 
 用户用注册邮箱/密码登录 NewAPI 控制台后即可看到自己的 token、额度、用量和充值页；不再跳 DeepSeek 官方平台。官方 provider 的默认路径仍是 `/usage`、`/top_up`。
 
-`/dsh/authorized` 授权完成页的“用量/充值”也已直接指向 `/console/log`、`/console/topup`；旧 `/usage`、`/top_up` 兼容入口会 302 到对应控制台页面（镜像 `20261022b`）。
+`/dsh/authorized` 授权完成页的“用量/充值”也已直接指向 `/console/log`、`/console/topup`；旧 `/usage`、`/top_up` 兼容入口会 302 到对应控制台页面（镜像 `20261022c`）。
+
+`/dsh/authorize` 登录成功时会同步建立同源 NewAPI 控制台 session cookie，因此浏览器点“用量”不再二次登录；启用 2FA 的账号会跳过这个快捷会话，仍按控制台 2FA 登录。
 
 ## 验收（2026-10-22）
 

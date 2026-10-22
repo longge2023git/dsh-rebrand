@@ -71,7 +71,7 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
 
 模型菜单选择 `DSH Gateway` 下的 `DeepSeek-V4.1-Flash` / `DeepSeek-V4-Pro`。key 存于 `$DSH_HOME/.credentials.yaml` 的 `DSH_GATEWAY_API_KEY`。
 
-账号页的“查询用量 / 前往开放平台查看”指向 `https://ds.openrouters.org/console/log`，“充值”指向 `https://ds.openrouters.org/console/topup`；用注册邮箱和密码登录 NewAPI 控制台即可查看。
+账号页的“查询用量 / 前往开放平台查看”指向 `https://ds.openrouters.org/console/log`，“充值”指向 `https://ds.openrouters.org/console/topup`。DSH 登录会同步建立同源 NewAPI 控制台会话，因此点击后通常不再二次登录；启用 2FA 的账号例外。
 
 官方 `Add API Key` 入口在发版前仍保留；发版时移除（见 [gateway-api-key-plan](gateway-api-key-plan.md) 第二步）。
 
