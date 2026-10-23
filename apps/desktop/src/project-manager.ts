@@ -66,6 +66,7 @@ export class DesktopProjectManager {
   constructor(
     readonly paths: DesktopPaths,
     readonly runtime: { readonly dsh: string },
+    readonly options: { readonly defaultPatch?: string } = {},
   ) {}
 
   /**
@@ -85,7 +86,11 @@ export class DesktopProjectManager {
       // Validation only: an unreadable or mismatched runtime descriptor stops preparation before the Host starts.
       readDesktopRuntime(this.runtime.dsh)
       migrateProfileSettings(this.paths.profile)
+      const templateOnly = !existsSync(join(this.paths.profile, 'cordis.patch.yml'))
       createPluginProfile(this.paths.profile)
+      if (templateOnly && this.options.defaultPatch !== undefined) {
+        writeFileSync(join(this.paths.profile, 'cordis.patch.yml'), this.options.defaultPatch, { mode: 0o600 })
+      }
       removeLinkProjections(this.paths.profile)
     })
   }

@@ -13,6 +13,8 @@
 | G-01 | **已完成** | Gateway API Key 模式（第一步） | [计划](gateway-api-key-plan.md) |
 | G-02 | 待办 | 发版时移除官方 API Key 入口（第二步） | [计划](gateway-api-key-plan.md) |
 | G-03 | **已完成** | 账号页“查询用量/充值”指向 NewAPI 控制台 | `usagePath`/`topUpPath` |
+| D-02 | **已完成** | DeepSeek-FA macOS unsigned 测试包 | [桌面说明](deepseek-fa-desktop.md) |
+| D-03 | 待办 | DeepSeek-FA Windows unsigned 包 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
 | S-01 | 待办 | 网关域名切换到 https://deepseek-fa.org | [#13](https://github.com/longge2023git/dsh-rebrand/issues/13)、[迁移清单](deepseek-fa-domain-migration.md) |
 
 ## F-01 摘要
