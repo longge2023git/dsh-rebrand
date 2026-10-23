@@ -24,6 +24,7 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/gateway-api-key-plan.md](custom/gateway-api-key-plan.md) | Gateway API Key mode (step 1 done, step 2 at release) |
 | [custom/server-deployment.md](custom/server-deployment.md) | Production deployment at ds.openrouters.org |
 | [custom/deepseek-fa-domain-migration.md](custom/deepseek-fa-domain-migration.md) | TODO: switch gateway domain to deepseek-fa.org |
+| [custom/deepseek-fa-desktop.md](custom/deepseek-fa-desktop.md) | DeepSeek-FA desktop identity, isolation and packaging |
 | [custom/progress.md](custom/progress.md) | Single progress dashboard |
 | [services/relay/README.md](services/relay/README.md) | Archived relay reference implementation (not started) |
 
