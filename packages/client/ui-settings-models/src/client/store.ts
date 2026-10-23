@@ -384,6 +384,7 @@ export function onboardingReadiness(state: ModelsSettingsState, provider = 'deep
   if (state.rows.some(providerUsable)) return { kind: 'provider-ready' }
   const row = state.rows.find(candidate =>
     candidate.entry.provider === provider
+    && candidate.entry.settingsNs !== ''
     && candidate.entry.settingsPath.length === 0)
   if (row === undefined) return { kind: 'adapter-absent' }
   if (!row.entry.active) {

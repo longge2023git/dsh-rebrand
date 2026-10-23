@@ -23,7 +23,7 @@
 | M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
 | M-10 | 账号页用量/充值入口指向 NewAPI 控制台 | 完成 | `usagePath`/`topUpPath` |
 | D-01 | DeepSeek-FA 桌面品牌/配置隔离 | 完成 | [桌面说明](deepseek-fa-desktop.md) |
-| D-02 | macOS unsigned 测试包 | 完成 | `deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg` |
+| D-02 | macOS unsigned 测试包 | 完成 | UI 品牌已统一，`deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg` |
 | D-03 | Windows 打包 | 方案 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
 | V-01 | 发版时移除官方 API Key 入口（第二步） | 未开始 | 计划 §第二步 |
 | S-01 | 网关域名切换到 deepseek-fa.org | 待办 | #13、证书已存本地 |

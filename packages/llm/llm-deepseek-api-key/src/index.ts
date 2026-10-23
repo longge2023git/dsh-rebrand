@@ -14,7 +14,7 @@ export const inject = ['llm']
 
 export function apply(ctx: Context, config: Config): void {
   const provider = config.provider
-  const providerName = provider === 'deepseek-gateway' ? 'DSH Gateway' : 'DeepSeek'
+  const providerName = provider === 'deepseek-gateway' ? 'DeepSeek-FA' : 'DeepSeek'
   const options = () => resolveAdapterOptions(plainOptions(config), launchEnvironmentOf(ctx))
   options()
   const resolveApiKey = async (connection: ResolvedDeepSeekOptions): Promise<string> => {

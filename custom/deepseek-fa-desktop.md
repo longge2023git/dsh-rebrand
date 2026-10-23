@@ -17,6 +17,16 @@
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
+## UI 品牌
+
+- 侧边栏字标：`DeepSeek-FA`
+- 窗口/页面标题：`DeepSeek-FA`
+- 登录/账号页：`DeepSeek-FA`
+- 新手引导、预览说明、插件安全提示：`DeepSeek-FA`
+- 模型选择账号分组：`DeepSeek-FA Account` / `DeepSeek-FA 账号`
+- 欢迎页品牌图：`apps/desktop/renderer/assets/welcome-brand.svg`
+- 模型名（`DeepSeek-V4.1-Flash` 等）和上游 DeepSeek API 名称保留，避免把模型/供应商改名。
+
 ## 默认配置
 
 首次启动写入 `~/.deepseek-fa/profiles/desktop/cordis.patch.yml`：
