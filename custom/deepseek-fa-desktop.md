@@ -12,10 +12,19 @@
 | 默认 Harness home | `~/.deepseek-fa` |
 | Electron userData | `~/Library/Application Support/DeepSeek-FA` |
 | 协议 scheme | 第一版保留 `dsh://` |
-| 图标 | `apps/desktop/resources/` 鲸鱼图标 |
+| 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
 | 默认网关 | `https://ds.openrouters.org` |
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
+
+## 图标
+
+来源：`~/Documents/deepseek-harness/default-workspace/persian-whale/`
+
+- macOS / Windows 应用图标：`dark-1024.png` 生成圆角方形透明版
+- Windows 托盘：简化鲸鱼，16/20/24/32/40/48/64 多尺寸 ICO
+- 原始 1024 母版足够；32–1024 预渲染尺寸齐全
+- 图形源仍为 DeepSeek 官方鲸鱼轮廓的二次创作，对外分发前确认商标授权
 
 ## UI 品牌
 
