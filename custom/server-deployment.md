@@ -92,6 +92,15 @@ topUpPath: /console/topup
 
 DSH 登录/注册页支持中英文：优先 `?lang=en|zh`，其次浏览器 `Accept-Language`，默认中文。注册页新增“确认密码”，服务端校验两次输入一致。
 
+## Windows 安装包下载目录
+
+- 服务器目录：`/opt/dsh-gateway/downloads/`
+- 公网路径：`https://ds.openrouters.org/downloads/<文件名>`
+- nginx：在 `deepseek-proxy.conf` 中增加只读 `location /downloads/`
+- 配置备份：`/root/dsh-nginx-deepseek-proxy.conf.bak-downloads-20261024`
+- 该路径只读，不支持上传；安装包通过 scp 上传
+- 上传/下载不需要重启 NewAPI 容器
+
 ## 验收（2026-10-22）
 
 - `https://ds.openrouters.org/api/status` → 200

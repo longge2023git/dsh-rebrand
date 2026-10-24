@@ -162,7 +162,50 @@ C:\Users\<用户>\AppData\Roaming\DeepSeek-FA
 
 正式分发前需要 EV 代码签名证书 + SignTool + 独立更新源；届时使用不带 `:unsigned` 的命令，并配置 `.env.windows` 或 machine preset。
 
-## 9. 完成后回报
+## 9. 上传到服务器
+
+服务器已准备好只读下载目录：
+
+```text
+/opt/dsh-gateway/downloads/
+```
+
+公网地址：
+
+```text
+https://ds.openrouters.org/downloads/<文件名>
+```
+
+如果 Windows 机器有服务器 SSH key，上传：
+
+```powershell
+scp "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\deepseek-fa-0.2.1-rc.2.20261024.1-win-x64-unsigned.exe" `
+  root@104.248.155.54:/opt/dsh-gateway/downloads/
+```
+
+然后在服务器复核：
+
+```bash
+ssh root@104.248.155.54
+ls -lh /opt/dsh-gateway/downloads/
+sha256sum /opt/dsh-gateway/downloads/<文件名>
+curl -sSI https://ds.openrouters.org/downloads/<文件名> | head
+```
+
+要求：
+
+- 只上传安装包，不要动 `/opt/dsh-gateway/data/`
+- 不要重启 `dsh-newapi`
+- 不要改 nginx 配置
+- 文件名必须唯一，不要覆盖旧版本
+- 上传后把 SHA-256 和下载 URL 回报
+
+如果 Windows 机器没有服务器 SSH key：
+
+- 不要尝试用密码登录，也不要把密码发到聊天里
+- 把 EXE 路径、SHA-256、构建日志回报，由 Mac 侧负责上传
+
+## 10. 完成后回报
 
 请回报：
 
