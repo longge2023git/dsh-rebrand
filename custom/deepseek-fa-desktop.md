@@ -92,6 +92,10 @@ apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
 6. 文本、图片、查询用量/充值；
 7. 官方 Harness 的 `~/.dsh` 和 `~/Library/Application Support/@deepseek-ai/dsh-desktop` 不受影响。
 
+## Windows 构建
+
+详细步骤见 [Windows 构建指南](windows-build-guide.md)。
+
 ## Windows（仅方案）
 
 Windows 包必须在 Windows x64 上构建，当前不产出。
