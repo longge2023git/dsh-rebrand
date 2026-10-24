@@ -31,11 +31,7 @@ git pull --ff-only origin main
 git rev-parse HEAD
 ```
 
-应看到：
-
-```text
-8bdb204b1d
-```
+以 `main` 最新提交为准。本文对应的代码基线是 `6ebb8bb4eb`；之后的文档提交不影响构建。
 
 如果 Windows 端已经有仓库，请先确认：
 
