@@ -6,6 +6,7 @@
  * @returns Unsigned build environment with the standard application identifier and no update policy.
  */
 export function localMacOSPackageEnvironment(environment?: NodeJS.ProcessEnv): NodeJS.ProcessEnv
+export function localWindowsPackageEnvironment(environment?: NodeJS.ProcessEnv): NodeJS.ProcessEnv
 
 /**
  * Read a machine preset when selected, otherwise the target's required dotenv; no ambient release fallback.
