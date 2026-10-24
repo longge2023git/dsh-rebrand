@@ -26,6 +26,7 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/deepseek-fa-domain-migration.md](custom/deepseek-fa-domain-migration.md) | TODO: switch gateway domain to deepseek-fa.org |
 | [custom/deepseek-fa-desktop.md](custom/deepseek-fa-desktop.md) | DeepSeek-FA desktop identity, isolation and packaging |
 | [custom/windows-build-guide.md](custom/windows-build-guide.md) | Windows x64 unsigned build guide |
+| [custom/windows-agent-handoff.md](custom/windows-agent-handoff.md) | Windows agent build/upload handoff |
 | [custom/progress.md](custom/progress.md) | Single progress dashboard |
 | [services/relay/README.md](services/relay/README.md) | Archived relay reference implementation (not started) |
 

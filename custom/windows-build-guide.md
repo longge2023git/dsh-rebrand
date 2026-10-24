@@ -1,5 +1,7 @@
 # DeepSeek-FA Windows x64 构建指南
 
+> Windows agent 构建完成后的上传步骤见 [Windows agent 交接单](windows-agent-handoff.md)。
+
 > 给 Windows 上的 DSH 执行。当前代码版本：`8bdb204b1d`。
 > 本次只出 **unsigned 测试包**，不配置 Windows 代码签名和自动更新。
 

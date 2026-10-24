@@ -345,6 +345,7 @@ git switch main && git merge --no-ff sync/upstream-<tag>
 - [custom/deepseek-fa-domain-migration.md](custom/deepseek-fa-domain-migration.md)：待办：切换到 deepseek-fa.org。
 - [custom/deepseek-fa-desktop.md](custom/deepseek-fa-desktop.md)：DeepSeek-FA 桌面端与打包。
 - [custom/windows-build-guide.md](custom/windows-build-guide.md)：Windows x64 构建指南。
+- [custom/windows-agent-handoff.md](custom/windows-agent-handoff.md)：Windows agent 构建/上传交接单。
 - [custom/adr-001-relay-boundary.md](custom/adr-001-relay-boundary.md)：早期外挂 relay 的决策（已被 ADR-002 取代）。
 - [custom/adr-002-merge-relay-into-newapi.md](custom/adr-002-merge-relay-into-newapi.md)：relay 合并进 NewAPI 的单网关决策。
 - [FORK.md](FORK.md)：公开仓库入口与文档索引。
