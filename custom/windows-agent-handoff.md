@@ -14,6 +14,38 @@ git rev-parse HEAD
 
 构建代码基线是 `6ebb8bb4eb`；之后只有文档提交，不影响构建。
 
+## 0.1 同步前保护本地内容
+
+先检查：
+
+```powershell
+git status --short
+git branch --show-current
+git log --oneline -3
+```
+
+- 如果有未提交的源码改动，不要直接 `git pull`；先提交到本地分支，或：
+  ```powershell
+  git stash push -u -m "win-local-before-sync"
+  ```
+- 如果有本地提交，先建备份分支：
+  ```powershell
+  git branch win-backup-20261024
+  ```
+- 构建产物 `.desktop-build\` 是 gitignore 的，正常 `git pull` 不会删除。
+- 但同步前仍建议把最终 EXE 复制到仓库外，例如：
+  ```powershell
+  Copy-Item "<EXE>" "$env:USERPROFILE\Downloads\"
+  ```
+- 不要执行：
+  ```text
+  git reset --hard
+  git clean -fdx
+  git checkout -- .
+  ```
+  这些命令才可能删除本地修改/未跟踪产物。
+- `git pull --ff-only` 在本地与远端分叉、或改动会被覆盖时会中止，不会静默丢弃。
+
 ## 1. 确认构建产物
 
 当前预期产物：
