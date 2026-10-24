@@ -25,7 +25,7 @@ SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
 ```
 
 - 容器：`dsh-newapi`
-- 镜像：`dsh/new-api-deepseek:20261024a`
+- 镜像：`dsh/new-api-deepseek:20261025a`
 - 端口：`127.0.0.1:3104 -> 3000`
 - 重启策略：`unless-stopped`
 - 数据：SQLite `/opt/dsh-gateway/data/one-api.db`
@@ -60,8 +60,8 @@ SESSION_SECRET=<random>
 # 本地 amd64 构建
 cd /Users/longge/projects/ai/new-api-deepseek
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/newapi-image/new-api .
-cd /tmp/newapi-image && docker build --platform linux/amd64 -t dsh/new-api-deepseek:20261024a .
-docker save dsh/new-api-deepseek:20261024a | gzip > /tmp/dsh-newapi-image.tar.gz
+cd /tmp/newapi-image && docker build --platform linux/amd64 -t dsh/new-api-deepseek:20261025a .
+docker save dsh/new-api-deepseek:20261025a | gzip > /tmp/dsh-newapi-image.tar.gz
 
 # 服务器
 ssh root@104.248.155.54 'mkdir -p /opt/dsh-gateway/data'
@@ -91,6 +91,8 @@ topUpPath: /console/topup
 `/dsh/authorize` 登录成功时会同步建立同源 NewAPI 控制台 session cookie，因此浏览器点“用量”不再二次登录；启用 2FA 的账号会跳过这个快捷会话，仍按控制台 2FA 登录。
 
 DSH 登录/注册页支持中英文：优先 `?lang=en|zh`，其次浏览器 `Accept-Language`，默认中文。注册页新增“确认密码”，服务端校验两次输入一致。
+
+额度不足现在返回 HTTP 402（此前 403 会被 DSH 归类为 AUTH，误显示为 `API key is invalid`）。DSH 已按 402 映射为 `QUOTA`，客户端不需要改。
 
 ## Windows 安装包下载目录
 

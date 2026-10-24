@@ -36,6 +36,13 @@ relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 �
 - 图片附件：macOS 原生文件选择器无法被 Playwright/CDP 注入（`setInputFiles`、CDP `DOM.setFileInputFiles`、drag/drop、剪贴板粘贴均未触发附件），因此桌面图片路径**未完成自动化验证**，需手工点一次“添加文件 → 文件 → blue.png”。
 - Web 端图片附件已 PASS，桌面与 Web 共用同一 composer/attachment 实现，但不要把桌面图片记为已验证。
 
+## 额度不足错误语义（2026-10-25）
+
+- NewAPI 对用户/订阅额度不足返回 HTTP 402；
+- 0 额度实测返回 402，补回额度后同一 token 返回 200；
+- DSH 将 402 归类为 `QUOTA`，不再误报 `API key is invalid`；
+- 这是网关协议适配，不需要改 DSH 客户端。
+
 ## 登录页中英文与确认密码（2026-10-24）
 
 - 注册页新增确认密码，服务端校验一致；
