@@ -36,6 +36,13 @@ relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 �
 - 图片附件：macOS 原生文件选择器无法被 Playwright/CDP 注入（`setInputFiles`、CDP `DOM.setFileInputFiles`、drag/drop、剪贴板粘贴均未触发附件），因此桌面图片路径**未完成自动化验证**，需手工点一次“添加文件 → 文件 → blue.png”。
 - Web 端图片附件已 PASS，桌面与 Web 共用同一 composer/attachment 实现，但不要把桌面图片记为已验证。
 
+## 登录页中英文与确认密码（2026-10-24）
+
+- 注册页新增确认密码，服务端校验一致；
+- 登录/注册/错误/授权完成页支持 `lang=en` 与 `Accept-Language: en`；
+- 中文默认不变；
+- 生产验证：英文注册页 200、密码不一致 400 "Passwords do not match"、中文默认页正常。
+
 ## 生产部署补测（2026-10-22）
 
 - `https://ds.openrouters.org/api/status` 200；
