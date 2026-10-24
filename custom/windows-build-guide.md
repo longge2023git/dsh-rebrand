@@ -1,6 +1,6 @@
 # DeepSeek-FA Windows x64 构建指南
 
-> 给 Windows 上的 DSH 执行。当前代码版本：`6ebb8bb4eb`。
+> 给 Windows 上的 DSH 执行。当前代码版本：`8bdb204b1d`。
 > 本次只出 **unsigned 测试包**，不配置 Windows 代码签名和自动更新。
 
 ## 1. 构建机器要求
@@ -34,7 +34,7 @@ git rev-parse HEAD
 应看到：
 
 ```text
-6ebb8bb4eb7160f1de4e68cda6f4b733ca31a4bc
+8bdb204b1d
 ```
 
 如果 Windows 端已经有仓库，请先确认：
