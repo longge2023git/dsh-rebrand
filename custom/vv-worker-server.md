@@ -81,6 +81,17 @@ FILE_CHANNEL_ID=1
 ServerAddress = https://vvworker.51vv.com
 ```
 
+上游渠道：
+
+```text
+渠道：deepseek-anthropic
+Base URL：https://api.deepseek.com/anthropic
+模型：deepseek-flash, deepseek-v4-pro
+凭证：使用 vv-worker 自己的 DeepSeek 官方 API key
+```
+
+渠道凭证只保存在目标机数据库 `channels.key`，不写进 Git/知识库。该 key 的 DeepSeek 官方计费归 key 所属账号；NewAPI 侧的用户 quota 仍按本地倍率独立计算，两边需要按月对账。
+
 ## 4. 客户端配置
 
 `brand/vv-worker` 分支的桌面客户端：
