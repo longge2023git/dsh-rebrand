@@ -1,12 +1,12 @@
-/** DeepSeek-FA desktop identity shared by the Electron shell and packaging scripts. */
-export const PRODUCT_NAME = 'DeepSeek-FA'
-export const PACKAGE_SLUG = 'deepseek-fa'
-export const APP_ID = 'com.deepseek-fa.harness'
-export const HOME_DIR_NAME = '.deepseek-fa'
+/** vv-worker desktop identity shared by the Electron shell and packaging scripts. */
+export const PRODUCT_NAME = 'vv-worker'
+export const PACKAGE_SLUG = 'vv-worker'
+export const APP_ID = 'com.vv.ds.worker'
+export const HOME_DIR_NAME = '.vv-worker'
 export const PROTOCOL_SCHEME = 'dsh'
 export const GATEWAY_ORIGIN = 'https://ds.openrouters.org'
 
-/** First-run desktop profile overlay for the DeepSeek-FA gateway. */
+/** First-run desktop profile overlay for the vv-worker gateway. */
 export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:
@@ -20,4 +20,9 @@ export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
   name: '@deepseek-ai/dsh-llm-deepseek-account'
   config:
     baseURL: ${GATEWAY_ORIGIN}/v1
+
+- id: agent-default-model
+  config:
+    provider: deepseek-account
+    model: deepseek-flash
 `
