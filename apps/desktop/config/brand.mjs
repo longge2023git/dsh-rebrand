@@ -4,7 +4,7 @@ export const PACKAGE_SLUG = 'vv-worker'
 export const APP_ID = 'com.vv.ds.worker'
 export const HOME_DIR_NAME = '.vv-worker'
 export const PROTOCOL_SCHEME = 'dsh'
-export const GATEWAY_ORIGIN = 'https://ds.openrouters.org'
+export const GATEWAY_ORIGIN = 'https://vvworker.51vv.com'
 
 /** First-run desktop profile overlay for the vv-worker gateway. */
 export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account

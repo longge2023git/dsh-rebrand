@@ -10,7 +10,7 @@
 appId：com.vv.ds.worker
 Home：C:\Users\<用户>\.vv-worker
 userData：C:\Users\<用户>\AppData\Roaming\vv-worker
-网关：https://ds.openrouters.org
+网关：https://vvworker.51vv.com
 ```
 
 不要切到 `main`；`main` 仍是 DeepSeek-FA。
@@ -104,7 +104,7 @@ unsigned Windows 不需要 `.env.windows`、证书或更新策略。
 
 ```powershell
 pnpm --dir apps/desktop run package:win:x64:unsigned `
-  --build-version 0.2.1-rc.2.20261026.4
+  --build-version 0.2.1-rc.2.20261026.5
 ```
 
 PowerShell 反引号是续行符；也可以写成一行。
@@ -113,13 +113,13 @@ PowerShell 反引号是续行符；也可以写成一行。
 
 ```text
 apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/
-  vv-worker-0.2.1-rc.2.20261026.4-win-x64-unsigned.exe
+  vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe
 ```
 
 记录：
 
 ```powershell
-$file = "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\vv-worker-0.2.1-rc.2.20261026.4-win-x64-unsigned.exe"
+$file = "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe"
 Get-Item $file | Select-Object FullName,Length,LastWriteTime
 Get-FileHash $file -Algorithm SHA256
 ```
@@ -143,7 +143,7 @@ apps/desktop/.desktop-build/packaging-runs/<timestamp>-<id>/
    C:\Users\<用户>\.vv-worker
    C:\Users\<用户>\AppData\Roaming\vv-worker
    ```
-5. 登录页指向 `https://ds.openrouters.org`。
+5. 登录页指向 `https://vvworker.51vv.com`。
 6. 验证文字对话、图片附件、模型菜单、账号用量页。
 7. 托盘图标是 vv-worker mascot。
 8. 确认 `C:\Users\<用户>\.dsh` 未被修改。
@@ -156,8 +156,8 @@ apps/desktop/.desktop-build/packaging-runs/<timestamp>-<id>/
 
 ```powershell
 scp "<EXE 路径>" root@104.248.155.54:/opt/dsh-gateway/downloads/
-ssh root@104.248.155.54 "cd /opt/dsh-gateway/downloads && ls -lh 'vv-worker-0.2.1-rc.2.20261026.4-win-x64-unsigned.exe' && sha256sum 'vv-worker-0.2.1-rc.2.20261026.4-win-x64-unsigned.exe'"
-curl.exe -I "https://ds.openrouters.org/downloads/vv-worker-0.2.1-rc.2.20261026.4-win-x64-unsigned.exe"
+ssh root@104.248.155.54 "cd /opt/dsh-gateway/downloads && ls -lh 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe' && sha256sum 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe'"
+curl.exe -I "https://ds.openrouters.org/downloads/vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe"
 ```
 
 没有 SSH key 时只回报：
