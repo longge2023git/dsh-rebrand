@@ -94,6 +94,30 @@ DSH 登录/注册页支持中英文：优先 `?lang=en|zh`，其次浏览器 `Ac
 
 额度不足现在返回 HTTP 402（此前 403 会被 DSH 归类为 AUTH，误显示为 `API key is invalid`）。DSH 已按 402 映射为 `QUOTA`，客户端不需要改。
 
+## DeepSeek 官方计费倍率
+
+按 DeepSeek 官方价格（2026-10-26）配置 NewAPI：
+
+| 模型 | 输入峰值（缓存未命中） | completion ratio | cache ratio |
+|---|---:|---:|---:|
+| `deepseek-flash` | $0.30 / 1M | 4.0 | 0.02 |
+| `deepseek-v4-pro` | $1.32 / 1M | 3.0 | 0.0333333333 |
+
+NewAPI 的 `model_ratio` 换算：
+
+```text
+deepseek-flash:  0.15
+deepseek-v4-pro: 0.66
+```
+
+官方还有高峰/空闲价：空闲时段是高峰的一半。NewAPI 当前是静态倍率，所以配置采用**高峰价**，避免低估；如果希望空闲时段按半价，需要再切换 `ModelRatio`（或做定时切换）。
+
+官方价格来源：
+- https://api-docs.deepseek.com/quick_start/pricing/
+- https://api-docs.deepseek.com/zh-cn/quick_start/pricing/
+
+旧倍率 `37.5` + `cache_ratio 1.0` 已替换；修改前的历史账单不会自动重算。
+
 ## Windows 安装包下载目录
 
 - 服务器目录：`/opt/dsh-gateway/downloads/`

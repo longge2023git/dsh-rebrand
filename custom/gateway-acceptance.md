@@ -36,6 +36,13 @@ relay 已合并进 NewAPI，DSH 直接连 `127.0.0.1:13000`；独立测试 10 �
 - 图片附件：macOS 原生文件选择器无法被 Playwright/CDP 注入（`setInputFiles`、CDP `DOM.setFileInputFiles`、drag/drop、剪贴板粘贴均未触发附件），因此桌面图片路径**未完成自动化验证**，需手工点一次“添加文件 → 文件 → blue.png”。
 - Web 端图片附件已 PASS，桌面与 Web 共用同一 composer/attachment 实现，但不要把桌面图片记为已验证。
 
+## DeepSeek 计费倍率（2026-10-26）
+
+- `deepseek-flash`：model_ratio 0.15，completion 4，cache 0.02；
+- `deepseek-v4-pro`：model_ratio 0.66，completion 3，cache 0.0333333333；
+- 采用官方高峰价；空闲时段官方为半价，NewAPI 静态配置暂不自动切换；
+- 实测新请求日志显示 `model_ratio=0.15`、`completion_ratio=4`、`cache_ratio=0.02`。
+
 ## 额度不足错误语义（2026-10-25）
 
 - NewAPI 对用户/订阅额度不足返回 HTTP 402；
