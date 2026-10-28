@@ -35,6 +35,10 @@
 5. 加固：`ufw` 只放 22/80/443、`fail2ban` sshd jail、sshd 关密码登录（`/etc/ssh/sshd_config.d/00-hardening.conf`）、2 GB swap。
 6. 备份：`/usr/local/bin/dsh-db-backup.sh` + `/etc/cron.d/dsh-backup`，每日 03:30，保留 7 天，用 `sqlite3.backup` 热备。
 
+### 语言兜底（2026-10-28）
+
+非中文/英文浏览器此前落到简体中文。已改为英文兜底：登录页 `dshPageLanguage` 默认 `en`、控制台 i18next `fallbackLng: 'en'`、semi-ui locale 非 `zh-*` 走 `en_GB`。新镜像 `20261028-langen` 由本地原生编 web + 交叉编译 Go（`GOOS=linux GOARCH=amd64 GOEXPERIMENT=greenteagc`）后，在服务器上用 `FROM 20261025a` 打补丁层生成（QEMU 下 bun 因缺 AVX 会崩，不能本机跑 `docker build`）。
+
 > 域名 `deepseek-fa.org` 的旧方案作废，见 [域名迁移](deepseek-fa-domain-migration.md)。
 
 ## 旧生产：ds.openrouters.org（仍在线，与上图并行）
