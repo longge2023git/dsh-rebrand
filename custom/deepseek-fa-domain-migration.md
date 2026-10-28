@@ -41,7 +41,7 @@ https://deepseekfa.com
 
 ## 待办
 
-- [ ] 重新打包桌面端（`pnpm --dir apps/desktop run package:mac:arm64:unsigned --build-version <版本>`），版本号必须递增
+- [x] 重新打包桌面端 → `deepseek-fa-0.2.1-rc.2.20261028.1-mac-arm64-unsigned.dmg`（验证：asar 内 `deepseekfa.com` 命中 4 处、旧域名 0 处）
 - [ ] **老用户迁移**：首次启动只在 `~/.deepseek-fa/profiles/desktop/cordis.patch.yml` 不存在时写入，已装用户升级后仍连旧域名；需要迁移逻辑或引导用户删除该文件
 - [ ] 决定 `ds.openrouters.org` 的去向（继续并行 / 301 / 停用）；注意两套库自 2026-10-28 起各自写入
 - [ ] 下载目录：新机器还没建 `/downloads/`，Windows/macOS 安装包要另行放置（旧地址 `https://ds.openrouters.org/downloads/` 不受影响）

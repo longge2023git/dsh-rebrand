@@ -23,6 +23,18 @@
 
 迁移后的验收：`/` 200、`/api/status` 200、静态资源 200、`/v1/models` 无效 key → 401、HTTP → HTTPS 301。
 
+### 迁移做法（2026-10-28，可复现）
+
+1. 源机打包（排除历史镜像归档）：
+   ```bash
+   tar czf /tmp/dsh-migrate.tgz -C /opt --exclude='dsh-gateway/image-*.tar.gz' --exclude='dsh-gateway/downloads' dsh-gateway
+   ```
+2. 镜像用 `/opt/dsh-gateway/image-20261025a.tar.gz`；两包都经本地中转（伊朗线路约 1.6 Mbps，123 MB 约 10 分钟）。
+3. 目标机：解包到 `/opt`、`docker load -i`、`.env` 改 `DSH_PUBLIC_ORIGIN=https://deepseekfa.com`、`docker compose up -d`。
+4. nginx 反代 `127.0.0.1:3104`（流式关闭 buffering、600s 超时、64m body），配置已入库：[custom/nginx/deepseekfa.com.conf](nginx/deepseekfa.com.conf)；`certbot --nginx -d deepseekfa.com -d www.deepseekfa.com` 签 Let's Encrypt（本机 DNS 不经 CDN，HTTP-01 直接通过）。
+5. 加固：`ufw` 只放 22/80/443、`fail2ban` sshd jail、sshd 关密码登录（`/etc/ssh/sshd_config.d/00-hardening.conf`）、2 GB swap。
+6. 备份：`/usr/local/bin/dsh-db-backup.sh` + `/etc/cron.d/dsh-backup`，每日 03:30，保留 7 天，用 `sqlite3.backup` 热备。
+
 > 域名 `deepseek-fa.org` 的旧方案作废，见 [域名迁移](deepseek-fa-domain-migration.md)。
 
 ## 旧生产：ds.openrouters.org（仍在线，与上图并行）

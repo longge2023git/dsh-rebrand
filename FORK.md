@@ -23,7 +23,7 @@ unchanged; the fork concentrates on branding, authentication, UI direction, and 
 | [custom/gateway-acceptance.md](custom/gateway-acceptance.md) | Single-gateway acceptance matrix and known limits |
 | [custom/gateway-api-key-plan.md](custom/gateway-api-key-plan.md) | Gateway API Key mode (step 1 done, step 2 at release) |
 | [custom/server-deployment.md](custom/server-deployment.md) | Production deployment at ds.openrouters.org |
-| [custom/deepseek-fa-domain-migration.md](custom/deepseek-fa-domain-migration.md) | TODO: switch gateway domain to deepseek-fa.org |
+| [custom/deepseek-fa-domain-migration.md](custom/deepseek-fa-domain-migration.md) | Done 2026-10-28: gateway switched to deepseekfa.com |
 | [custom/deepseek-fa-desktop.md](custom/deepseek-fa-desktop.md) | DeepSeek-FA desktop identity, isolation and packaging |
 | [custom/windows-build-guide.md](custom/windows-build-guide.md) | Windows x64 unsigned build guide |
 | [custom/windows-agent-handoff.md](custom/windows-agent-handoff.md) | Windows agent build/upload handoff |

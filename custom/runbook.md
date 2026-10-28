@@ -12,15 +12,32 @@
 | NewAPI | 唯一网关：DSH 账户协议、模型渠道、Files、配额、日志 |
 | relay | `services/relay/`，已合并进 NewAPI，仅保留为协议参考/一致性测试，不再启动 |
 
-## 1.1 当前生产入口（2026-10-22 起）
+## 1.1 当前生产入口（2026-10-28 迁移后）
 
-DSH 本地测试已切到：
+DSH 本地测试与线上客户端都走：
 
 ```text
 DSH ──▶ https://deepseekfa.com ──▶ NewAPI 容器 :3104 ──▶ api.deepseek.com/anthropic
 ```
 
-服务器 `104.248.155.54`，部署细节见 [server-deployment](server-deployment.md)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
+新生产机器 `87.107.108.14`（伊朗），旧机器 `104.248.155.54` 仍在线但域名 `ds.openrouters.org` 指向它，两套库自 2026-10-28 起各自写入。部署细节见 [server-deployment](server-deployment.md)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
+
+## 1.2 桌面端启动纪律
+
+本仓库任何脚本或 agent 都在 DSH 进程内运行，shell 里常带 `DSH_HOME` / `DSH_PROFILE` / `DSH_SESSION_ID`。**桌面端显式读到 `DSH_HOME` 就会用它**，直接 `exec` 二进制的后果是 FA 挂到官方 `~/.dsh`，打开的是 Harness 的工作区和会话列表（实测会误建 session）。
+
+启动一律二选一：
+
+```bash
+# 推荐：LaunchServices，环境干净
+open -a /Applications/DeepSeek-FA.app
+
+# 或在终端里显式剥离
+env -u DSH_HOME -u DSH_PROFILE -u DSH_PROFILE_DIR -u DSH_WEB_URL -u DSH_SESSION_ID -u DSH_SHELL -u ELECTRON_RUN_AS_NODE \
+  /Applications/DeepSeek-FA.app/Contents/MacOS/DeepSeek-FA
+```
+
+启动后复核两件事：`~/.deepseek-fa` 有新增、`~/.dsh` **没有**新增（排除当前对话 session）。
 
 ## 2. 拓扑与端口
 
@@ -132,6 +149,8 @@ kill $(lsof -tiTCP:10810 -sTCP:LISTEN)
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `ELECTRON_RUN_AS_NODE` / `bad option: --remote-debugging-port` | shell 里把 Electron 当 Node | `env -u ELECTRON_RUN_AS_NODE ...` |
+| FA 打开后显示 Harness 的工作区/会话 | 启动时继承了 `DSH_HOME=~/.dsh` | 见 [1.2](#12-桌面端启动纪律)，用 `open` 或剥离 `DSH_*`；误建的 session 移出 `~/.dsh/sessions` |
+| `open -a DeepSeek-FA.app` 返回成功但进程立刻消失 | `~/Library/Application Support/DeepSeek-FA/SingletonLock` 指向已死 PID | `rm -f .../DeepSeek-FA/Singleton*` 后重试；仍不行则把整个 userData 目录改名让应用重建 |
 | 登录页一直 Waiting | CSP 拦了表单 302 | 确认 NewAPI `/dsh/authorize` CSP 允许 loopback `form-action` |
 | `profile "desktop" ... managed exclusively` | 用 CLI 检查桌面 profile | 看 Electron 宿主日志，别用 `--dump-config` |
 | 桌面能登录不能对话 | 模型目录有、推理端不通 | 查 NewAPI 容器代理与上游渠道 |

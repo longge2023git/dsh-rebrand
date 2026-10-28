@@ -1,6 +1,6 @@
 # DeepSeek-FA 桌面端
 
-> 状态：macOS arm64 unsigned 测试包已构建；Windows 只保留方案。
+> 状态：macOS arm64 unsigned 测试包已构建（最新 `0.2.1-rc.2.20261028.1`，网关 `https://deepseekfa.com`）；Windows 只保留方案。
 
 ## 身份
 
@@ -52,7 +52,9 @@
     baseURL: https://deepseekfa.com/v1
 ```
 
-文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置。
+文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置（见 [runbook 1.2](runbook.md#12-桌面端启动纪律)：从 DSH 会话里直接 exec 二进制会把 FA 挂到官方 `~/.dsh`）。
+
+**换域名对老用户无效**：首次启动只在 `cordis.patch.yml` 不存在时写入，已装机器升级后仍连旧域名。本地验证时手动把三处 origin 改掉（先备份），正式发版前需要补迁移逻辑或引导用户删除该文件。
 
 ## 构建（macOS arm64 unsigned）
 
@@ -81,6 +83,34 @@ apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
+
+已验证的 dmgbuild 获取方式（arm64，22 MB）：
+
+```bash
+curl -x http://127.0.0.1:10808 -L -o /tmp/dmgbuild-bundle.tar.gz \
+  https://github.com/electron-userland/electron-builder-binaries/releases/download/dmg-builder@1.2.5/dmgbuild-bundle-arm64-75c8a6c.tar.gz
+rm -rf /tmp/dmgbuild-extract && mkdir -p /tmp/dmgbuild-extract && tar xzf /tmp/dmgbuild-bundle.tar.gz -C /tmp/dmgbuild-extract
+export CUSTOM_DMGBUILD_PATH=/tmp/dmgbuild-extract/dmgbuild
+```
+
+构建前置：`prepare:dsh` 阶段的运行时冒烟测试会真实分配伪终端。在受限沙箱（例如 `posix_openpt: Operation not permitted`）里 node-pty 会直接 `SIGABRT`，与代码无关；换到不受限的终端重跑即可。
+
+## 验证产物（发布前必做）
+
+构建成功不等于包里有正确域名，挂载 dmg 后按下面两条核对：
+
+```bash
+DMG=apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/deepseek-fa-<版本>-mac-arm64-unsigned.dmg
+MP=$(hdiutil attach -nobrowse -readonly "$DMG" | grep -o '/Volumes/.*' | head -1)
+# 1) 身份
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+# 2) 包内网关域名：新域名应命中、旧域名应为 0
+grep -ac 'https://deepseekfa.com' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"
+grep -ac 'ds\.openrouters\.org' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"
+hdiutil detach "$MP" -quiet
+```
+
+要确认编译进去的首启 profile 原文，可用 `@electron/asar` 抽 `lib/main.js` 看 `DESKTOP_PROFILE_PATCH` 字面量。
 
 ## 安装验证
 

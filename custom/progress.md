@@ -1,6 +1,6 @@
 # 进度总览
 
-> 最后更新：2026-10-22
+> 最后更新：2026-10-28
 > 单一进度入口。详细计划见 [PLAN.md](../PLAN.md)，决策见 [ADR-002](adr-002-merge-relay-into-newapi.md)，验收见 [gateway-acceptance.md](gateway-acceptance.md)。
 
 ## 当前阶段
@@ -23,10 +23,10 @@
 | M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
 | M-10 | 账号页用量/充值入口指向 NewAPI 控制台 | 完成 | `usagePath`/`topUpPath` |
 | D-01 | DeepSeek-FA 桌面品牌/配置隔离 | 完成 | [桌面说明](deepseek-fa-desktop.md) |
-| D-02 | macOS unsigned 测试包 | 完成 | UI 品牌已统一，`deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg` |
+| D-02 | macOS unsigned 测试包 | 完成 | 网关已切新域名，`deepseek-fa-0.2.1-rc.2.20261028.1-mac-arm64-unsigned.dmg` |
 | D-03 | Windows unsigned 测试包 | 待 Windows 构建 | [Windows 指南](windows-build-guide.md) |
 | V-01 | 发版时移除官方 API Key 入口（第二步） | 未开始 | 计划 §第二步 |
-| S-01 | 网关域名切换到 deepseek-fa.org | 待办 | #13、证书已存本地 |
+| S-01 | 网关域名切换到 `https://deepseekfa.com` | 完成 | 服务端+仓库已切；桌面端 `0.2.1-rc.2.20261028.1` 已出包；旧 `deepseek-fa.org` 方案作废 |
 | B-01 | 品牌名称 + Logo | **阻塞** | 需要用户提供 |
 | R-01 | RTL 基础层 | 未开始 | PLAN §5 |
 | D-01 | 签名/公证/更新源 | 未开始 | PLAN §7 |
