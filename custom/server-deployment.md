@@ -2,6 +2,8 @@
 
 > 部署日期：2026-10-22。本文不含密码/密钥。
 
+本页是 `ds.openrouters.org` 机器信息的唯一来源：IP、hostname 和 SSH 只在这里维护，其他文档链接本页而不复制；部署路径可以出现在各操作单的命令里。
+
 ## 服务器
 
 | 项 | 值 |
@@ -11,8 +13,9 @@
 | 系统 | Ubuntu 24.04 / x86_64 |
 | 入口 | Cloudflare → nginx 443 → NewAPI `127.0.0.1:3104` |
 | 域名 | `https://ds.openrouters.org` |
+| SSH | `ssh hub`（等价 `ssh root@<IP>`，别名在本机 `~/.ssh/config`，需要已授权的 key） |
 
-SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
+`hub` 别名只存在于这台 Mac；其他机器用表格里的 IP。
 
 ## 运行单元
 
@@ -64,10 +67,10 @@ cd /tmp/newapi-image && docker build --platform linux/amd64 -t dsh/new-api-deeps
 docker save dsh/new-api-deepseek:20261025a | gzip > /tmp/dsh-newapi-image.tar.gz
 
 # 服务器
-ssh root@104.248.155.54 'mkdir -p /opt/dsh-gateway/data'
-scp /tmp/dsh-newapi-image.tar.gz root@104.248.155.54:/opt/dsh-gateway/image.tar.gz
+ssh hub 'mkdir -p /opt/dsh-gateway/data'
+scp /tmp/dsh-newapi-image.tar.gz hub:/opt/dsh-gateway/image.tar.gz
 # 复制清理后的 one-api.db 到 /opt/dsh-gateway/data/one-api.db
-ssh root@104.248.155.54 'cd /opt/dsh-gateway && docker load -i image.tar.gz && docker compose up -d'
+ssh hub 'cd /opt/dsh-gateway && docker load -i image.tar.gz && docker compose up -d'
 ```
 
 ## 账号页用量/充值链接
@@ -139,7 +142,7 @@ deepseek-v4-pro: 0.66
 
 ```bash
 # 恢复旧 ds 透明代理
-ssh root@104.248.155.54
+ssh hub
 cp /root/dsh-nginx-deepseek-proxy.conf.bak-20261022 /etc/nginx/conf.d/deepseek-proxy.conf
 nginx -t && systemctl reload nginx
 
@@ -158,3 +161,13 @@ DSH_HOME=$HOME/.dsh-dev pnpm dsh --profile web \
 桌面 profile `~/.dsh-dev/profiles/desktop/cordis.patch.yml` 已同步到 `https://ds.openrouters.org`。
 
 本地 13000 Docker 仅保留为回退，不再作为测试入口。
+
+## 机器信息变更清单
+
+换 IP、hostname 或域名时按顺序改完；漏一处会出现文档已改、客户端仍连旧地址。
+
+1. 本页「服务器」表，以及服务器 `.env` 的 `DSH_PUBLIC_ORIGIN`（改后重启 `dsh-newapi`）。
+2. [`custom/profiles/server-gateway.patch.yml`](profiles/server-gateway.patch.yml)：`platformOrigin`、`inferenceOrigin`、`baseURL`。
+3. [`packages/bundle/base/cordis.patch.yml`](../packages/bundle/base/cordis.patch.yml) 的 `llm-deepseek-gateway.baseURL`，以及桌面端默认 profile（[deepseek-fa-desktop](deepseek-fa-desktop.md#默认配置)）。
+4. 已部署机器的 `~/.dsh-dev/profiles/desktop/cordis.patch.yml`；已安装客户端的默认值不会自动更新。
+5. 复核：`grep -rn '104.248.155.54' custom` 只命中本页；`grep -rn 'ds.openrouters.org' custom` 的其余命中应是公网 URL，不是机器地址。

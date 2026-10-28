@@ -67,29 +67,24 @@ Get-FileHash $file -Algorithm SHA256
 
 ## 2. 上传策略
 
-服务器：
+服务器 IP、SSH 和下载目录见 [server-deployment](server-deployment.md#服务器)；下文用 `$gw` 指代 `root@<服务器 IP>`。先在同一个 PowerShell 窗口设置：
 
-```text
-root@104.248.155.54
-/opt/dsh-gateway/downloads/
+```powershell
+$gw = "root@<服务器 IP>"
 ```
 
-公网下载地址：
-
-```text
-https://ds.openrouters.org/downloads/<文件名>
-```
+公网下载地址：`https://ds.openrouters.org/downloads/<文件名>`
 
 ### 有服务器 SSH key 时
 
 ```powershell
-scp "<实际 EXE 路径>" root@104.248.155.54:/opt/dsh-gateway/downloads/
+scp "<实际 EXE 路径>" "${gw}:/opt/dsh-gateway/downloads/"
 ```
 
 复核：
 
 ```powershell
-ssh root@104.248.155.54 "cd /opt/dsh-gateway/downloads && ls -lh '<文件名>' && sha256sum '<文件名>'"
+ssh $gw "cd /opt/dsh-gateway/downloads && ls -lh '<文件名>' && sha256sum '<文件名>'"
 curl.exe -I "https://ds.openrouters.org/downloads/<文件名>"
 ```
 

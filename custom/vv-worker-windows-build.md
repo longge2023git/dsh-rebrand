@@ -150,13 +150,14 @@ apps/desktop/.desktop-build/packaging-runs/<timestamp>-<id>/
 
 ## 7. 上传
 
-只上传最终 EXE，不改服务器配置、不重启 NewAPI、不覆盖已有版本。
+上传目标是 ds 网关的只读下载目录（机器见 [server-deployment](server-deployment.md#服务器)）；不改服务器配置、不重启 NewAPI、不覆盖已有版本。
 
 有 SSH key：
 
 ```powershell
-scp "<EXE 路径>" root@104.248.155.54:/opt/dsh-gateway/downloads/
-ssh root@104.248.155.54 "cd /opt/dsh-gateway/downloads && ls -lh 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe' && sha256sum 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe'"
+$gw = "root@<服务器 IP>"
+scp "<EXE 路径>" "${gw}:/opt/dsh-gateway/downloads/"
+ssh $gw "cd /opt/dsh-gateway/downloads && ls -lh 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe' && sha256sum 'vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe'"
 curl.exe -I "https://ds.openrouters.org/downloads/vv-worker-0.2.1-rc.2.20261026.5-win-x64-unsigned.exe"
 ```
 

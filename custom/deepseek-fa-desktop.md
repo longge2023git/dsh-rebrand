@@ -15,6 +15,8 @@
 | 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
 | 默认网关 | `https://ds.openrouters.org` |
 
+网关机器与部署信息见 [server-deployment](server-deployment.md#服务器)；本节只固定桌面端默认值。
+
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
 ## 图标

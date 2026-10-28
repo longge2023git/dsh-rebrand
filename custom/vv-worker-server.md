@@ -2,6 +2,12 @@
 
 > 最后核对：2026-10-26。本文只记录部署事实和操作方式，不记录密码、token、私钥或数据库内容。
 
+本页是 vv-worker 机器信息的唯一来源；`ds.openrouters.org` 是另一套部署，见 [server-deployment](server-deployment.md)。
+
+## 1.1 入口 nginx
+
+`vvworker.51vv.com` 由外部 nginx（`82.157.212.191`）终止 TLS 并转发到本机 `8008`；完整 server 块见 [nginx/vvworker.51vv.com.conf](nginx/vvworker.51vv.com.conf)，含 SSE 所需的关闭缓冲与 900s 超时。缺这个 vhost 时域名落到默认站点：`/` 返回 nginx 欢迎页，`/api/*`、`/dsh/*`、`/auth-api/*` 全部 404，桌面端登录会直接失败。
+
 ## 1. 基本信息
 
 | 项目 | 值 |
@@ -146,6 +152,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://vvworker.51vv.com/dsh/authoriz
 
 - `/api/status` 用 **GET** 检查；NewAPI 对 HEAD 可能返回 404，这不代表服务异常。
 - `/dsh/authorize` 不带参数返回 400 是正常的参数校验。
+- 公网 404 而本机 200，说明前置 nginx 没有 `vvworker.51vv.com` 的 vhost 或 upstream 不通，不是网关异常；配置见 [nginx/vvworker.51vv.com.conf](nginx/vvworker.51vv.com.conf)。
 - NewAPI 控制台入口是 `https://vvworker.51vv.com/`。
 
 ## 7. 常用运维

@@ -20,7 +20,7 @@ DSH 本地测试已切到：
 DSH ──▶ https://ds.openrouters.org ──▶ NewAPI 容器 :3104 ──▶ api.deepseek.com/anthropic
 ```
 
-服务器 `104.248.155.54`，部署细节见 [server-deployment](server-deployment.md)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
+服务器地址、SSH 与部署细节见 [server-deployment](server-deployment.md#服务器)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
 
 ## 2. 拓扑与端口
 

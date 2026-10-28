@@ -35,7 +35,7 @@
 
 | 服务 | 地址 |
 |---|---|
-| NewAPI 单网关（生产） | `https://ds.openrouters.org` |
+| NewAPI 单网关（生产） | `https://ds.openrouters.org`（机器见 [server-deployment](server-deployment.md#服务器)） |
 | 本地回退 | `http://127.0.0.1:13000`（可选） |
 | DSH Web 测试 | `http://127.0.0.1:3080`（指向生产） |
 | 宿主代理转发 | `0.0.0.0:10810` |

@@ -166,32 +166,26 @@ C:\Users\<用户>\AppData\Roaming\DeepSeek-FA
 
 ## 9. 上传到服务器
 
-服务器已准备好只读下载目录：
+服务器准备好只读下载目录 `/opt/dsh-gateway/downloads/`，机器信息见 [server-deployment](server-deployment.md#服务器)。下文用 `$gw` 指代 `root@<服务器 IP>`，先在同一个 PowerShell 窗口设置：
 
-```text
-/opt/dsh-gateway/downloads/
+```powershell
+$gw = "root@<服务器 IP>"
 ```
 
-公网地址：
-
-```text
-https://ds.openrouters.org/downloads/<文件名>
-```
+公网地址：`https://ds.openrouters.org/downloads/<文件名>`
 
 如果 Windows 机器有服务器 SSH key，上传：
 
 ```powershell
 scp "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\deepseek-fa-0.2.1-rc.2.20261024.1-win-x64-unsigned.exe" `
-  root@104.248.155.54:/opt/dsh-gateway/downloads/
+  "${gw}:/opt/dsh-gateway/downloads/"
 ```
 
-然后在服务器复核：
+然后复核：
 
-```bash
-ssh root@104.248.155.54
-ls -lh /opt/dsh-gateway/downloads/
-sha256sum /opt/dsh-gateway/downloads/<文件名>
-curl -sSI https://ds.openrouters.org/downloads/<文件名> | head
+```powershell
+ssh $gw "ls -lh /opt/dsh-gateway/downloads/ && sha256sum /opt/dsh-gateway/downloads/<文件名>"
+curl.exe -sSI "https://ds.openrouters.org/downloads/<文件名>"
 ```
 
 要求：
