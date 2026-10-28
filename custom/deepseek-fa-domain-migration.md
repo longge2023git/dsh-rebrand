@@ -1,7 +1,6 @@
-# 待办：网关域名切换到 deepseek-fa.org
+# 已完成：网关域名切换到 deepseekfa.com
 
-> 状态：**未执行**。证书已收到，线上仍是 `https://ds.openrouters.org`。
-> 关联 Issue：https://github.com/longge2023git/dsh-rebrand/issues/13
+> 执行日期：2026-10-28。服务端与仓库配置已切换；桌面端需重新打包才生效。
 
 ## 目标
 
@@ -14,70 +13,46 @@ https://ds.openrouters.org
 切换到：
 
 ```text
-https://deepseek-fa.org
+https://deepseekfa.com
 ```
 
-## 证书
+**旧方案 `deepseek-fa.org` 作废**：那个域名没有投入使用（Cloudflare Origin 证书是 `*.deepseek-fa.org` 的，对当前域名无效，`~/.secrets/deepseek-fa.org/` 可以删除）。当前实际使用的是 `deepseekfa.com`（ArvanCloud NS，A 记录直连，未走 CDN 代理）。
 
-Cloudflare Origin 证书已确认：
+## 服务端（已完成）
 
-```text
-SAN: *.deepseek-fa.org, deepseek-fa.org
-有效期: 2026-10-22 → 2041-10-18
-```
+| 项 | 值 |
+|---|---|
+| 机器 | `87.107.108.14`（`vm40239-60020.mobinhost.com`） |
+| 网关容器 | `dsh-newapi`，`127.0.0.1:3104`，镜像 `dsh/new-api-deepseek:20261025a` |
+| nginx | `/etc/nginx/sites-available/deepseekfa.conf`，关闭 buffering、600s 超时、64m body |
+| 证书 | Let's Encrypt `deepseekfa.com` + `www`，`certbot.timer` 自动续期 |
+| NewAPI | `DSH_PUBLIC_ORIGIN=https://deepseekfa.com` |
 
-本机保存位置（仓库外、600 权限）：
+验收结果：`/` 200（`New API`）、`/api/status` 200、静态资源 200、`/v1/models` 无效 key → 401、HTTP → HTTPS 301、`www` 301 到主域。
 
-```text
-~/.secrets/deepseek-fa.org/origin.pem
-~/.secrets/deepseek-fa.org/origin.key
-```
+## 仓库（已完成，分支 `brand/deepseekfa`）
 
-**私钥不得提交到 git，也不要在聊天/日志里再次输出。**
+改到 `https://deepseekfa.com` 的位置：
 
-## 切换前
+- `apps/desktop/config/brand.mjs` 的 `GATEWAY_ORIGIN`
+- `apps/desktop/src/brand.ts` 的 `DESKTOP_PROFILE_PATCH`（`platformOrigin` / `inferenceOrigin` / `baseURL`）
+- `packages/bundle/base/cordis.patch.yml` 的 `llm-deepseek-gateway.baseURL`（Web 端同源）
+- `custom/profiles/server-gateway.patch.yml`（联调 profile）
 
-- [ ] Cloudflare DNS `deepseek-fa.org` / `www` 已指向 origin，代理开启，SSL/TLS 模式 Full (strict)
-- [ ] 在服务器安装证书：
-  ```bash
-  install -m 600 origin.pem /etc/ssl/cloudflare/deepseek-fa.pem
-  install -m 600 origin.key /etc/ssl/cloudflare/deepseek-fa.key
-  ```
-- [ ] 备份现有 nginx 配置和 NewAPI `.env`
-- [ ] 确认服务器 3104 容器健康
+## 待办
 
-## 切换步骤
-
-1. nginx 新增 `deepseek-fa.org` / `www.deepseek-fa.org` server block，反代 `127.0.0.1:3104`，沿用 streaming/100m 配置；先用：
-   ```bash
-   curl -k --resolve deepseek-fa.org:443:127.0.0.1 https://deepseek-fa.org/api/status
-   ```
-   验证，不动旧 ds 站点。
-2. NewAPI `.env`：
-   ```text
-   DSH_PUBLIC_ORIGIN=https://deepseek-fa.org
-   ```
-   重启 `dsh-newapi`。
-3. 新域名完整 E2E：注册、PKCE、`/models`、SSE、`/v1/files`、file_id、Gateway API Key、logout。
-4. 本仓库：
-   - `custom/profiles/server-gateway.patch.yml` 的 platform/inference/baseURL 改成新域名；
-   - `~/.dsh-dev/profiles/desktop/cordis.patch.yml` 同步；
-   - `packages/bundle/base/cordis.patch.yml` 的 `llm-deepseek-gateway.baseURL` 改成新域名；
-   - 重建客户端 artifacts。
-5. 切换后，旧 `ds.openrouters.org` 可：
-   - 保留 301 到新域名；或
-   - 并行一段时间，确认客户端都迁完再停。
-6. 旧 DSH token 的 issuer 是旧域名，切换后必须重新登录；账号/额度/文件仍在同一 DB，不受影响。
+- [ ] 重新打包桌面端（`pnpm --dir apps/desktop run package:mac:arm64:unsigned --build-version <版本>`），版本号必须递增
+- [ ] **老用户迁移**：首次启动只在 `~/.deepseek-fa/profiles/desktop/cordis.patch.yml` 不存在时写入，已装用户升级后仍连旧域名；需要迁移逻辑或引导用户删除该文件
+- [ ] 决定 `ds.openrouters.org` 的去向（继续并行 / 301 / 停用）；注意两套库自 2026-10-28 起各自写入
+- [ ] 下载目录：新机器还没建 `/downloads/`，Windows/macOS 安装包要另行放置（旧地址 `https://ds.openrouters.org/downloads/` 不受影响）
 
 ## 回滚
 
-- nginx 恢复旧 ds server block；
-- NewAPI `.env` 的 `DSH_PUBLIC_ORIGIN` 改回旧域名并重启；
-- DSH profile 改回旧域名；
-- 证书/新 server block 可保留不启用。
+1. 仓库把上面 4 个文件改回 `https://ds.openrouters.org`，重新打包；
+2. 服务端 `DSH_PUBLIC_ORIGIN` 改回旧域名并 `docker compose up -d`；
+3. nginx 保留新旧两个 server block，按需停用其一。
 
 ## 注意
 
-- Cloudflare Origin 证书只用于 origin，不代表公网信任链；Cloudflare 侧 SSL 需 Full (strict)。
-- 切换 window 内旧域名仍可用，但 token issuer 不同，用户需要重新登录一次。
-- 私钥只放 `~/.secrets` 和服务器 `/etc/ssl/cloudflare`，权限 600。
+- 切换域名会改变登录 token 的 issuer，已登录用户需要重新登录一次；账号、额度、文件仍在同一份 SQLite 里。
+- 新机器用的是 Let's Encrypt，不是 Cloudflare Origin 证书；如果之后把域名接入 CDN 代理，证书策略需要重新确认。

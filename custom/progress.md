@@ -19,7 +19,7 @@
 | M-05 | 桌面端文本 | 完成 | `DESKTOMGW` |
 | M-06 | 桌面端图片附件 | **待手工确认** | 原生文件选择器无法自动化 |
 | M-07 | Gateway API Key 模式（第一步） | 完成 | [计划](gateway-api-key-plan.md)、网关 key E2E |
-| M-08 | 生产部署 `https://ds.openrouters.org` | 完成 | [部署记录](server-deployment.md) |
+| M-08 | 生产部署 `https://deepseekfa.com` | 完成 | [部署记录](server-deployment.md) |
 | M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
 | M-10 | 账号页用量/充值入口指向 NewAPI 控制台 | 完成 | `usagePath`/`topUpPath` |
 | D-01 | DeepSeek-FA 桌面品牌/配置隔离 | 完成 | [桌面说明](deepseek-fa-desktop.md) |
@@ -35,7 +35,7 @@
 
 | 服务 | 地址 |
 |---|---|
-| NewAPI 单网关（生产） | `https://ds.openrouters.org` |
+| NewAPI 单网关（生产） | `https://deepseekfa.com` |
 | 本地回退 | `http://127.0.0.1:13000`（可选） |
 | DSH Web 测试 | `http://127.0.0.1:3080`（指向生产） |
 | 宿主代理转发 | `0.0.0.0:10810` |

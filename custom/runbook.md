@@ -17,7 +17,7 @@
 DSH 本地测试已切到：
 
 ```text
-DSH ──▶ https://ds.openrouters.org ──▶ NewAPI 容器 :3104 ──▶ api.deepseek.com/anthropic
+DSH ──▶ https://deepseekfa.com ──▶ NewAPI 容器 :3104 ──▶ api.deepseek.com/anthropic
 ```
 
 服务器 `104.248.155.54`，部署细节见 [server-deployment](server-deployment.md)。下面第 2 节起的本地 13000 流程仅作为回退/离线联调。
@@ -25,7 +25,7 @@ DSH ──▶ https://ds.openrouters.org ──▶ NewAPI 容器 :3104 ──▶
 ## 2. 拓扑与端口
 
 ```
-DSH 桌面/Web ──▶ https://ds.openrouters.org（生产）
+DSH 桌面/Web ──▶ https://deepseekfa.com（生产）
                或 127.0.0.1:13000（本地回退）
                          ▲
        宿主代理转发 0.0.0.0:10810 ──▶ 127.0.0.1:10808
@@ -71,7 +71,7 @@ env -u ELECTRON_RUN_AS_NODE DSH_HOME=$HOME/.dsh-dev pnpm dev:desktop
 
 模型菜单选择 `DSH Gateway` 下的 `DeepSeek-V4.1-Flash` / `DeepSeek-V4-Pro`。key 存于 `$DSH_HOME/.credentials.yaml` 的 `DSH_GATEWAY_API_KEY`。
 
-账号页的“查询用量 / 前往开放平台查看”指向 `https://ds.openrouters.org/console/log`，“充值”指向 `https://ds.openrouters.org/console/topup`。DSH 登录会同步建立同源 NewAPI 控制台会话，因此点击后通常不再二次登录；启用 2FA 的账号例外。
+账号页的“查询用量 / 前往开放平台查看”指向 `https://deepseekfa.com/console/log`，“充值”指向 `https://deepseekfa.com/console/topup`。DSH 登录会同步建立同源 NewAPI 控制台会话，因此点击后通常不再二次登录；启用 2FA 的账号例外。
 
 官方 `Add API Key` 入口在发版前仍保留；发版时移除（见 [gateway-api-key-plan](gateway-api-key-plan.md) 第二步）。
 

@@ -13,7 +13,7 @@
 | Electron userData | `~/Library/Application Support/DeepSeek-FA` |
 | 协议 scheme | 第一版保留 `dsh://` |
 | 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
-| 默认网关 | `https://ds.openrouters.org` |
+| 默认网关 | `https://deepseekfa.com` |
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
@@ -43,13 +43,13 @@
 ```yaml
 - id: deepseek-account
   config:
-    platformOrigin: https://ds.openrouters.org
-    inferenceOrigin: https://ds.openrouters.org
+    platformOrigin: https://deepseekfa.com
+    inferenceOrigin: https://deepseekfa.com
     usagePath: /console/log
     topUpPath: /console/topup
 - id: llm-deepseek-account
   config:
-    baseURL: https://ds.openrouters.org/v1
+    baseURL: https://deepseekfa.com/v1
 ```
 
 文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置。
@@ -88,7 +88,7 @@ apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
 2. 未签名包首次启动在“隐私与安全性”中允许；
 3. 应用名/关于/退出文案显示 `DeepSeek-FA`；
 4. 首次启动创建 `~/.deepseek-fa`；
-5. 登录页来自 `ds.openrouters.org`，注册/登录；
+5. 登录页来自 `deepseekfa.com`，注册/登录；
 6. 文本、图片、查询用量/充值；
 7. 官方 Harness 的 `~/.dsh` 和 `~/Library/Application Support/@deepseek-ai/dsh-desktop` 不受影响。
 

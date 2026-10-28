@@ -1,6 +1,33 @@
-# 生产部署：ds.openrouters.org
+# 生产部署
 
-> 部署日期：2026-10-22。本文不含密码/密钥。
+> 部署日期：2026-10-22；2026-10-28 迁移到新机器。本文不含密码/密钥。
+
+## 当前生产：deepseekfa.com
+
+2026-10-28 起，对外网关是 `https://deepseekfa.com`（伊朗 KVM，更贴近目标用户）。
+
+| 项 | 值 |
+|---|---|
+| IP | `87.107.108.14` |
+| hostname | `vm40239-60020.mobinhost.com` |
+| 系统 | Ubuntu 22.04.1 LTS / x86_64 / KVM |
+| 入口 | ArvanCloud DNS → nginx 443 → NewAPI `127.0.0.1:3104`（容器 `dsh-newapi`） |
+| 域名 | `https://deepseekfa.com`、`https://www.deepseekfa.com`（301 到主域） |
+| 证书 | Let's Encrypt，`/etc/letsencrypt/live/deepseekfa.com/`，`certbot.timer` 自动续期 |
+| 防火墙 | ufw 仅放行 22/80/443；fail2ban `sshd` jail 生效 |
+| 备份 | 每日 03:30 备份 SQLite 到 `/var/backups/dsh-newapi/`，保留 7 天 |
+| 运行目录 | `/opt/dsh-gateway/`（compose + `.env` + `data/one-api.db`） |
+| 镜像 | `dsh/new-api-deepseek:20261025a`（与原生产同一个） |
+
+迁移只换了机器与域名，**数据库（用户/令牌/渠道/日志）原样复制**；`DSH_PUBLIC_ORIGIN` 已改为 `https://deepseekfa.com`。
+
+迁移后的验收：`/` 200、`/api/status` 200、静态资源 200、`/v1/models` 无效 key → 401、HTTP → HTTPS 301。
+
+> 域名 `deepseek-fa.org` 的旧方案作废，见 [域名迁移](deepseek-fa-domain-migration.md)。
+
+## 旧生产：ds.openrouters.org（仍在线，与上图并行）
+
+下面各节描述的是 2026-10-22 那套部署，机器与域名都不同；两套实例各自写自己的 SQLite，**数据从 2026-10-28 起分叉**，切换或下线前先确认。
 
 ## 服务器
 

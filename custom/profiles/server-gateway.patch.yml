@@ -1,4 +1,4 @@
-# Point DSH at the deployed gateway https://ds.openrouters.org.
+# Point DSH at the deployed gateway https://deepseekfa.com.
 #
 # Web:
 #   DSH_HOME=~/.dsh-dev pnpm dsh web --patch custom/profiles/server-gateway.patch.yml
@@ -9,8 +9,8 @@
 - id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:
-    platformOrigin: https://ds.openrouters.org
-    inferenceOrigin: https://ds.openrouters.org
+    platformOrigin: https://deepseekfa.com
+    inferenceOrigin: https://deepseekfa.com
     usagePath: /console/log
     topUpPath: /console/topup
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
@@ -18,4 +18,4 @@
 - id: llm-deepseek-account
   name: '@deepseek-ai/dsh-llm-deepseek-account'
   config:
-    baseURL: https://ds.openrouters.org/v1
+    baseURL: https://deepseekfa.com/v1

@@ -4,7 +4,7 @@ export const PACKAGE_SLUG = 'deepseek-fa'
 export const APP_ID = 'com.deepseek-fa.harness'
 export const HOME_DIR_NAME = '.deepseek-fa'
 export const PROTOCOL_SCHEME = 'dsh'
-export const GATEWAY_ORIGIN = 'https://ds.openrouters.org'
+export const GATEWAY_ORIGIN = 'https://deepseekfa.com'
 
 /** First-run desktop profile overlay for the DeepSeek-FA gateway. */
 export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account

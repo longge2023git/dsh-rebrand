@@ -8,8 +8,8 @@ export const HOME_DIR_NAME = '.deepseek-fa'
 export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:
-    platformOrigin: https://ds.openrouters.org
-    inferenceOrigin: https://ds.openrouters.org
+    platformOrigin: https://deepseekfa.com
+    inferenceOrigin: https://deepseekfa.com
     usagePath: /console/log
     topUpPath: /console/topup
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
@@ -17,5 +17,5 @@ export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
 - id: llm-deepseek-account
   name: '@deepseek-ai/dsh-llm-deepseek-account'
   config:
-    baseURL: https://ds.openrouters.org/v1
+    baseURL: https://deepseekfa.com/v1
 `
