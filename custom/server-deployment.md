@@ -17,7 +17,7 @@
 | 防火墙 | ufw 仅放行 22/80/443；fail2ban `sshd` jail 生效 |
 | 备份 | 每日 03:30 备份 SQLite 到 `/var/backups/dsh-newapi/`，保留 7 天 |
 | 运行目录 | `/opt/dsh-gateway/`（compose + `.env` + `data/one-api.db`） |
-| 镜像 | `dsh/new-api-deepseek:20261025a`（与原生产同一个） |
+| 镜像 | `dsh/new-api-deepseek:20261028-langen`（`20261025a` + 新二进制；i18n 兜底改英文） |
 
 迁移只换了机器与域名，**数据库（用户/令牌/渠道/日志）原样复制**；`DSH_PUBLIC_ORIGIN` 已改为 `https://deepseekfa.com`。
 
