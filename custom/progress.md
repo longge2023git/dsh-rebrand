@@ -49,9 +49,10 @@
 | RU-00 | 方案：与 FA 同构的独立站点 + 独立品牌 | 完成 | [方案](ru-version-plan.md) |
 | RU-01 | 站点上线：Cloudflare + Origin CA + 独立网关容器 | 完成 | [部署记录](deepseek-ru-deployment.md) |
 | RU-02 | 上游渠道（`deepseek-anthropic` + 独立 key） | 完成 | 渠道测试通过；`/v1/models`、`/v1/chat/completions` 均 200 |
-| RU-03 | 俄语界面（抽取上游 `ru` 字典生成语言包） | 未开始 | 上游原生 8 语言；覆盖 99.6%，手工补 11 条，见 [方案 §2.2](ru-version-plan.md) |
+| RU-03 | 俄语界面：`packages/client/locale-ru` 语言包 | 完成 | 50 命名空间 / 2,612 词条；覆盖 100%（11 条 fork 自有词条人工译）；占位符一致；退役守卫就位 |
 | U-01 | 同步上游 rc.2 → rc.5 | 未开始 | 2,527 提交 / 8,133 文件；须与品牌参数化配套 |
-| RU-04 | 俄语版桌面品牌分支与安装包 | 未开始 | `brand/ru-deepseek-ru` 分支已建，仅部署文档 |
+| RU-04 | 桌面品牌 DeepSeek-RU、官方图标、俄语界面与安装器 | 完成 | 产品名/appId/home/字标/图标/桌面壳 ru/NSIS ru；`test:gui` 与 desktop 套件全绿 |
+| RU-08 | 品牌重命名后的 macOS unsigned 出包与冒烟 | 进行中 | 本地构建流程已跑通，待出包 |
 | RU-05 | macOS/Windows unsigned 包与 `/downloads/` 产物 | 未开始 | 同 D-03 |
 | RU-06 | 俄语区支付通道 | 未开始 | — |
 
