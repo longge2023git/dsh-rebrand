@@ -117,7 +117,7 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 
 ## 待办
 
-1. **俄语界面**：客户端 3,201 条词条（`packages/client/locale-ru`）与登录页 `ru` 分支，见 [方案 §2.2](ru-version-plan.md#22-俄语语言包不改-56-个包的源码)。
+1. **俄语界面**：从上游 `dsh-v0.2.2-alpha.2` 抽取 ru 字典生成 `packages/client/locale-ru`（覆盖 99.6%，手工补 11 条），登录页再加 Go 侧 `ru` 分支（`RU-07`），见 [方案 §2.2](ru-version-plan.md)。
 3. **桌面端**：`brand/ru-*` 品牌分支，`GATEWAY_ORIGIN=https://deepseek-ru.org`；图标暂用 DeepSeek 现有图形。
 4. **安装包分发**：`/downloads/` 目录还没有产物（Windows 包 `D-03` 也未做）。
 5. **源站区域**：源站在新加坡，俄语用户经 Cloudflare 回源延迟偏高（TTFT 明显）。若体验不够，再考虑欧洲节点。

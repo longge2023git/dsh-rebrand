@@ -49,7 +49,7 @@
 | RU-00 | 方案：与 FA 同构的独立站点 + 独立品牌 | 完成 | [方案](ru-version-plan.md) |
 | RU-01 | 站点上线：Cloudflare + Origin CA + 独立网关容器 | 完成 | [部署记录](deepseek-ru-deployment.md) |
 | RU-02 | 上游渠道（`deepseek-anthropic` + 独立 key） | 完成 | 渠道测试通过；`/v1/models`、`/v1/chat/completions` 均 200 |
-| RU-03 | 俄语界面（抽取上游 `ru` 字典生成语言包） | 未开始 | 上游原生 8 语言；覆盖 92.7%，手工补 88 条，见 [方案 §2.2](ru-version-plan.md) |
+| RU-03 | 俄语界面（抽取上游 `ru` 字典生成语言包） | 未开始 | 上游原生 8 语言；覆盖 99.6%，手工补 11 条，见 [方案 §2.2](ru-version-plan.md) |
 | U-01 | 同步上游 rc.2 → rc.5 | 未开始 | 2,527 提交 / 8,133 文件；须与品牌参数化配套 |
 | RU-04 | 俄语版桌面品牌分支与安装包 | 未开始 | `brand/ru-deepseek-ru` 分支已建，仅部署文档 |
 | RU-05 | macOS/Windows unsigned 包与 `/downloads/` 产物 | 未开始 | 同 D-03 |

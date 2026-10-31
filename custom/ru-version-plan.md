@@ -44,41 +44,41 @@
 
 ### 2.2 俄语界面：直接采用上游的 ru 字典
 
-2026-10-31 复核上游（`upstream/master`）后改变了做法：**不再自己翻译**。上游已经原生支持 8 种语言，俄语是其中之一。
+2026-10-31 复核上游后改变了做法：**不再自己翻译**。上游已原生支持 8 种语言（zh/en/ja/es/fr/de/ru/pt），俄语是其中之一。
 
-事实（2026-10-31 复核）：
+事实（用模块导入实测，不用正则数文件）：
 
-- 俄语是 master 上 `84edeadc2b feat(i18n): add Spanish French German Russian and Portuguese` 引入的，**尚未进任何 tag**：`dsh-v0.2.1-rc.5`（10-29）还只有中英两种语言。抽取时要 pin 到 master 的具体 sha。
-- 每个客户端包的 `src/client/locale*.ts` 同时导出 `zh / en / ja / es / fr / de / ru / pt`；例如 `ui-chat` 每语言 195 键、`ui-conversation` 每语言 383 键。
-- 桌面壳 `apps/desktop/src/locale.ts` 同样有 `ru`（菜单、对话框、退出确认）。
-- 每个包另有 `locale/<lang>.json` 提供插件市场里的标题与描述，ru 覆盖 296 个包。
-- 上游 `packages/client/locale/README.md` 记载了语言包 seam：`addLanguage({ id, label, fallback })` + `register(ns, lang, dict)`。我们的 rc.2 基线已有这套 API（`packages/client/locale/src/client/index.ts`）。
+- 俄语来自 `84edeadc2b feat(i18n): add Spanish French German Russian and Portuguese`，**不在 `dsh-v0.2.1-rc.5`（10-29）里**；第一个含它的 tag 是 `dsh-v0.2.2-alpha.2`（10-28）。抽取要 pin 这个 tag。
+- 每个客户端包的 `src/client/locale*.ts` 同时导出 8 种语言：`ui-chat` 每语言 195 键、`ui-conversation` 每语言 373 键。
+- 桌面壳 `apps/desktop/src/locale.ts` 有 `ru`；安装器有 `installer/locales/ru_RU.json`（31 条 + NSIS `RUSSIAN`）。
+- `locale/src/locales/ru.ts` 覆盖 common/settings 命名空间（41 键，与我们 41 键一一对应）。
+- 上游语言面板用的是 `addLanguage({ id, label, fallback: 'en' })` + `register(ns, { zh, en, ru… })`，我们的 rc.2 已有同一套 API。
 
-对照我们的 rc.2 键集实测：
+对照我们的键集（`dsh-v0.2.2-alpha.2` 的 ru vs 我们 56 个字典文件）：
 
 | 指标 | 数值 |
 |---|---|
-| 我们现有英文键（去重） | 1,146 |
-| 上游 ru 直接覆盖 | 1,062（92.7%） |
-| 需要手工补 | 47（`ui-schedule` 任务表单 44、`ui-user-questions` 2、`ui-plan` 1） |
-| 另有 41 个键 | 路径对不上（我们的 `locale/src/locales/en.ts` 对应上游 `src/locales/ru.ts`，键集一致 41/41），抽取脚本加一条路径映射即覆盖 |
-| 上游比我们多的键 | 468（rc.2 之后新增，用不到） |
+| 有 ru 的字典文件 | 54 / 56（另 1 个是 fork 专属 `ui-deepseek-model-label-1017`，1 个路径改名） |
+| 我们的英文键（这些文件内） | 2,718 |
+| 上游 ru 直接覆盖 | 2,707（**99.6%**） |
+| 需手工补 | **11 条**：`ui-settings-account:gatewayApiKey`、`ui-plan:preview.historyUnavailable`、`ui-plugin-manager:previewAlt/previewUnavailable`、`ui-settings-models:onboardingGatewayTitle/Description`、`ui-user-questions:reply.open/close`、`ui-deliverables:presented.opened/revealed/directoryOpened` |
+| 占位符核对 | 2,827 条 ru 逐条比对 `{name}` 占位符，**0 处不一致** |
 
-也就是说手工只需 ~47 条，而不是 1,600 条。
+注意：pin 到 master 反而更差（覆盖 98%），因为 master 删掉了 `ui-schedule` 的 cron 表单，那 44 条键没有对应的 ru；`dsh-v0.2.2-alpha.2` 还保留着，覆盖更全。
 
 做法（生成式语言包，不改 56 个包的源码）：
 
-1. `scripts/extract-locale-ru.mjs`：对每个本地 `src/client/locale*.ts`，从 pin 住的上游 commit（当前 `84edeadc2b`，或下一个含 ru 的 tag）取同名文件的 `export const ru`，生成 `packages/client/locale-ru/src/client/dicts.ts`（命名空间 → 字典）。生成物入库，构建不依赖上游网络；上游后续修正只影响重跑后的 diff。
-2. 新包 `packages/client/locale-ru`：`addLanguage({ id: 'ru', label: 'Русский', fallback: 'en' })` + 逐命名空间 `register(ns, 'ru', dict)`；挂到 `packages/bundle/web-app/cordis.patch.yml`，桌面端复用同一 bundle，挂一次两边生效。
-3. 覆盖 gate：测试断言每个命名空间 `ru` 键集 ⊇ `en` 键集、且占位符集合一致（`{name}` 这类原样保留），缺口走显式白名单（回落英文）并打印覆盖率；漏译不会把裸 key 打到界面上，占位符错位在测试阶段暴露。
-4. 品牌替换：上游 ru 字典里有 46 处品牌串（`ui-plugin-manager` 20、`ui-plugin-market` 5、`ui-settings-account` 4…），走品牌 token 替换成俄语品牌名。
-5. 手工补 47 条，术语表沿用 FA 的约定（会话、计划、子智能体、交付物、工作区、轨迹）。
-6. 桌面壳：从上游 `apps/desktop/src/locale.ts` 取 `ru` 导出并入本 fork（~120 键）。
+1. `scripts/extract-locale-ru.mjs`：对每个本地 `src/client/locale*.ts`，从 `dsh-v0.2.2-alpha.2` 取同名文件的 `export const ru`（加一条 `locale/src/locales/en.ts` → `src/locales/ru.ts` 的路径映射），生成 `packages/client/locale-ru/src/client/dicts.ts`。生成物入库，构建不依赖上游网络；脚本自己解析 TS 对象字面量，常量引用与 spread 一并展开。
+2. 新包 `packages/client/locale-ru`：`addLanguage({ id: 'ru', label: 'Русский', fallback: 'en' })` + 逐命名空间 `register(ns, 'ru', dict)`；挂到 `packages/bundle/web-app/cordis.patch.yml` 的 `locale` 旁边，桌面端复用同一 bundle。
+3. 覆盖 gate：测试断言每个命名空间 `ru` 键集 ⊇ `en` 键集、占位符集合一致，缺口走显式白名单并打印覆盖率；漏译不会把裸 key 打到界面上。
+4. 品牌替换：上游 ru 字典里有 46 处品牌串（`ui-plugin-manager` 20、`ui-plugin-market` 5…），走品牌 token 替换成俄语品牌名。
+5. 手工补 11 条。
+6. 桌面壳：并入上游 `apps/desktop/src/locale.ts` 的 `ru`（~170 键），`main.ts` 的语言选择从 `zh-CN ? zh : en` 扩成三分支；安装器加 `installer/locales/ru_RU.json`（上游 31 条 + NSIS `RUSSIAN`）与 `installer-locales.mjs` 机制（我们 fork 目前没有这套）。
 7. 每次同步上游后重跑脚本，差异进 git diff，评审可见。
 
-估算 ~2 人日，对比自译 3,000+ 条（5–8 人日）且此后要持续维护。
+估算：语言包 + gate ~0.5 人日，11 条 + 抽检 ~0.25，桌面壳 + 安装器 ~0.5，合计 **~1.5 人日**（此前按自译估 5–8 人日）。
 
-为什么不做全量上游合并：rc.2 → `upstream/master` 是 2,527 个提交、8,133 个文件、其中 1,596 个客户端文件；而且上游把品牌串扩到了 8 种语言，全量合并会让每个品牌分支的分歧翻几倍。合并该做，但要排在品牌参数化之后，独立成一个事项。
+为什么不做全量上游合并：rc.2 → `dsh-v0.2.1-rc.5` 是 667 个文件；rc.2 → `dsh-v0.2.2-alpha.2` 是 7,398 个文件（大量生成物 schema 变更）。合并该做，但要排在品牌参数化之后、独立成事项（`U-01`）。
 
 ### 2.3 让模型用俄语回答
 
@@ -117,7 +117,7 @@
 | P0 | 决策：品牌名、图标、域名、服务器、支付通道 | 域名/服务器/图标已定；品牌名与支付待定 |
 | P1 | 公共层：brand 参数化、金样解耦、语言包框架、key gate | 3–4 |
 | P2 | 站点：新机、nginx、TLS、俄语登录页、`/downloads`、独立 key | 站点主体已完成（2026-10-31）；剩上游渠道 |
-| P3 | 上游 ru 字典抽取脚本 + `locale-ru` 语言包 + 覆盖 gate + 手工补 88 条 | ~2 |
+| P3 | 上游 ru 字典抽取 + `locale-ru` 语言包 + gate + 手工补 11 条 + 桌面壳/安装器 | ~1.5 |
 | P4 | 分支出包（mac unsigned、win unsigned）与验收 | 1–2（Windows 首次 +1，D-03 未做） |
 | P5 | 每次同步上游后重跑抽取脚本 | 0.2/次 |
 | **剩余 MVP（P1+P3+P4）** | | **~6** |
