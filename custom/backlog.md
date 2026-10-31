@@ -15,9 +15,11 @@
 | G-03 | **已完成** | 账号页“查询用量/充值”指向 NewAPI 控制台 | `usagePath`/`topUpPath` |
 | D-02 | **已完成** | DeepSeek-FA macOS unsigned 测试包 | [桌面说明](deepseek-fa-desktop.md) |
 | D-03 | 待办 | DeepSeek-FA Windows unsigned 包 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
+| U-01 | 待办 | 同步上游 rc.3–rc.5（rc.2 之后 2,527 提交 / 8,133 文件），须与品牌参数化配套 | [方案 §2.2](ru-version-plan.md) |
 | S-01 | 待办 | 网关域名切换到 https://deepseek-fa.org | [#13](https://github.com/longge2023git/dsh-rebrand/issues/13)、[迁移清单](deepseek-fa-domain-migration.md) |
 | RU-02 | **已完成** | 俄语站上游渠道：`deepseek-anthropic` 渠道 + 独立官方 key | [俄语站部署](deepseek-ru-deployment.md) |
-| RU-03 | 待办 | 俄语界面：`packages/client/locale-ru`（3,201 条）+ 登录页 `ru` 分支 | [方案 §2.2](ru-version-plan.md) |
+| RU-03 | 待办 | 俄语界面：抽取上游 `ru` 字典生成 `packages/client/locale-ru`（上游原生 8 语言），手工补 88 条 | [方案 §2.2](ru-version-plan.md) |
+| RU-07 | 待办 | 登录页 `/dsh/authorize` 增加 `ru` 文案（Go 侧 `dshPageText`） | [部署记录](deepseek-ru-deployment.md) |
 | RU-04 | 待办 | 俄语版桌面品牌分支（`brand/ru-*`，`GATEWAY_ORIGIN=https://deepseek-ru.org`） | [方案 §3](ru-version-plan.md) |
 | RU-05 | 待办 | 俄语版 macOS/Windows unsigned 包与 `/downloads/` 产物 | 同 D-03 |
 | RU-06 | 待办 | 俄语区支付通道与充值入口 | [方案 §4](ru-version-plan.md) |
