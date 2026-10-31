@@ -124,6 +124,23 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 
 镜像：`20261031-ru-login`（在 `20261031-ru` 上替换 `/new-api` 二进制；上传后校验 md5，避免中断传输造成坏包）。
 
+## 客户端实测（2026-11-01）
+
+在 macOS 上直接运行打包的 `DeepSeek-RU.app`（构建目录里的 unsigned 包）验证：
+
+| 检查 | 结果 |
+|---|---|
+| 启动与隔离 | 干净环境下首次启动写入 `~/.deepseek-ru`，profile patch 指向 `https://deepseek-ru.org`；`~/.dsh` 不受影响 |
+| 品牌 | 窗口标题、菜单栏、侧边栏均为 `DeepSeek-RU`；应用图标为官方鲸鱼 |
+| 俄语界面 | 浏览器/系统语言为 `ru` 时整界面俄语（侧边栏、预览提示、输入框、用量行）；`<html lang="ru">` |
+| 登录 | 应用发起 `POST /auth-api/v0/dsh/auth_init` → 系统浏览器打开 `/dsh/authorize`，均 200；完成后侧边栏显示 `longge@deepseekru.org` |
+| 对话 | 发送「Ответь одним словом: работает」→ 回复「Работает」，2 秒完成，9K 令牌，模型 `DeepSeek Flash` |
+| 语言选择 | 登录页跟随浏览器语言（本机中文浏览器 → 中文页；俄语浏览器 → 俄语页） |
+
+截图：[`app-ru-ui.png`](assets/ru-verify/app-ru-ui.png)、[`app-ru-chat.png`](assets/ru-verify/app-ru-chat.png)、[`app-icon.png`](assets/ru-verify/app-icon.png)
+
+**启动纪律**：从已经设置 `DSH_HOME` 的 shell（例如 DSH 会话）里直接执行 app 二进制，会用官方 `~/.dsh` 启动，品牌隔离失效。要用 `env -u DSH_HOME ...` 或从 Finder 启动。
+
 ## 价格与模型倍率
 
 渠道建好后模型测试报「倍率或价格未配置」。从 FA 实例（`127.0.0.1:3104`）导出 `ModelRatio`、`ModelPrice`、`CompletionRatio`、`CacheRatio`、`CreateCacheRatio`、`ImageRatio`、`AudioRatio`、`AudioCompletionRatio`、`GroupRatio`，用 `PUT /api/option/` 写入本实例。值是 JSON **文本**（不是对象），写成对象会被 `%v` 化成 `map[...]` 而报 `invalid character 'm'`。
