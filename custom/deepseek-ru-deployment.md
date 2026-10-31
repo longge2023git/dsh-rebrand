@@ -124,6 +124,20 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 
 镜像：`20261031-ru-login`（在 `20261031-ru` 上替换 `/new-api` 二进制；上传后校验 md5，避免中断传输造成坏包）。
 
+## macOS 安装包分发（2026-11-01）
+
+安装包已上传到 `/opt/dsh-gateway-ru/downloads/`，由 nginx 只读提供：
+
+```
+https://deepseek-ru.org/downloads/deepseek-ru-0.2.1-rc.2.20261031.1-mac-arm64-unsigned.dmg
+sha256  bb149280dbea57b22ad1525ce7c140fb6b25ee1bb6fc9cd15e47a9de773d3893
+265,451,984 字节（253 MiB），unsigned，macOS arm64
+```
+
+验收：`HEAD` 返回 200 + `application/octet-stream`，`Range: 0-1048575` 返回 206；服务器上 `sha256sum` 与本地一致。
+
+上传纪律：经本机 xray 代理走（`-o ProxyCommand='nc -X 5 -x 127.0.0.1:10808 %h %p'`），约 1.2 MB/s，4 分钟；先传 `.part`，校验 sha256 后再改名，避免中断留下半个文件被当成正式包。
+
 ## 客户端实测（2026-11-01）
 
 在 macOS 上直接运行打包的 `DeepSeek-RU.app`（构建目录里的 unsigned 包）验证：

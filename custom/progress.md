@@ -54,7 +54,7 @@
 | RU-04 | 桌面品牌 DeepSeek-RU、官方图标、俄语界面与安装器 | 完成 | 产品名/appId/home/字标/图标/桌面壳 ru/NSIS ru；`test:gui` 与 desktop 套件全绿 |
 | RU-08 | macOS unsigned 出包与冒烟 | 完成 | `deepseek-ru-0.2.1-rc.2.20261031.1-mac-arm64-unsigned.dmg`（253MB）；`DeepSeek-RU.app`、`com.deepseekru.harness`；打包内建 CLI/Office 冒烟通过 |
 | RU-07 | 登录页 ru + 品牌名（`DSH_BRAND_NAME`） | 完成 | 实测 ru/en/zh 三语切换正常，品牌名生效；镜像 `20261031-ru-login` |
-| RU-05 | 安装包上传 `/downloads/`（macOS 已出包、Windows 待构建机） | 进行中 | 253MB 上传受链路限制，待安排 |
+| RU-05 | 安装包分发（macOS 已上传 `/downloads/`，Windows 待构建机） | 进行中 | https://deepseek-ru.org/downloads/deepseek-ru-0.2.1-rc.2.20261031.1-mac-arm64-unsigned.dmg · sha256 `bb149280…` |
 | RU-06 | 俄语区支付通道 | 未开始 | — |
 
 ## 已知限制
