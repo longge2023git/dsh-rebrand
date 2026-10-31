@@ -1,4 +1,4 @@
-// One-off helper: compose the DeepSeek-FA wordmark (whale + text) for the NSIS installer brand assets.
+// One-off helper: compose the DeepSeek-RU wordmark (whale + text) for the NSIS installer brand assets.
 // Run from apps/desktop so `sharp` resolves. Output goes to scripts/.generated-brand for review.
 import { mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -17,7 +17,7 @@ function svg(textColor, scale) {
   const H = 196 * scale
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" fill="none">
   <g transform="translate(${40 * scale} ${43 * scale}) scale(${5 * scale})">${WHALE}</g>
-  <text x="${200 * scale}" y="${122 * scale}" fill="${textColor}" font-family="'Segoe UI', 'Montserrat', sans-serif" font-size="${56 * scale}" font-weight="600" letter-spacing="1">DeepSeek-FA</text>
+  <text x="${200 * scale}" y="${122 * scale}" fill="${textColor}" font-family="'Segoe UI', 'Montserrat', sans-serif" font-size="${56 * scale}" font-weight="600" letter-spacing="1">DeepSeek-RU</text>
 </svg>`
 }
 

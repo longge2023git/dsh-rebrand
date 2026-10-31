@@ -1,5 +1,5 @@
-DeepSeek-FA
-DeepSeek-FA
+DeepSeek-RU
+DeepSeek-RU
 Sign in timed out
 Sign in again
 Add API Key

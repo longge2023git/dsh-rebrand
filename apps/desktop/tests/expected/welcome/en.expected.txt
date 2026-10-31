@@ -1,6 +1,6 @@
-DeepSeek-FA
-DeepSeek-FA
-Welcome to DeepSeek-FA
+DeepSeek-RU
+DeepSeek-RU
+Welcome to DeepSeek-RU
 Build potential. Explore intelligence.
 Sign in
 Add API Key

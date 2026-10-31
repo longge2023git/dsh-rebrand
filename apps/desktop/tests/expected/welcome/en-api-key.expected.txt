@@ -1,5 +1,5 @@
-DeepSeek-FA
-DeepSeek-FA
+DeepSeek-RU
+DeepSeek-RU
 Add an API key to get started
 Configure official DeepSeek models to start using Harness
 Enter API key [password]

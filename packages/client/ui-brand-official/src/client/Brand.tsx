@@ -1,4 +1,4 @@
-import { PersianWhaleMark } from './PersianWhaleMark.tsx'
+import { FishLogo } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SidebarBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 
 /**
@@ -7,7 +7,7 @@ import type { SidebarBrandMarkOwnerProps } from '@deepseek-ai/dsh-client-ui-side
  * @returns the official whale mark.
  */
 export function OfficialBrandMark({ size }: SidebarBrandMarkOwnerProps) {
-  return <PersianWhaleMark size={size} />
+  return <FishLogo size={size} />
 }
 
 /**
@@ -15,5 +15,5 @@ export function OfficialBrandMark({ size }: SidebarBrandMarkOwnerProps) {
  * @returns the official name wordmark.
  */
 export function OfficialBrandName() {
-  return <span aria-hidden="true" style={{ whiteSpace: 'nowrap' }}>DeepSeek-FA</span>
+  return <span aria-hidden="true" style={{ whiteSpace: 'nowrap' }}>DeepSeek-RU</span>
 }

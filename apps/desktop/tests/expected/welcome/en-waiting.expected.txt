@@ -1,5 +1,5 @@
-DeepSeek-FA
-DeepSeek-FA
+DeepSeek-RU
+DeepSeek-RU
 Browser didn’t open automatically?
 Copy sign-in link
 Completing sign in… [disabled]

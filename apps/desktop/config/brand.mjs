@@ -1,12 +1,12 @@
-/** DeepSeek-FA desktop identity shared by the Electron shell and packaging scripts. */
-export const PRODUCT_NAME = 'DeepSeek-FA'
-export const PACKAGE_SLUG = 'deepseek-fa'
-export const APP_ID = 'com.deepseek-fa.harness'
-export const HOME_DIR_NAME = '.deepseek-fa'
+/** DeepSeek-RU desktop identity shared by the Electron shell and packaging scripts. */
+export const PRODUCT_NAME = 'DeepSeek-RU'
+export const PACKAGE_SLUG = 'deepseek-ru'
+export const APP_ID = 'com.deepseekru.harness'
+export const HOME_DIR_NAME = '.deepseek-ru'
 export const PROTOCOL_SCHEME = 'dsh'
-export const GATEWAY_ORIGIN = 'https://ds.openrouters.org'
+export const GATEWAY_ORIGIN = 'https://deepseek-ru.org'
 
-/** First-run desktop profile overlay for the DeepSeek-FA gateway. */
+/** First-run desktop profile overlay for the DeepSeek-RU gateway. */
 export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
   name: '@deepseek-ai/dsh-deepseek-account-platform'
   config:

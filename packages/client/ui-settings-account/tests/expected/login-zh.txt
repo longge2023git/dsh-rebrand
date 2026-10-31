@@ -1,1 +1,1 @@
-开始使用登录 DeepSeek-FA 账号、使用网关 API Key，或添加官方 API Key，即可开始使用。你的项目和文件保存在本地。添加 API Key登录
+开始使用登录 DeepSeek-RU 账号、使用网关 API Key，或添加官方 API Key，即可开始使用。你的项目和文件保存在本地。添加 API Key登录

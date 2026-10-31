@@ -1,6 +1,6 @@
-DeepSeek-FA
-DeepSeek-FA
-欢迎使用 DeepSeek-FA
+DeepSeek-RU
+DeepSeek-RU
+欢迎使用 DeepSeek-RU
 组装无限可能，共探智能上限
 登录
 添加 API Key

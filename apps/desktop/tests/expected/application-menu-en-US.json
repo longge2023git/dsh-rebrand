@@ -7,7 +7,7 @@
   },
   {
     "role": "hide",
-    "label": "Hide DeepSeek-FA"
+    "label": "Hide DeepSeek-RU"
   },
   {
     "role": "hideOthers",
@@ -19,6 +19,6 @@
   },
   {
     "role": "quit",
-    "label": "Quit DeepSeek-FA"
+    "label": "Quit DeepSeek-RU"
   }
 ]
