@@ -53,6 +53,7 @@
 | U-01 | 同步上游 rc.2 → rc.5 | 未开始 | 2,527 提交 / 8,133 文件；须与品牌参数化配套 |
 | RU-04 | 桌面品牌 DeepSeek-RU、官方图标、俄语界面与安装器 | 完成 | 产品名/appId/home/字标/图标/桌面壳 ru/NSIS ru；`test:gui` 与 desktop 套件全绿 |
 | RU-08 | 品牌重命名后的 macOS unsigned 出包与冒烟 | 进行中 | 本地构建流程已跑通，待出包 |
+| RU-07 | 登录页 ru + 品牌名（`DSH_BRAND_NAME`） | 完成 | 实测 ru/en/zh 三语切换正常，品牌名生效；镜像 `20261031-ru-login` |
 | RU-05 | macOS/Windows unsigned 包与 `/downloads/` 产物 | 未开始 | 同 D-03 |
 | RU-06 | 俄语区支付通道 | 未开始 | — |
 

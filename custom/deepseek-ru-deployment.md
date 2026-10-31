@@ -13,7 +13,7 @@
 | 源站证书 | Cloudflare Origin CA，SAN `deepseek-ru.org`、`*.deepseek-ru.org`，有效期至 2041-10-27 |
 | Cloudflare SSL/TLS 模式 | 必须 **Full (strict)** |
 | 网关容器 | `dsh-newapi-ru`，`127.0.0.1:3105 -> 3000` |
-| 镜像 | `dsh/new-api-deepseek:20261031-ru`（本地构建 `0d1707b85`，见「镜像构建」） |
+| 镜像 | `dsh/new-api-deepseek:20261031-ru-login`（本地构建，含登录页 ru 与品牌名，见「镜像构建」） |
 | 渠道 | `deepseek-anthropic`，type 14，`https://api.deepseek.com/anthropic`，模型 `deepseek-flash,deepseek-v4-pro` |
 | 上游 key | DeepSeek 官方 key，存本地 `custom/credentials/deepseek-ru.org/deepseek-api-key.txt`（600），仅存在于渠道配置 |
 | 数据 | `/opt/dsh-gateway-ru/data/one-api.db`（SQLite，新建空库） |
@@ -110,6 +110,19 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 不要在 `104.248.155.54` 上跑 `docker build`：这台机器只有 2 vCPU / 4 GB，还跑着 `ds.openrouters.org` 等生产容器。2026-10-31 试过一次，构建把内存和 CPU 打满，`openrouters.org`、`beta`、`ds.openrouters.org`、`deepseek-ru.org` 全部不可用约 12 分钟，`load average` 一度到 173；靠 SSH 挤进去杀掉构建进程才恢复。构建只在本机做，服务器只做补丁层。
 
 本地构建后先在 darwin 上冒烟（同一份源码 `GOOS=darwin GOARCH=arm64` 构建，跑在临时端口），确认 `/api/status`、SPA 资源、登录页语言兜底都正常再上传。
+
+## 登录页俄语与品牌名（2026-10-31）
+
+`new-api-deepseek` 侧：
+
+- `dshNormalizeLanguage` 识别 `ru`；页面文案按 en / ru / zh 分发，未知语言回落英文。
+- 新增 `DSH_BRAND_NAME`（默认 `DSH`），本实例设为 `DeepSeek-RU`；页面标题、说明、授权完成页都带品牌名。
+- 语言优先级：`?lang` → 浏览器 `Accept-Language` → 应用打开流程上报的 locale → 英文。实测 ru→俄语、en→英文、zh→中文、de→回落应用 locale（俄语）。
+- 错误文案（登录失败、两次密码不一致等）随语言切换，不再固定中文/英文。
+
+桌面端同批改动：`PlatformLocale` 与 `platformWireLocale` 增加 `ru_RU`，账号页嵌入的 Platform 页面与 `x-client-locale` 头部跟随界面语言。
+
+镜像：`20261031-ru-login`（在 `20261031-ru` 上替换 `/new-api` 二进制；上传后校验 md5，避免中断传输造成坏包）。
 
 ## 价格与模型倍率
 

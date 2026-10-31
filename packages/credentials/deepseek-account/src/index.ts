@@ -167,8 +167,9 @@ export function platformClientHeaders(platform: 'darwin' | 'win32' | null, clien
  * Reduce a caller's UI language to the region-tagged Platform locale.
  * Shares one normalization with the header and with request body locale fields.
  * @param locale - active UI language such as `zh-CN`, `zh_TW`, or `en-US`.
- * @returns the region-tagged Platform locale for that language, `zh_CN` or `en_US`.
+ * @returns the region-tagged Platform locale for that language: `zh_CN`, `ru_RU`, or `en_US` for everything else.
  */
-export function platformWireLocale(locale: string): 'zh_CN' | 'en_US' {
-  return locale.toLowerCase().split(/[-_]/)[0] === 'zh' ? 'zh_CN' : 'en_US'
+export function platformWireLocale(locale: string): 'zh_CN' | 'en_US' | 'ru_RU' {
+  const primary = locale.toLowerCase().split(/[-_]/)[0]
+  return primary === 'zh' ? 'zh_CN' : primary === 'ru' ? 'ru_RU' : 'en_US'
 }

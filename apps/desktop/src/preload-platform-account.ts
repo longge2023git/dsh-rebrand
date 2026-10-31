@@ -2,6 +2,15 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { PLATFORM_IPC, type PlatformLocale } from './platform-ipc.ts'
 
+/**
+ * Narrow an IPC value to a shipped Platform locale.
+ * @param value - message or bootstrap field.
+ * @returns whether the value names a supported locale.
+ */
+function isPlatformLocale(value: unknown): value is PlatformLocale {
+  return value === 'en_US' || value === 'zh_CN' || value === 'ru_RU'
+}
+
 const originArgument = '--dsh-platform-origin='
 const allowedOrigin = process.argv.find(argument => argument.startsWith(originArgument))?.slice(originArgument.length)
 if (process.isMainFrame && location.origin === allowedOrigin) {
@@ -9,7 +18,7 @@ if (process.isMainFrame && location.origin === allowedOrigin) {
   let locale: PlatformLocale | undefined
   const localeListeners = new Set<(locale: PlatformLocale) => void>()
   ipcRenderer.on(PLATFORM_IPC.localeChanged, (_event, value: unknown) => {
-    if (value !== 'en_US' && value !== 'zh_CN') return
+    if (!isPlatformLocale(value)) return
     locale = value
     for (const listener of localeListeners) {
       try { listener(value) } catch (error) { console.error('Platform locale listener failed', error) }
@@ -19,7 +28,7 @@ if (process.isMainFrame && location.origin === allowedOrigin) {
     const value: unknown = ipcRenderer.sendSync(PLATFORM_IPC.bootstrap)
     if (typeof value === 'object' && value !== null && 'token' in value && 'origin' in value
       && typeof value.token === 'string' && value.token.length > 0 && value.origin === location.origin
-      && 'locale' in value && (value.locale === 'en_US' || value.locale === 'zh_CN')) {
+      && 'locale' in value && isPlatformLocale(value.locale)) {
       token = value.token
       locale = value.locale
     }

@@ -72,7 +72,7 @@ export const Config = Schema.object({
 })
 
 interface Attempt {
-  locale: 'en_US' | 'zh_CN'
+  locale: 'en_US' | 'zh_CN' | 'ru_RU'
   clientHeaders: Record<string, string>
   view: SignInAttemptView
   controller: AbortController
