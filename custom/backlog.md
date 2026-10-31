@@ -16,6 +16,11 @@
 | D-02 | **已完成** | DeepSeek-FA macOS unsigned 测试包 | [桌面说明](deepseek-fa-desktop.md) |
 | D-03 | 待办 | DeepSeek-FA Windows unsigned 包 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
 | S-01 | 待办 | 网关域名切换到 https://deepseek-fa.org | [#13](https://github.com/longge2023git/dsh-rebrand/issues/13)、[迁移清单](deepseek-fa-domain-migration.md) |
+| RU-02 | **已完成** | 俄语站上游渠道：`deepseek-anthropic` 渠道 + 独立官方 key | [俄语站部署](deepseek-ru-deployment.md) |
+| RU-03 | 待办 | 俄语界面：`packages/client/locale-ru`（3,201 条）+ 登录页 `ru` 分支 | [方案 §2.2](ru-version-plan.md) |
+| RU-04 | 待办 | 俄语版桌面品牌分支（`brand/ru-*`，`GATEWAY_ORIGIN=https://deepseek-ru.org`） | [方案 §3](ru-version-plan.md) |
+| RU-05 | 待办 | 俄语版 macOS/Windows unsigned 包与 `/downloads/` 产物 | 同 D-03 |
+| RU-06 | 待办 | 俄语区支付通道与充值入口 | [方案 §4](ru-version-plan.md) |
 
 ## F-01 摘要
 

@@ -1,6 +1,6 @@
 # 进度总览
 
-> 最后更新：2026-10-22
+> 最后更新：2026-10-31
 > 单一进度入口。详细计划见 [PLAN.md](../PLAN.md)，决策见 [ADR-002](adr-002-merge-relay-into-newapi.md)，验收见 [gateway-acceptance.md](gateway-acceptance.md)。
 
 ## 当前阶段
@@ -36,10 +36,23 @@
 | 服务 | 地址 |
 |---|---|
 | NewAPI 单网关（生产） | `https://ds.openrouters.org` |
+| 俄语站网关（新） | `https://deepseek-ru.org` → 同机容器 `dsh-newapi-ru`（`127.0.0.1:3105`） |
 | 本地回退 | `http://127.0.0.1:13000`（可选） |
 | DSH Web 测试 | `http://127.0.0.1:3080`（指向生产） |
 | 宿主代理转发 | `0.0.0.0:10810` |
 | relay | **已停止**（仅参考代码） |
+
+## 俄语版（deepseek-ru.org）
+
+| ID | 事项 | 状态 | 证据 |
+|---|---|---|---|
+| RU-00 | 方案：与 FA 同构的独立站点 + 独立品牌 | 完成 | [方案](ru-version-plan.md) |
+| RU-01 | 站点上线：Cloudflare + Origin CA + 独立网关容器 | 完成 | [部署记录](deepseek-ru-deployment.md) |
+| RU-02 | 上游渠道（`deepseek-anthropic` + 独立 key） | 完成 | 渠道测试通过；`/v1/models`、`/v1/chat/completions` 均 200 |
+| RU-03 | 俄语界面（`locale-ru`，3,201 条 + 登录页 `ru`） | **本轮不做** | 待办，见 [方案 §2.2](ru-version-plan.md) |
+| RU-04 | 俄语版桌面品牌分支与安装包 | 未开始 | `brand/ru-deepseek-ru` 分支已建，仅部署文档 |
+| RU-05 | macOS/Windows unsigned 包与 `/downloads/` 产物 | 未开始 | 同 D-03 |
+| RU-06 | 俄语区支付通道 | 未开始 | — |
 
 ## 已知限制
 
