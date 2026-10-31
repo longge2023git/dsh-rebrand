@@ -52,9 +52,9 @@
 | RU-03 | 俄语界面：`packages/client/locale-ru` 语言包 | 完成 | 50 命名空间 / 2,612 词条；覆盖 100%（11 条 fork 自有词条人工译）；占位符一致；退役守卫就位 |
 | U-01 | 同步上游 rc.2 → rc.5 | 未开始 | 2,527 提交 / 8,133 文件；须与品牌参数化配套 |
 | RU-04 | 桌面品牌 DeepSeek-RU、官方图标、俄语界面与安装器 | 完成 | 产品名/appId/home/字标/图标/桌面壳 ru/NSIS ru；`test:gui` 与 desktop 套件全绿 |
-| RU-08 | 品牌重命名后的 macOS unsigned 出包与冒烟 | 进行中 | 本地构建流程已跑通，待出包 |
+| RU-08 | macOS unsigned 出包与冒烟 | 完成 | `deepseek-ru-0.2.1-rc.2.20261031.1-mac-arm64-unsigned.dmg`（253MB）；`DeepSeek-RU.app`、`com.deepseekru.harness`；打包内建 CLI/Office 冒烟通过 |
 | RU-07 | 登录页 ru + 品牌名（`DSH_BRAND_NAME`） | 完成 | 实测 ru/en/zh 三语切换正常，品牌名生效；镜像 `20261031-ru-login` |
-| RU-05 | macOS/Windows unsigned 包与 `/downloads/` 产物 | 未开始 | 同 D-03 |
+| RU-05 | 安装包上传 `/downloads/`（macOS 已出包、Windows 待构建机） | 进行中 | 253MB 上传受链路限制，待安排 |
 | RU-06 | 俄语区支付通道 | 未开始 | — |
 
 ## 已知限制

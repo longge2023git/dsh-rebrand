@@ -21,7 +21,7 @@
 | RU-03 | **已完成** | 俄语语言包 `packages/client/locale-ru`（上游字典 + 覆盖 gate + 退役守卫） | [方案 §2.2](ru-version-plan.md) |
 | RU-07 | **已完成** | 登录页 `ru` 文案 + `DSH_BRAND_NAME` 品牌名 | [部署记录](deepseek-ru-deployment.md) |
 | RU-04 | 待办 | 俄语版桌面品牌分支（`brand/ru-*`，`GATEWAY_ORIGIN=https://deepseek-ru.org`） | [方案 §3](ru-version-plan.md) |
-| RU-05 | 待办 | 俄语版 macOS/Windows unsigned 包与 `/downloads/` 产物 | 同 D-03 |
+| RU-05 | 待办 | 俄语版安装包上传 `/downloads/`（macOS 已出包，Windows 待 D-03） | 同 D-03 |
 | RU-06 | 待办 | 俄语区支付通道与充值入口 | [方案 §4](ru-version-plan.md) |
 
 ## F-01 摘要
