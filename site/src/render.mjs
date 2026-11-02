@@ -93,7 +93,8 @@ export function layout({ brand, copy, locale, page, body }) {
       ${navLink('', copy.nav.home)}
       ${navLink('download', copy.nav.download)}
       ${navLink('docs', copy.nav.docs)}
-      <a class="app" href="${brand.appUrl}">${copy.nav.app}</a>
+      <a class="app" href="${brand.auth.login}">${copy.nav.signIn}</a>
+      <a class="app primary" href="${brand.auth.register}">${copy.nav.signUp}</a>
       ${langLink}
     </nav>
   </header>
@@ -129,7 +130,7 @@ export const homeBody = (brand, copy) => {
     <p class="intro">${copy.home.intro}</p>
     <div class="actions">
       <a class="button" href="${pathOf(brand, copy.lang, 'download')}">${copy.home.ctaDownload}</a>
-      <a class="button secondary" href="${brand.appUrl}">${copy.home.ctaApp}</a>
+      <a class="button secondary" href="${brand.auth.register}">${copy.home.ctaRegister}</a>
     </div>
   </section>
 

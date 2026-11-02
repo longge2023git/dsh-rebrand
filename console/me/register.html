@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ثبت‌نام · DeepSeek-FA</title>
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="https://www.deepseekfa.com/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
+  </a>
+  <nav>
+    <a href="https://www.deepseekfa.com/">خانه</a>
+    <a href="https://www.deepseekfa.com/docs">راهنما</a>
+    <a href="/me/login">ورود</a>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1>ساخت حساب</h1>
+  <form id="auth-form" class="stack">
+    <label>نام کاربری
+      <input type="text" name="username" autocomplete="username" minlength="3" maxlength="30" required>
+    </label>
+    <label>گذرواژه
+      <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="20" required>
+    </label>
+    <label>تکرار گذرواژه
+      <input type="password" name="confirm" autocomplete="new-password" minlength="8" maxlength="20" required>
+    </label>
+    <p class="hint compact">گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.</p>
+    <p id="error" class="form-error" hidden></p>
+    <button class="button" type="submit">ساخت حساب</button>
+  </form>
+  <p class="hint">حساب دارید؟ <a href="/me/login">وارد شوید</a></p>
+</main>
+
+<script src="/me/app.js"></script>
+<script>
+  startRegister()
+</script>
+</body>
+</html>

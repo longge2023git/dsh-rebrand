@@ -81,6 +81,104 @@ async function loadStatus() {
   }
 }
 
+
+/** Map the gateway's English/Chinese auth errors onto Persian copy. */
+const AUTH_ERRORS = [
+  [/username or password is empty|用户名或密码为空/i, 'نام کاربری یا گذرواژه خالی است.'],
+  [/username or password is incorrect|用户名或密码错误/i, 'نام کاربری یا گذرواژه نادرست است.'],
+  [/password login has been disabled|密码登录已被关闭|关闭了密码登录/i, 'ورود با گذرواژه توسط مدیر بسته شده است.'],
+  [/registration has been disabled|关闭了新用户注册/i, 'ثبت‌نام بسته شده است.'],
+  [/password registration has been disabled/i, 'ثبت‌نام با گذرواژه بسته شده است.'],
+  [/username already exists|用户名已存在/i, 'این نام کاربری قبلاً ثبت شده است.'],
+  [/at least 8|min|密码长度/i, 'گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.'],
+  [/max/i, 'گذرواژه طولانی‌تر از حد مجاز است.'],
+]
+
+/** Translate one gateway auth error, keeping the raw text as a last resort. */
+function persianError(message) {
+  const text = String(message || '').trim()
+  if (!text) return 'خطایی رخ داد. دوباره تلاش کنید.'
+  for (const [pattern, copy] of AUTH_ERRORS) if (pattern.test(text)) return copy
+  return `خطا: ${text}`
+}
+
+/** Show an inline error under the form. */
+function showFormError(message) {
+  const box = $('error')
+  if (!box) return
+  box.textContent = message
+  box.hidden = false
+}
+
+/** Where to go after signing in: honour ?next= on the same origin only. */
+function nextUrl() {
+  const next = new URLSearchParams(location.search).get('next')
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/me/'
+}
+
+/** Remember the signed-in user so the console can set the New-Api-User header. */
+function rememberUser(data) {
+  localStorage.setItem('user', JSON.stringify(data))
+}
+
+async function startLogin() {
+  const form = $('auth-form')
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const body = JSON.stringify({
+      username: form.username.value.trim(),
+      password: form.password.value,
+    })
+    try {
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(persianError(payload.message))
+      if (payload.data?.require_2fa) return showFormError('این حساب ورود دو مرحله‌ای دارد؛ فعلاً از کنسول اصلی وارد شوید.')
+      rememberUser(payload.data || {})
+      location.replace(nextUrl())
+    } catch {
+      showFormError('اتصال برقرار نشد. دوباره تلاش کنید.')
+    }
+  })
+}
+
+async function startRegister() {
+  const form = $('auth-form')
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const password = form.password.value
+    if (password !== form.confirm.value) return showFormError('گذرواژه‌ها یکسان نیستند.')
+    try {
+      const response = await fetch('/api/user/register', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: form.username.value.trim(), password }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(persianError(payload.message))
+
+      const login = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: form.username.value.trim(), password }),
+      })
+      const session = await login.json().catch(() => ({}))
+      if (!session.success) return showFormError('حساب ساخته شد؛ لطفاً از صفحهٔ ورود وارد شوید.')
+      rememberUser(session.data || {})
+      location.replace('/me/keys')
+    } catch {
+      showFormError('اتصال برقرار نشد. دوباره تلاش کنید.')
+    }
+  })
+}
+
 async function startUsage() {
   await loadStatus()
   await guard(async () => {

@@ -10,13 +10,13 @@ export default {
     description:
       'The {{brand}} desktop app: chat with DeepSeek models, work with files and images, and create API keys for your own tools.',
   },
-  nav: { home: 'Home', download: 'Download', docs: 'Getting started', app: 'Open app' },
+  nav: { home: 'Home', download: 'Download', docs: 'Getting started', signIn: 'Sign in', signUp: 'Sign up' },
   home: {
     lead: 'Chat, files, and automation in one desktop app.',
     intro:
       'Work with DeepSeek models straight from your desktop: send files and images, and create API keys for your own tools.',
     ctaDownload: 'Download for macOS',
-    ctaApp: 'Open app',
+    ctaRegister: 'Create account',
     featuresTitle: 'What it does',
     features: [
       {

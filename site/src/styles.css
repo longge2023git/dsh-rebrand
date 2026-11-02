@@ -82,6 +82,8 @@ nav.links a.app {
   font-size: 14px;
 }
 nav.links a.app:hover { border-color: var(--text); }
+nav.links a.app.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+nav.links a.app.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
 
 .lang { display: flex; gap: 4px; font-size: 13px; }
 .lang a {

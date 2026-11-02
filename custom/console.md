@@ -1,6 +1,8 @@
 # 迷你波斯语控制台
 
-> 2026-11-02 上线：`https://deepseekfa.com/me/`（用量）、`https://deepseekfa.com/me/keys`（密钥）。
+> 2026-11-02 上线：`https://deepseekfa.com/me/login`（登录）、`/me/register`（注册）、`/me/`（用量）、`/me/keys`（密钥）。
+
+官网 `www.deepseekfa.com` 的「ورود / ثبت‌نام」入口直接指向这两页，**不经过 New API 的 Semi SPA**（那套要加载 7 MB bundle，且没有波斯语与 RTL）。
 
 ## 为什么不是 New API 自带控制台
 
@@ -14,6 +16,17 @@
 2. **`New-Api-User: <id>` 请求头**——`middleware/auth.go` 校验它必须等于会话用户 id，否则返回 `401 无权进行此操作，未提供 New-Api-User`。
 
 用户 id 不在 cookie 里，从同源的 `localStorage['user']` 取（SPA 登录时写入，字段 `id`）。拿不到就显示登录提示，跳 `/login`。
+
+## 登录与注册
+
+| 页面 | 调用的接口 | 成功后 |
+|---|---|---|
+| `/me/login` | `POST /api/user/login` `{username, password}` | 写入 `localStorage.user`（响应的 `data` 含 id/username），跳 `?next=` 或 `/me/` |
+| `/me/register` | `POST /api/user/register` `{username, password}` → 再 `POST /api/user/login` | 自动登录，跳 `/me/keys` |
+
+- 注册后 New API 不会自动建立会话，所以页面自己再调一次 login；注册接口的响应没有 `data`
+- 服务端报错默认是英文（`fa` 未在服务端 i18n 里注册，落到 `en`），`app.js` 的 `AUTH_ERRORS` 把常见几条映射成波斯语，未命中的保留原文并加前缀
+- 2FA 账号会被拦下并提示改用主控制台（迷你站没有 2FA 表单）
 
 ## 用到的接口
 

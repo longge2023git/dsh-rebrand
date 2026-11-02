@@ -8,6 +8,10 @@ export default {
   defaultLocale: 'fa',
   locales: ['fa', 'en'],
   consoleUrl: 'https://deepseekfa.com/console',
+  auth: {
+    login: 'https://deepseekfa.com/me/login',
+    register: 'https://deepseekfa.com/me/register',
+  },
   downloads: [
     {
       platform: 'macOS · Apple Silicon',

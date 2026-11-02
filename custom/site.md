@@ -8,7 +8,7 @@
 
 | 域名 | 内容 |
 |---|---|
-| `www.deepseekfa.com` | 静态官网（fa RTL / en） |
+| `www.deepseekfa.com` | 静态官网（fa RTL / en），导航的「ورود / ثبت‌نام」指向迷你站 `/me/login`、`/me/register` |
 | `deepseekfa.com` | 网关 |
 | `www.deepseek-ru.org` | 静态官网（ru / en） |
 | `deepseek-ru.org` | 网关 |

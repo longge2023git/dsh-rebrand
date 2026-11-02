@@ -11,13 +11,13 @@ export default {
     description:
       'برنامه دسکتاپ {{brand}}: گفت‌وگو با مدل‌های DeepSeek، کار با فایل و تصویر، و ساخت کلید API برای ابزارهای خودتان.',
   },
-  nav: { home: 'خانه', download: 'دانلود', docs: 'راهنما', app: 'ورود به برنامه' },
+  nav: { home: 'خانه', download: 'دانلود', docs: 'راهنما', signIn: 'ورود', signUp: 'ثبت‌نام' },
   home: {
     lead: 'چت، فایل و خودکارسازی در یک برنامه دسکتاپ.',
     intro:
       'با {{brand}} مستقیم از دسکتاپ خود با مدل‌های DeepSeek کار کنید؛ فایل و تصویر بفرستید و برای ابزارهای شخصی خود کلید API بسازید.',
     ctaDownload: 'دانلود برای macOS',
-    ctaApp: 'ورود به برنامه',
+    ctaRegister: 'ساخت حساب',
     featuresTitle: 'چه کاری انجام می‌دهد',
     features: [
       {

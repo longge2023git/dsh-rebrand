@@ -8,6 +8,10 @@ export default {
   defaultLocale: 'ru',
   locales: ['ru', 'en'],
   consoleUrl: 'https://deepseek-ru.org/console',
+  auth: {
+    login: 'https://deepseek-ru.org/login',
+    register: 'https://deepseek-ru.org/register',
+  },
   downloads: [
     {
       platform: 'macOS · Apple Silicon',
