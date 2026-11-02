@@ -38,6 +38,23 @@
       <div class="card"><span class="label" data-i18n="usage.requests">Запросов</span><strong id="requests">—</strong></div>
     </div>
 
+    <section id="invite" hidden>
+      <h2 data-i18n="invite.title">Приглашение друзей</h2>
+      <div class="cards">
+        <div class="card"><span class="label" data-i18n="invite.code">Ваш код приглашения</span>
+          <strong id="aff-code" dir="ltr">—</strong>
+          <button type="button" class="linkish" id="aff-copy" data-i18n="invite.copy">Копировать</button>
+        </div>
+        <div class="card"><span class="label" data-i18n="invite.invited">Приглашено</span><strong id="aff-count">—</strong></div>
+        <div class="card"><span class="label" data-i18n="invite.earned">Бонус за приглашения</span><strong id="aff-quota">—</strong></div>
+      </div>
+      <p class="hint"><span data-i18n="invite.share">Ссылка-приглашение</span>:
+        <code id="aff-link" dir="ltr">—</code>
+        <button type="button" class="linkish" id="aff-link-copy" data-i18n="invite.copy">Копировать</button>
+      </p>
+      <p class="hint" data-i18n="invite.hint">Друзья регистрируются по этому коду; награды начисляются по настройкам сервиса.</p>
+    </section>
+
     <h2 data-i18n="usage.recent">Последний расход</h2>
     <div class="table-wrap">
       <table>

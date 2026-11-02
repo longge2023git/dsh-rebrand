@@ -178,3 +178,15 @@ main.narrow { max-width: 460px; }
   font-size: 14px;
 }
 .hint.compact { margin: 0; font-size: 12px; }
+
+/* Inline text button used by the invite card */
+.linkish {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 2px 6px;
+  font-size: 13px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.linkish:hover { text-decoration: underline; }

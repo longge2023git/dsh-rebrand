@@ -67,6 +67,22 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 浏览器原生校验仍然关闭（`novalidate`），否则提示语会跟随浏览器界面语言。
 
+## 邀请码（aff）
+
+| 位置 | 行为 |
+|---|---|
+| 注册页 | 增加可选字段 `aff`，提交时作为 `aff_code` 发给 `/api/user/register`；`/me/register?aff=CODE` 会自动预填 |
+| 用量页 | 展示自己的邀请码、邀请链接（`/me/register?aff=<code>`）、`aff_count`、`aff_quota`，均可一键复制 |
+
+服务端行为（`model/user.go` 的 `Insert`）：
+
+- 注册时 `GetUserIdByAffCode(aff_code)` 解析邀请人，**无效码静默忽略**（不报错，也不阻止注册），有效则写入 `users.inviter_id`
+- **奖励与计数只在开关打开时发生**：`QuotaForInvitee > 0` 给被邀请人加额度；`QuotaForInviter > 0` 才执行 `inviteUser()`（`AffCount++`、`AffQuota += …`）并记一条日志
+- 目前两台线上 `QuotaForInviter/QuotaForInvitee/QuotaForNewUser` **都没有配置（默认 0）**，所以现在传邀请码的效果只是"记录 inviter_id"，不产生任何额度或计数
+- 邀请人拿到的是 `aff_quota`（不是余额）；要变成可用额度需要 `POST /api/user/aff_transfer`（最小 1 个 `quota_per_unit`）。**迷你站暂未提供转账按钮**
+
+要真正启用奖励：后台把 `QuotaForInviter` / `QuotaForInvitee` 设成非 0（单位是 quota，`500000` 约等于 1 个计价单位），再决定是否把转账入口加进控制台。
+
 ## 用到的接口
 
 | 页面 | 接口 |

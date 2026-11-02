@@ -132,6 +132,7 @@ async function startUsage() {
     $('balance').textContent = credit(me.quota)
     $('used').textContent = credit(me.used_quota)
     $('requests').textContent = num(me.request_count)
+    renderInvite(me)
     await loadLogs()
   })
 }
@@ -171,6 +172,29 @@ function detailHtml(item) {
   ]
   return `<div class="detail-grid">${rows.map(([label, value]) =>
     `<div><span>${t(label)}</span><strong dir="auto">${value}</strong></div>`).join('')}</div>`
+}
+
+
+/** Invitation card: the user's own aff code, share link, and invite counters. */
+function renderInvite(me) {
+  const section = $('invite')
+  if (!section || !me.aff_code) return
+  const link = `${location.origin}/me/register?aff=${encodeURIComponent(me.aff_code)}`
+  $('aff-code').textContent = me.aff_code
+  $('aff-count').textContent = num(me.aff_count || 0)
+  $('aff-quota').textContent = credit(me.aff_quota || 0)
+  $('aff-link').textContent = link
+  section.hidden = false
+  $('aff-copy').onclick = () => flashCopied($('aff-copy'), me.aff_code)
+  $('aff-link-copy').onclick = () => flashCopied($('aff-link-copy'), link)
+}
+
+/** Copy text and briefly confirm on the button itself. */
+async function flashCopied(button, value) {
+  await copyText(value)
+  const original = t('invite.copy')
+  button.textContent = t('invite.copied')
+  setTimeout(() => { button.textContent = original }, 1500)
 }
 
 async function loadLogs() {
@@ -342,6 +366,10 @@ async function startLogin() {
 async function startRegister() {
   applyI18n()
   const form = $('auth-form')
+  // Deep link from a share card: /me/register?aff=CODE
+  const invitedBy = new URLSearchParams(location.search).get('aff')
+    || new URLSearchParams(location.search).get('code')
+  if (invitedBy && form.aff) form.aff.value = invitedBy.trim().slice(0, 16)
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
     const username = form.username.value.trim()
@@ -357,7 +385,11 @@ async function startRegister() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username,
+          password,
+          ...(form.aff && form.aff.value.trim() ? { aff_code: form.aff.value.trim() } : {}),
+        }),
       })
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
