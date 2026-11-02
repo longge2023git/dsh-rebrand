@@ -36,3 +36,4 @@
 | 邀请奖励数值 | 邀请人 $1.00 → `aff_quota`；被邀请人 $0.50 → 余额；新用户 $0.50 → 余额 | [console.md](console.md) |
 | Windows 构建 | 由 Windows 机器构建（不能从 macOS 交叉打），exe + 清单上传后页面自动出现 | [windows-handoff.md](windows-handoff.md) |
 | 服务端消息波斯语 | 未做，报错文案仍回落英文 | backlog I-01 |
+| SMTP / 邮箱验证 | 未启用；方案与实测（两台均可直连国外 SMTP）见 [smtp-plan.md](smtp-plan.md) | backlog I-02 |
