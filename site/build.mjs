@@ -11,6 +11,7 @@
  *   dist/<brand>/en/index.html  en/download.html  en/docs.html
  */
 import { mkdir, writeFile, readFile, cp, rm } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -41,6 +42,8 @@ if (selected.length === 0) {
 }
 
 const styles = await readFile(join(here, 'src', 'styles.css'), 'utf8')
+// Cache-busting suffix: CDNs (Cloudflare) cache .css for hours, so the URL must change with content.
+const assetVersion = createHash('sha256').update(styles).digest('hex').slice(0, 8)
 
 await rm(outRoot, { recursive: true, force: true })
 
@@ -61,13 +64,13 @@ for (const brand of selected) {
     await mkdir(dir, { recursive: true })
 
     for (const page of pages) {
-      const body = page.body(brand, copy)
-      const html = layout({ brand, copy, locale, page: page.id, body })
+      const body = page.body(brand, copy, assetVersion)
+      const html = layout({ brand, copy, locale, page: page.id, body, version: assetVersion })
       await writeFile(join(dir, page.file), html)
       urls.push(`https://${brand.domain}${prefix === '' ? '/' : `${prefix}/`}${page.file === 'index.html' ? '' : page.file}`)
     }
     // Branded 404; nginx maps error_page 404 to /404.html of the requested locale where possible.
-    await writeFile(join(dir, '404.html'), layout({ brand, copy, locale, page: '', body: notFoundBody(brand, copy) }))
+    await writeFile(join(dir, '404.html'), layout({ brand, copy, locale, page: '', body: notFoundBody(brand, copy), version: assetVersion }))
   }
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls

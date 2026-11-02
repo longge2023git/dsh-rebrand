@@ -55,6 +55,10 @@ rsync -az --delete -e "ssh -i ~/.ssh/id_ed25519_hub_104_248_155_54" \
 
 nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `deepseekfa.conf` 只保留主域）；RU 是 `/etc/nginx/conf.d/deepseek-ru.conf` 的 `www` server 块。两者都用 `try_files $uri $uri.html $uri/index.html` 支持 `/download` 这种无扩展名路径。
 
+## 静态资源缓存
+
+`styles.css` 与品牌图标在 HTML 里带 `?v=<内容哈希>`（`build.mjs` 用 sha256 前 8 位）。原因：RU 站在 Cloudflare 后面，CSS 被边缘缓存 4 小时（`cf-cache-status: HIT`），改了样式线上仍旧——加版本号后每次构建 URL 变化，自动破缓存。FA 站是 A 记录直连，没有这个问题，但同样受益于浏览器缓存失效。
+
 ## 下载分发
 
 - FA：`/var/www/fa-site/downloads/`，页面直链 `/downloads/<file>`

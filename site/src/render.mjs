@@ -1,7 +1,7 @@
 /** Page rendering for the static brand sites. No runtime dependencies. */
 
 /** Brand mark copied from the shipped desktop app icon. */
-const LOGO = '<img class="logo" src="/assets/icon.svg" alt="" width="30" height="30">'
+const logo = (version) => `<img class="logo" src="/assets/icon.svg?v=${version}" alt="" width="30" height="30">`
 
 /**
  * Replace `{{brand}}` tokens in a copy value.
@@ -57,7 +57,7 @@ export const pathOf = (brand, locale, page) => {
  * @param {string} options.body Page body HTML.
  * @returns {string} Complete HTML document.
  */
-export function layout({ brand, copy, locale, page, body }) {
+export function layout({ brand, copy, locale, page, body, version }) {
   const other = brand.locales.find((item) => item !== locale)
   const otherPath = pathOf(brand, other, page)
   const otherLabel = { fa: 'FA', ru: 'RU', en: 'EN' }[other] ?? other.toUpperCase()
@@ -85,8 +85,8 @@ export function layout({ brand, copy, locale, page, body }) {
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://${brand.domain}/assets/og.png">
-<link rel="stylesheet" href="/styles.css">
-<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css?v=${version}">
+<link rel="icon" href="/assets/icon.svg?v=${version}" type="image/svg+xml">
 <link rel="icon" href="/assets/icon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="/assets/icon-180.png">
 <link rel="canonical" href="https://${brand.domain}${here}">
@@ -94,7 +94,7 @@ export function layout({ brand, copy, locale, page, body }) {
 <body>
 <main>
   <header class="site">
-    <a class="brand" href="${pathOf(brand, locale, '')}">${LOGO}<span class="brand-name">${brand.name}</span></a>
+    <a class="brand" href="${pathOf(brand, locale, '')}">${logo(version)}<span class="brand-name">${brand.name}</span></a>
     <nav class="links">
       ${navLink('', copy.nav.home)}
       ${navLink('download', copy.nav.download)}
@@ -121,7 +121,7 @@ export function layout({ brand, copy, locale, page, body }) {
  * @param {object} copy Locale copy.
  * @returns {string} Page body HTML.
  */
-export const homeBody = (brand, copy) => {
+export const homeBody = (brand, copy, version) => {
   const features = copy.home.features
     .map((item) => `<article class="card"><h3>${item.title}</h3><p>${item.body}</p></article>`)
     .join('\n      ')
@@ -130,7 +130,7 @@ export const homeBody = (brand, copy) => {
     .join('\n      ')
 
   return `<section class="hero">
-    <img class="hero-logo" src="/assets/icon.svg" alt="" width="84" height="84">
+    <img class="hero-logo" src="/assets/icon.svg?v=${version}" alt="" width="84" height="84">
     <h1>${brand.name}</h1>
     <p class="lead">${copy.home.lead}</p>
     <p class="intro">${copy.home.intro}</p>
