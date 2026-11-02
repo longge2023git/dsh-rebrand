@@ -63,6 +63,22 @@ $artifact = Get-ChildItem -LiteralPath $artifactDir -Filter '*.exe' |
 if (-not $artifact) { throw "没有找到生成物，检查 $artifactDir" }
 
 $hash = (Get-FileHash -LiteralPath $artifact.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+
+# 站点按固定文件名找安装包；把版本化的 exe 另存一份稳定的名字，上传时直接用它。
+$slug = @{ fa = 'deepseek-fa'; ru = 'deepseek-ru' }[$Brand] + '-win-x64-unsigned'
+$stable = Join-Path $artifactDir ($slug + '.exe')
+Copy-Item -LiteralPath $artifact.FullName -Destination $stable -Force
+$manifest = [ordered]@{
+    brand   = $Brand
+    version = $BuildVersion
+    file    = ($slug + '.exe')
+    bytes   = $artifact.Length
+    sha256  = $hash
+    builtAt = (Get-Date).ToString('o')
+}
+$manifestPath = Join-Path $artifactDir ($slug + '.json')
+$manifest | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+
 $report = [ordered]@{
     brand        = $Brand
     branch       = $branch
@@ -83,6 +99,17 @@ Write-Host ("   文件: " + $artifact.FullName)
 Write-Host ("   大小: {0:N0} 字节" -f $artifact.Length)
 Write-Host ("   SHA256: " + $hash)
 Write-Host ("   报告: " + $reportPath)
+Write-Host ("   稳定名: " + $stable)
+Write-Host ("   清单:   " + $manifestPath)
 Write-Host ''
-Write-Host '下一步：在干净的 Windows 上安装验收（见 custom/windows-handoff.md 第 5 节），'
-Write-Host '然后把 exe 上传到站点 /downloads/ 并把 sha256 回传。'
+Write-Host '下一步：在干净的 Windows 上安装验收（custom/windows-handoff.md 第 5 节），然后上传两个文件：'
+if ($Brand -eq 'fa') {
+    Write-Host ("  scp `"$stable`" root@87.107.108.14:/var/www/fa-site/downloads/$slug.exe.part")
+    Write-Host ("  scp `"$manifestPath`" root@87.107.108.14:/var/www/fa-site/downloads/$slug.json")
+    Write-Host ("  ssh root@87.107.108.14 `"mv /var/www/fa-site/downloads/$slug.exe.part /var/www/fa-site/downloads/$slug.exe`"")
+} else {
+    Write-Host ("  scp `"$stable`" root@104.248.155.54:/opt/dsh-gateway-ru/downloads/$slug.exe.part")
+    Write-Host ("  scp `"$manifestPath`" root@104.248.155.54:/opt/dsh-gateway-ru/downloads/$slug.json")
+    Write-Host ("  ssh root@104.248.155.54 `"mv /opt/dsh-gateway-ru/downloads/$slug.exe.part /opt/dsh-gateway-ru/downloads/$slug.exe`"")
+}
+Write-Host '传完页面会自动出现 Windows 下载按钮（读取清单），无需改站点配置。'

@@ -36,6 +36,8 @@ pwsh -File scripts/windows/build-desktop.ps1 -Brand fa -BuildVersion 0.2.1-rc.2.
 
 RU 版把 `-Brand fa` 换成 `-Brand ru`；不传 `-BuildVersion` 时默认 `0.2.1-rc.2.<当天日期>.1`。
 
+两个品牌可以在一台 Windows 上连续构建（脚本会切分支）；但**每次换品牌都要重新 `pnpm install`**（`--frozen-lockfile`），不要复用同一份 node_modules 快照。
+
 **版本号规则**：`0.2.1-rc.2.<yyyyMMdd>.<序号>`，同一天第二次构建序号递增（`.2`），不得与已发布版本重复。
 
 ## 4. 产物
@@ -66,29 +68,39 @@ apps\desktop\.desktop-build\packaging-runs\<timestamp>-<id>\
 
 ## 6. 上传与上线
 
-两台服务器的 `root` 已加入构建机公钥（`deepseek-fa-2dev`，ED25519，
-指纹 `SHA256:AGrgJtmBuqFar+EA04AqvrsVHtLUoAsxlE2nDGe/ZPo`），可直接 scp。
+两台服务器的 `root` 已加入构建机公钥（`deepseek-fa-2dev`，ED25519，指纹 `SHA256:AGrgJtmBuqFar+EA04AqvrsVHtLUoAsxlE2nDGe/ZPo`），可直接 scp。
 
-| 品牌 | 上传目标 | 公网路径 |
-|---|---|---|
-| FA | `root@87.107.108.14:/var/www/fa-site/downloads/` | `https://www.deepseekfa.com/downloads/<文件名>` |
-| RU | `root@104.248.155.54:/opt/dsh-gateway-ru/downloads/` | `https://www.deepseek-ru.org/downloads/<文件名>` |
+**每次上传两个文件**：安装包（固定名 `<slug>.exe`）和清单（`<slug>.json`）。站点读取清单后才显示 Windows 下载按钮，所以只要这两个文件到位，页面上就自动出现，**不需要再改站点配置**。
+
+| 品牌 | slug | 上传目录 | 公网路径 |
+|---|---|---|---|
+| FA | `deepseek-fa-win-x64-unsigned` | `root@87.107.108.14:/var/www/fa-site/downloads/` | `https://www.deepseekfa.com/downloads/` |
+| RU | `deepseek-ru-win-x64-unsigned` | `root@104.248.155.54:/opt/dsh-gateway-ru/downloads/` | `https://www.deepseek-ru.org/downloads/` |
+
+构建脚本已经把版本化的 exe 另存为固定名、并生成同名 json，直接按它打印的命令执行即可：
 
 ```powershell
-# FA 示例：先传 .part，校验后再改名，避免用户下到半个文件
-$name = "deepseek-fa-0.2.1-rc.2.20261103.1-win-x64-unsigned.exe"
-$src  = "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\$name"
-scp $src "root@87.107.108.14:/var/www/fa-site/downloads/$name.part"
-ssh root@87.107.108.14 "sha256sum /var/www/fa-site/downloads/$name.part && mv /var/www/fa-site/downloads/$name.part /var/www/fa-site/downloads/$name"
+# FA（脚本会把这三条打印出来）
+scp "...\deepseek-fa-win-x64-unsigned.exe"   root@87.107.108.14:/var/www/fa-site/downloads/deepseek-fa-win-x64-unsigned.exe.part
+scp "...\deepseek-fa-win-x64-unsigned.json"  root@87.107.108.14:/var/www/fa-site/downloads/deepseek-fa-win-x64-unsigned.json
+ssh root@87.107.108.14 "mv /var/www/fa-site/downloads/deepseek-fa-win-x64-unsigned.exe.part /var/www/fa-site/downloads/deepseek-fa-win-x64-unsigned.exe"
+
+# RU
+scp "...\deepseek-ru-win-x64-unsigned.exe"   root@104.248.155.54:/opt/dsh-gateway-ru/downloads/deepseek-ru-win-x64-unsigned.exe.part
+scp "...\deepseek-ru-win-x64-unsigned.json"  root@104.248.155.54:/opt/dsh-gateway-ru/downloads/deepseek-ru-win-x64-unsigned.json
+ssh root@104.248.155.54 "mv /opt/dsh-gateway-ru/downloads/deepseek-ru-win-x64-unsigned.exe.part /opt/dsh-gateway-ru/downloads/deepseek-ru-win-x64-unsigned.exe"
 ```
 
-RU 版把主机换成 `root@104.248.155.54`、目录换成 `/opt/dsh-gateway-ru/downloads/`。
+上传后核对：
 
-上传后核对：`sha256sum` 与本地 `Get-FileHash` 一致，且
-`curl -I https://www.deepseekfa.com/downloads/<文件名>` 返回 200 与正确 `content-length`。
+```bash
+ssh root@<host> "sha256sum <下载目录>/<slug>.exe"      # 与本地 Get-FileHash 一致
+curl -I https://www.deepseekfa.com/downloads/<slug>.exe     # 200 + 正确 content-length
+```
 
-**上线收尾（Mac 侧）**：改 `site/brands/<brand>.mjs` 的 `version` / `file` / `size` / `sha256`，
-然后 `node site/build.mjs <brand>` 并 rsync 到服务器；页面上必须出现新版本号与校验和。
+页面侧：打开 `https://www.deepseekfa.com/download`（RU 为 `deepseek-ru.org/download`），Windows 卡片应显示版本、大小与 SHA-256——它读的就是刚传的 json。**若仍显示"即将推出"，说明 json 没传或名字不对**。
+
+先传 `.part` 再改名，是为了避免用户在上传中途下到半个文件。
 
 ## 7. 失败回报格式
 
