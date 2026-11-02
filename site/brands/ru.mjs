@@ -7,10 +7,10 @@ export default {
   accent: '#2f6fed',
   defaultLocale: 'ru',
   locales: ['ru', 'en'],
-  consoleUrl: 'https://deepseek-ru.org/console',
+  consoleUrl: 'https://deepseek-ru.org/me/keys',
   auth: {
-    login: 'https://deepseek-ru.org/login',
-    register: 'https://deepseek-ru.org/register',
+    login: 'https://deepseek-ru.org/me/login',
+    register: 'https://deepseek-ru.org/me/register',
   },
   downloads: [
     {

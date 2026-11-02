@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="keys.title">
+<header>
+  <a class="brand" href="https://www.deepseek-ru.org/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
+  </a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" aria-current="page" data-i18n="nav.keys">کلیدها</a>
+    <a href="https://www.deepseek-ru.org/download" data-i18n="nav.download">دانلود برنامه</a>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginKeys">برای دیدن کلیدها باید وارد شوید.</span>
+    <a class="button" href="/me/login" data-i18n="auth.signIn">ورود</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">ساخت حساب</a>
+  </div>
+
+  <section id="app" hidden>
+    <h1 data-i18n="keys.title">کلیدهای API</h1>
+    <p class="hint" data-i18n="keys.hint">هنگام ورود به برنامه یک کلید ساخته می‌شود. می‌توانید همان را کپی کنید یا کلید تازه بسازید.</p>
+
+    <form id="create" class="create">
+      <input id="name" type="text" maxlength="50" data-i18n-placeholder="keys.namePlaceholder" placeholder="نام کلید (اختیاری)">
+      <button class="button" type="submit" data-i18n="keys.create">ساخت کلید</button>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="keys.colName">نام</th>
+            <th data-i18n="keys.colKey">کلید</th>
+            <th data-i18n="keys.colUsed">مصرف</th>
+            <th data-i18n="keys.colStatus">وضعیت</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="5" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="hint">
+      <span data-i18n="keys.baseUrlHint">کلید را در agent یا برنامهٔ خود همراه آدرس پایه قرار دهید:</span>
+      <code dir="ltr">https://deepseek-ru.org/v1</code>
+    </p>
+  </section>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>
+  startKeys()
+</script>
+</body>
+</html>

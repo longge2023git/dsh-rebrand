@@ -32,11 +32,30 @@
 - 2FA 账号会被拦下并提示改用主控制台（迷你站没有 2FA 表单）
 - SPA 的 `/register` 由 nginx `location = /register` 302 到 `/me/register`，注册统一走迷你站
 
-## 界面语言（fa / en）
+## 两品牌构建与部署
+
+迷你站源码一套，按品牌生成两份产物：
+
+```bash
+node console/build.mjs fa    # -> console/dist/fa/me
+node console/build.mjs ru    # -> console/dist/ru/me
+```
+
+页面里的 `{{brand}}` `{{lang}}` `{{dir}}` `{{site}}` `{{api}}` 由构建脚本替换（品牌名、默认语言、方向、官网域名、API 域名）。
+
+| 部署 | 目标 | nginx |
+|---|---|---|
+| FA | `root@87.107.108.14:/var/www/fa-console/me/` | apex vhost 的 `location /me/`（root `/var/www/fa-console`） |
+| RU | `root@104.248.155.54:/var/www/ru-console/me/` | `deepseek-ru.conf` apex 的 `location /me/`（root `/var/www/ru-console`） |
+
+两边的 SPA 注册页都被 `location = /register` 302 到各自的 `/me/register`。
+
+## 界面语言（fa / ru / en）
 
 | 项 | 说明 |
 |---|---|
-| 文案 | `console/me/dict.js`（`DICT.fa` / `DICT.en`）；静态文本用 `data-i18n="key"`，动态文本用 `t('key', {vars})` |
+| 文案 | `console/me/dict.js`（`DICT.fa` / `DICT.ru` / `DICT.en`）；静态文本用 `data-i18n="key"`，动态文本用 `t('key', {vars})` |
+| 默认语言 | `<html data-default-lang>`：FA 构建为 `fa`、RU 构建为 `ru`；用户手动切换后存 `localStorage` |
 | 切换 | 页头 `FA / EN`，链接为 `?lang=fa|en`；选择写入 `localStorage['console-lang']`，之后打开任意页面沿用 |
 | 方向 | `applyI18n()` 同步 `document.documentElement.lang` 与 `dir`（fa=rtl、en=ltr） |
 | 数字/日期 | `Intl.NumberFormat('fa-IR' | 'en-US')`，日期同理 |

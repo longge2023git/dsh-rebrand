@@ -4,9 +4,10 @@
 
 const requestLang = new URLSearchParams(location.search).get('lang')
 const storedLang = localStorage.getItem('console-lang')
-const LANG = ['fa', 'en'].includes(requestLang)
+const defaultLang = document.documentElement.dataset.defaultLang || 'fa'
+const LANG = ['fa', 'ru', 'en'].includes(requestLang)
   ? requestLang
-  : (['fa', 'en'].includes(storedLang) ? storedLang : 'fa')
+  : (['fa', 'ru', 'en'].includes(storedLang) ? storedLang : defaultLang)
 const D = DICT[LANG]
 const numberLocale = LANG === 'fa' ? 'fa-IR' : 'en-US'
 
@@ -374,6 +375,32 @@ async function startRegister() {
     } catch {
       showFormError(t('errors.network'))
     }
+  })
+}
+
+/** Keys page: create a fresh token with the same defaults the SPA uses. */
+const createForm = $('create')
+if (createForm) {
+  createForm.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const input = $('name')
+    guard(async () => {
+      await api('/api/token/', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: input.value.trim() || new Date().toISOString().slice(0, 16),
+          remain_quota: 0,
+          expired_time: -1,
+          unlimited_quota: true,
+          model_limits_enabled: false,
+          model_limits: '',
+          allow_ips: '',
+          group: '',
+        }),
+      })
+      input.value = ''
+      await loadKeys()
+    })
   })
 }
 
