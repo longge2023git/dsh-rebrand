@@ -25,6 +25,7 @@
 | `/me/register` | `POST /api/user/register` `{username, password}` → 再 `POST /api/user/login` | 自动登录，跳 `/me/keys` |
 
 - 注册后 New API 不会自动建立会话，所以页面自己再调一次 login；注册接口的响应没有 `data`
+- **长度规则以服务端为准**：`model.User` 的校验是 `username max=20`（无下限）、`password min=8,max=20`。表单用 `novalidate` + JS 校验，原因有两个：浏览器原生校验的提示语跟的是**浏览器界面语言**（会出现中文），而 `maxlength` 会把超长密码**静默截断**成 20 位后注册成功
 - 服务端报错默认是英文（`fa` 未在服务端 i18n 里注册，落到 `en`），`app.js` 的 `AUTH_ERRORS` 把常见几条映射成波斯语，未命中的保留原文并加前缀
 - 2FA 账号会被拦下并提示改用主控制台（迷你站没有 2FA 表单）
 
