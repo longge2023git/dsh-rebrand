@@ -93,7 +93,7 @@ const AUTH_ERRORS = [
   [/password login has been disabled|密码登录已被关闭|关闭了密码登录/i, 'ورود با گذرواژه توسط مدیر بسته شده است.'],
   [/registration has been disabled|关闭了新用户注册/i, 'ثبت‌نام بسته شده است.'],
   [/password registration has been disabled/i, 'ثبت‌نام با گذرواژه بسته شده است.'],
-  [/username already exists|用户名已存在/i, 'این نام کاربری قبلاً ثبت شده است.'],
+  [/username already exists|用户名已存在/i, 'این ایمیل (یا نام کاربری) قبلاً ثبت شده است.'],
   [/at least 8|密码长度/i, 'گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.'],
 ]
 
@@ -103,6 +103,13 @@ function persianError(message) {
   if (!text) return 'خطایی رخ داد. دوباره تلاش کنید.'
   for (const [pattern, copy] of AUTH_ERRORS) if (pattern.test(text)) return copy
   return `خطا: ${text}`
+}
+
+/** Registrations sign in by email; the username stays internal and must fit `max=20`. */
+function deriveUsername(email) {
+  const local = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12) || 'user'
+  const suffix = Math.random().toString(36).slice(2, 6)
+  return `${local}_${suffix}`.slice(0, 20)
 }
 
 /** Show an inline error under the form. */
@@ -128,10 +135,11 @@ async function startLogin() {
   const form = $('auth-form')
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
-    const username = form.username.value.trim()
+    const email = form.email.value.trim().toLowerCase()
     const password = form.password.value
-    if (!username) return showFormError('نام کاربری را وارد کنید.')
+    if (!email) return showFormError('ایمیل را وارد کنید.')
     if (!password) return showFormError('گذرواژه را وارد کنید.')
+    const username = email
     const body = JSON.stringify({ username, password })
     try {
       const response = await fetch('/api/user/login', {
@@ -155,21 +163,21 @@ async function startRegister() {
   const form = $('auth-form')
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
-    const username = form.username.value.trim()
+    const email = form.email.value.trim().toLowerCase()
     const password = form.password.value
-    // Mirror model.User exactly: `username max=20` (no minimum, no format rule) and
-    // `password min=8,max=20`. Count code points so the limit matches Go's rune count.
+    // Server rules: Email max=50, Password min=8 max=20, Username max=20 (derived here).
     const runes = (value) => Array.from(value).length
-    if (!username) return showFormError('نام کاربری را وارد کنید.')
-    if (runes(username) > 20) return showFormError('نام کاربری حداکثر ۲۰ نویسه است.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError('ایمیل معتبر وارد کنید.')
+    if (runes(email) > 50) return showFormError('ایمیل حداکثر ۵۰ نویسه است.')
     if (runes(password) < 8 || runes(password) > 20) return showFormError('گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.')
     if (password !== form.confirm.value) return showFormError('گذرواژه‌ها یکسان نیستند.')
+    const username = deriveUsername(email)
     try {
       const response = await fetch('/api/user/register', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, email, password }),
       })
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(persianError(payload.message))
@@ -178,7 +186,7 @@ async function startRegister() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: email, password }),
       })
       const session = await login.json().catch(() => ({}))
       if (!session.success) return showFormError('حساب ساخته شد؛ لطفاً از صفحهٔ ورود وارد شوید.')
@@ -196,7 +204,9 @@ async function startUsage() {
     const me = await api('/api/user/self')
     $('auth').hidden = true
     $('app').hidden = false
-    $('who').textContent = me.display_name || me.username || me.email || 'کاربر'
+    // Registrations derive an internal username; greet people by what they know: their email.
+    const displayName = me.display_name && me.display_name !== me.username ? me.display_name : ''
+    $('who').textContent = displayName || me.email || me.username || 'کاربر'
     $('balance').textContent = credit(me.quota)
     $('used').textContent = credit(me.used_quota)
     $('requests').textContent = num(me.request_count)
