@@ -85,7 +85,7 @@ async function loadStatus() {
 /** Map the gateway's English/Chinese auth errors onto Persian copy. */
 const AUTH_ERRORS = [
   // Field-specific length errors first: New API reports `Key: 'User.Username' ... max`.
-  [/User\.Username.*(max|min)|username.*(max|min)/i, 'نام کاربری باید بین ۳ تا ۲۰ نویسه باشد.'],
+  [/User\.Username.*max|username.*max/i, 'نام کاربری حداکثر ۲۰ نویسه است.'],
   [/User\.Password.*max|password.*max/i, 'گذرواژه حداکثر ۲۰ نویسه است.'],
   [/User\.Password.*min|at least 8/i, 'گذرواژه حداقل ۸ نویسه است.'],
   [/username or password is empty|用户名或密码为空/i, 'نام کاربری یا گذرواژه خالی است.'],
@@ -157,10 +157,12 @@ async function startRegister() {
     event.preventDefault()
     const username = form.username.value.trim()
     const password = form.password.value
-    // New API enforces username <= 20 and password 8..20; validate before sending so the
-    // message names the right field and nothing is silently truncated.
-    if (username.length < 3 || username.length > 20) return showFormError('نام کاربری باید بین ۳ تا ۲۰ نویسه باشد.')
-    if (password.length < 8 || password.length > 20) return showFormError('گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.')
+    // Mirror model.User exactly: `username max=20` (no minimum, no format rule) and
+    // `password min=8,max=20`. Count code points so the limit matches Go's rune count.
+    const runes = (value) => Array.from(value).length
+    if (!username) return showFormError('نام کاربری را وارد کنید.')
+    if (runes(username) > 20) return showFormError('نام کاربری حداکثر ۲۰ نویسه است.')
+    if (runes(password) < 8 || runes(password) > 20) return showFormError('گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.')
     if (password !== form.confirm.value) return showFormError('گذرواژه‌ها یکسان نیستند.')
     try {
       const response = await fetch('/api/user/register', {
