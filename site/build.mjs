@@ -41,7 +41,6 @@ if (selected.length === 0) {
 }
 
 const styles = await readFile(join(here, 'src', 'styles.css'), 'utf8')
-const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="#3b82f6" d="M512 64a448 448 0 1 0 0 896 448 448 0 0 0 0-896Zm0 104a344 344 0 0 1 148 652c-6-70-36-126-92-166-40-29-88-46-136-52-34-4-58-30-58-64 0-38 32-68 70-64 40 4 66 34 74 70 6 26 30 44 56 40 30-4 50-32 44-62-14-70-76-122-150-118-80 4-140 72-136 152 2 40 18 76 44 104-30 12-56 32-74 60a344 344 0 0 1 210-552Z"/></svg>\n`
 
 await rm(outRoot, { recursive: true, force: true })
 
@@ -49,7 +48,7 @@ for (const brand of selected) {
   const brandOut = join(outRoot, brand.id)
   await mkdir(brandOut, { recursive: true })
   await writeFile(join(brandOut, 'styles.css'), styles)
-  await writeFile(join(brandOut, 'favicon.svg'), favicon)
+  await cp(join(here, 'assets', brand.id), join(brandOut, 'assets'), { recursive: true })
   await writeFile(join(brandOut, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: https://${brand.domain}/sitemap.xml\n`)
 
   const urls = []

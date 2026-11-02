@@ -1,6 +1,7 @@
 /** Page rendering for the static brand sites. No runtime dependencies. */
 
-const WHALE = '<svg viewBox="0 0 1024 1024" aria-hidden="true"><path fill="currentColor" d="M512 64a448 448 0 1 0 0 896 448 448 0 0 0 0-896Zm0 104a344 344 0 0 1 148 652c-6-70-36-126-92-166-40-29-88-46-136-52-34-4-58-30-58-64 0-38 32-68 70-64 40 4 66 34 74 70 6 26 30 44 56 40 30-4 50-32 44-62-14-70-76-122-150-118-80 4-140 72-136 152 2 40 18 76 44 104-30 12-56 32-74 60a344 344 0 0 1 210-552Z"/></svg>'
+/** Brand mark copied from the shipped desktop app icon. */
+const LOGO = '<img class="logo" src="/assets/icon.svg" alt="" width="30" height="30">'
 
 /**
  * Replace `{{brand}}` tokens in a copy value.
@@ -79,13 +80,15 @@ export function layout({ brand, copy, locale, page, body }) {
 <meta property="og:description" content="${copy.meta.description}">
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="/styles.css">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
 <link rel="canonical" href="https://${brand.domain}${here}">
 </head>
 <body>
 <main>
   <header class="site">
-    <a class="brand" href="${pathOf(brand, locale, '')}">${WHALE}${brand.name}</a>
+    <a class="brand" href="${pathOf(brand, locale, '')}">${LOGO}${brand.name}</a>
     <nav class="links">
       ${navLink('', copy.nav.home)}
       ${navLink('download', copy.nav.download)}
@@ -120,6 +123,7 @@ export const homeBody = (brand, copy) => {
     .join('\n      ')
 
   return `<section class="hero">
+    <img class="hero-logo" src="/assets/icon.svg" alt="" width="84" height="84">
     <h1>${brand.name}</h1>
     <p class="lead">${copy.home.lead}</p>
     <p class="intro">${copy.home.intro}</p>
