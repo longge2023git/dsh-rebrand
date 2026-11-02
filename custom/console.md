@@ -81,7 +81,23 @@ node console/build.mjs ru    # -> console/dist/ru/me
 - 目前两台线上 `QuotaForInviter/QuotaForInvitee/QuotaForNewUser` **都没有配置（默认 0）**，所以现在传邀请码的效果只是"记录 inviter_id"，不产生任何额度或计数
 - 邀请人拿到的是 `aff_quota`（不是余额）；要变成可用额度需要 `POST /api/user/aff_transfer`（最小 1 个 `quota_per_unit`）。**迷你站暂未提供转账按钮**
 
-要真正启用奖励：后台把 `QuotaForInviter` / `QuotaForInvitee` 设成非 0（单位是 quota，`500000` 约等于 1 个计价单位），再决定是否把转账入口加进控制台。
+### 当前奖励配置（2026-11-03 起，两台服务器一致）
+
+| option | 值 | 折合 | 进入 |
+|---|---|---|---|
+| `QuotaForNewUser` | 250000 | $0.50 | 新用户余额 |
+| `QuotaForInvitee` | 250000 | $0.50 | 被邀请人余额 |
+| `QuotaForInviter` | 500000 | $1.00 | 邀请人 `aff_quota` |
+
+计价口径：`/api/status` 的 `quota_per_unit=500000` 且 `quota_display_type=USD`，即 500000 quota = $1。
+
+由此产生的实际效果：**通过邀请注册的新用户拿到 $1.00**（$0.50 新用户 + $0.50 被邀请人）；不带邀请码注册拿 $0.50。如果只想让被邀请人拿 $0.50 总额，把 `QuotaForInvitee` 设为 0。
+
+改动方式：直接写 `options` 表（`key`/`value`），服务端每 60 秒从库同步一次（`SyncOptions(SYNC_FREQUENCY)`），**不用重启容器**。
+
+### 转账到余额
+
+用量页的邀请卡片在 `aff_quota >= quota_per_unit` 时出现「转移」按钮，调 `POST /api/user/aff_transfer {quota: aff_quota}` 全额转入余额；低于 1 个单位时服务端拒绝，按钮隐藏。
 
 ## 用到的接口
 

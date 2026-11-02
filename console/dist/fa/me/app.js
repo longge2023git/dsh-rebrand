@@ -187,6 +187,18 @@ function renderInvite(me) {
   section.hidden = false
   $('aff-copy').onclick = () => flashCopied($('aff-copy'), me.aff_code)
   $('aff-link-copy').onclick = () => flashCopied($('aff-link-copy'), link)
+
+  // Invite credit becomes spendable balance only through /api/user/aff_transfer,
+  // and the gateway refuses transfers below one quota_per_unit.
+  const transfer = $('aff-transfer')
+  const transferable = Number(me.aff_quota || 0) >= state.quotaPerUnit
+  transfer.hidden = !transferable
+  transfer.onclick = () => guard(async () => {
+    await api('/api/user/aff_transfer', { method: 'POST', body: JSON.stringify({ quota: Number(me.aff_quota) }) })
+    const fresh = await api('/api/user/self')
+    $('balance').textContent = credit(fresh.quota)
+    renderInvite(fresh)
+  })
 }
 
 /** Copy text and briefly confirm on the button itself. */
