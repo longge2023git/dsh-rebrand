@@ -19,6 +19,7 @@ const BRANDS = {
   fa: {
     brand: 'DeepSeek-FA',
     lang: 'fa',
+    langLabel: 'FA',
     dir: 'rtl',
     site: 'https://www.deepseekfa.com',
     api: 'https://deepseekfa.com',
@@ -27,6 +28,7 @@ const BRANDS = {
   ru: {
     brand: 'DeepSeek-RU',
     lang: 'ru',
+    langLabel: 'RU',
     dir: 'ltr',
     site: 'https://www.deepseek-ru.org',
     api: 'https://deepseek-ru.org',
