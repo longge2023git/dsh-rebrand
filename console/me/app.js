@@ -105,13 +105,6 @@ function persianError(message) {
   return `خطا: ${text}`
 }
 
-/** Registrations sign in by email; the username stays internal and must fit `max=20`. */
-function deriveUsername(email) {
-  const local = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12) || 'user'
-  const suffix = Math.random().toString(36).slice(2, 6)
-  return `${local}_${suffix}`.slice(0, 20)
-}
-
 /** Show an inline error under the form. */
 function showFormError(message) {
   const box = $('error')
@@ -135,11 +128,10 @@ async function startLogin() {
   const form = $('auth-form')
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
-    const email = form.email.value.trim().toLowerCase()
+    const username = form.username.value.trim()
     const password = form.password.value
-    if (!email) return showFormError('ایمیل را وارد کنید.')
+    if (!username) return showFormError('نام کاربری را وارد کنید.')
     if (!password) return showFormError('گذرواژه را وارد کنید.')
-    const username = email
     const body = JSON.stringify({ username, password })
     try {
       const response = await fetch('/api/user/login', {
@@ -163,21 +155,20 @@ async function startRegister() {
   const form = $('auth-form')
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
-    const email = form.email.value.trim().toLowerCase()
+    const username = form.username.value.trim()
     const password = form.password.value
-    // Server rules: Email max=50, Password min=8 max=20, Username max=20 (derived here).
+    // Mirror model.User: `username max=20` (no minimum, no format rule), `password min=8,max=20`.
     const runes = (value) => Array.from(value).length
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError('ایمیل معتبر وارد کنید.')
-    if (runes(email) > 50) return showFormError('ایمیل حداکثر ۵۰ نویسه است.')
+    if (!username) return showFormError('نام کاربری را وارد کنید.')
+    if (runes(username) > 20) return showFormError('نام کاربری حداکثر ۲۰ نویسه است.')
     if (runes(password) < 8 || runes(password) > 20) return showFormError('گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.')
     if (password !== form.confirm.value) return showFormError('گذرواژه‌ها یکسان نیستند.')
-    const username = deriveUsername(email)
     try {
       const response = await fetch('/api/user/register', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, password }),
       })
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(persianError(payload.message))
@@ -186,7 +177,7 @@ async function startRegister() {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: email, password }),
+        body: JSON.stringify({ username, password }),
       })
       const session = await login.json().catch(() => ({}))
       if (!session.success) return showFormError('حساب ساخته شد؛ لطفاً از صفحهٔ ورود وارد شوید.')

@@ -17,25 +17,20 @@
 
 用户 id 不在 cookie 里，从同源的 `localStorage['user']` 取（SPA 登录时写入，字段 `id`）。拿不到就显示登录提示，跳 `/login`。
 
-## 登录与注册（邮箱制）
+## 登录与注册（用户名制）
 
 | 页面 | 调用的接口 | 成功后 |
 |---|---|---|
-| `/me/login` | `POST /api/user/login` `{username: <email>, password}` | 写入 `localStorage.user`（响应的 `data` 含 id/username），跳 `?next=` 或 `/me/` |
-| `/me/register` | `POST /api/user/register` `{username: <派生>, email, password}` → 再 `POST /api/user/login` `{username: <email>}` | 自动登录，跳 `/me/keys` |
+| `/me/login` | `POST /api/user/login` `{username, password}` | 写入 `localStorage.user`（响应的 `data` 含 id/username），跳 `?next=` 或 `/me/` |
+| `/me/register` | `POST /api/user/register` `{username, password}` → 再 `POST /api/user/login` | 自动登录，跳 `/me/keys` |
 
-- **用户只用邮箱**：表单收邮箱 + 密码，用户名由前端派生 `<邮箱本地部分>_<4 位随机>`（去掉非字母数字、截断到 20 以内），用户无感知
-- 登录端点按 `username = ? OR email = ?` 匹配（`model.User.ValidateAndFill`），所以邮箱可直接登录
-- **服务端补丁**（`controller/user.go`，镜像 `20261102-email-reg`）：原实现只在 `EmailVerificationEnabled` 时写入 `Email`，关闭验证的部署注册后拿不到邮箱、也无法邮箱登录；改为始终写入
-- 邮箱验证仍然关闭：不要求验证码，但邮箱照样落库
-- SPA 的 `/register` 由 nginx `location = /register` 302 到 `/me/register`，即**用户名注册入口已关闭**，直接访问也会回到邮箱表单
-- 重复邮箱会被 `CheckUserExistOrDeleted`（username OR email）拦下，前端映射为「این ایمیل (یا نام کاربری) قبلاً ثبت شده است.»
-
+- **不改网关代码**：New API 的邮箱注册依赖 `EmailVerificationEnabled`——只有开启邮箱验证时才会写 `Email` 字段（`controller/user.go` 的 `if common.EmailVerificationEnabled { cleanUser.Email = ... }`），而开启它又要求注册时提交邮件验证码（需要 SMTP）。所以关闭验证的部署里，邮箱注册拿到了 `success` 但 `email` 落库为空（已在未打补丁的 hub 实例上实测复现）。
+- 结论：**保持用户名注册**，网关代码与上游一致；将来要邮箱注册，先配 SMTP 再开 `EmailVerificationEnabled`。
 - 注册后 New API 不会自动建立会话，所以页面自己再调一次 login；注册接口的响应没有 `data`
 - **长度规则完全照抄服务端，不要自己加规则**：`model.User` 只声明了 `username max=20`（**没有下限、没有格式限制**，1 个字符也能注册）和 `password min=8,max=20`；SPA 的注册表单也只校验密码 ≥8。迷你站按同一套规则校验，并按**码点数**（`Array.from(s).length`）比较，和服务端 `go-playground` 的 rune 计数一致。
 - 表单用 `novalidate` + JS 校验，原因有两个：浏览器原生校验的提示语跟的是**浏览器界面语言**（会出现中文），而 `maxlength` 会把超长密码**静默截断**成 20 位后注册成功
-- 服务端报错默认是英文（`fa` 未在服务端 i18n 里注册，落到 `en`），`app.js` 的 `AUTH_ERRORS` 把常见几条映射成波斯语，未命中的保留原文并加前缀
 - 2FA 账号会被拦下并提示改用主控制台（迷你站没有 2FA 表单）
+- SPA 的 `/register` 由 nginx `location = /register` 302 到 `/me/register`，注册统一走迷你站
 
 ## 用到的接口
 
