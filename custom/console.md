@@ -20,9 +20,12 @@
 | 页面 | 接口 |
 |---|---|
 | 用量 | `GET /api/user/self`（`quota` / `used_quota` / `request_count`）、`GET /api/log/self?p=&page_size=&type=0` |
+| 用量明细 | 每行日志的 `other` 字段（JSON 字符串）：`model_ratio`、`user_group_ratio`/`group_ratio`、`completion_ratio`、`cache_ratio`、`cache_tokens`、`cache_creation_ratio`、`cache_creation_tokens`、`model_price`、`frt`（首字延迟 ms）、`request_path`、`billing_source`、`request_conversion` |
 | 密钥 | `GET /api/token/?p=1&size=100`、`POST /api/token/`、`DELETE /api/token/:id` |
 
-金额换算：`quota / status.quota_per_unit`（当前 `quota_per_unit = 500000`）。密钥在库里不带前缀，**展示和复制时补 `sk-`**。
+金额换算：`quota / status.quota_per_unit`（当前 `quota_per_unit = 500000`）。单笔金额很小（实测一次 36/24 token 的调用是 `quota=19` → `0.000038`），所以单笔用 6 位小数、总额用 2 位。密钥在库里不带前缀，**展示和复制时补 `sk-`**。
+
+`other` 里 `-1` 表示"未使用/未设置"（例如非流式请求的 `frt` 为 `-1000`），要显示成 `—`，否则会看到 `-1.00` 这种假数据。
 
 ## 部署
 
@@ -44,7 +47,16 @@ location /me/ {
 }
 ```
 
-## 验证方式
+## 验证方式（真浏览器）
+
+SPA 的 `/login` 要拉 7 MB 的 bundle，网络抖动时会卡住 `domcontentloaded`；只测控制台时可以绕开它：
+用 `context.request.post('/api/user/login')` 拿会话 cookie，再用 `context.addInitScript` 在同源写入
+`localStorage.user = {id, username}`（控制台只读这个），然后直接打开 `/me/`、`/me/keys`。
+
+本次实测覆盖：注册（API 200）→ 登录 → 用量页卡片 → 建 key（行数 1→2，key 形如 `sk-…`）→ 复制一致 → 删除（2→1）→ 真打一次 `/v1/messages`（`quota=19`）→ 展开明细看到 23 个字段。
+
+```bash
+# 匿名态：页面能渲染出登录提示（用无头浏览器跑 JS 后再看 DOM）
 
 ```bash
 # 匿名态：页面能渲染出登录提示（用无头浏览器跑 JS 后再看 DOM）
@@ -61,3 +73,4 @@ curl -b "$JAR" -H "New-Api-User: $UID" http://127.0.0.1:3104/api/user/self
 - SPA 登录页写入的 `localStorage.user` 被清掉时，即使 cookie 有效也会提示登录
 - 没有"清理旧设备密钥"的入口：每次登录都会新建一枚令牌，重度用户列表会变长
 - 金额显示为"اعتبار"（credits，`quota / quota_per_unit`），没有按站点货币符号换算
+- `[hidden]` 会被 `.notice { display:flex }` 之类的类选择器盖掉，样式里必须显式写 `[hidden] { display: none !important }`，否则登录提示和内容会同时显示

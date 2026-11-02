@@ -6,6 +6,15 @@ const state = { quotaPerUnit: 500000, page: 1, pageSize: 20 }
 const $ = (id) => document.getElementById(id)
 const num = (value) => new Intl.NumberFormat('fa-IR').format(Math.round(Number(value) || 0))
 const credit = (quota) => (Number(quota || 0) / state.quotaPerUnit).toFixed(2)
+/** Per-call costs are often far below 0.01 credits, so keep four decimals there. */
+const cost = (quota) => {
+  const value = Number(quota || 0) / state.quotaPerUnit
+  if (value === 0) return '0'
+  if (value < 0.0001) return value.toFixed(6)
+  return value < 0.01 ? value.toFixed(4) : value.toFixed(2)
+}
+/** Gateway writes -1 for ratios a request did not use. */
+const val = (value) => (value === undefined || value === null || value === -1 ? '—' : value)
 const stamp = (seconds) => (seconds
   ? new Date(seconds * 1000).toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' })
   : '—')
@@ -86,20 +95,60 @@ async function startUsage() {
   })
 }
 
+
+/** Per-call billing breakdown: the gateway stores ratios and cache figures in `other`. */
+function detailHtml(item) {
+  let other = {}
+  try {
+    other = typeof item.other === 'string' ? JSON.parse(item.other) : (item.other || {})
+  } catch {
+    other = {}
+  }
+  const rows = [
+    ['مدل', item.model_name || '—'],
+    ['گروه', item.group || '—'],
+    ['مسیر درخواست', val(other.request_path)],
+    ['منبع صورتحساب', val(other.billing_source)],
+    ['نسبت مدل', val(other.model_ratio)],
+    ['نسبت گروه', val(other.user_group_ratio ?? other.group_ratio)],
+    ['نسبت تکمیل', val(other.completion_ratio)],
+    ['نسبت کش', val(other.cache_ratio)],
+    ['نسبت ساخت کش', val(other.cache_creation_ratio)],
+    ['توکن کش‌شده', other.cache_tokens == null ? '—' : num(other.cache_tokens)],
+    ['توکن ساخت کش', other.cache_creation_tokens == null ? '—' : num(other.cache_creation_tokens)],
+    ['قیمت مدل', Number(other.model_price) > 0 ? credit(Number(other.model_price) * state.quotaPerUnit) : '—'],
+    ['توکن ورودی', num(item.prompt_tokens)],
+    ['توکن خروجی', num(item.completion_tokens)],
+    ['زمان پاسخ اول', other.frt == null || Number(other.frt) < 0 ? '—' : `${num(other.frt)} میلی‌ثانیه`],
+    ['مدت', `${Number(item.use_time || 0).toFixed(2)} ثانیه`],
+    ['جریان (stream)', item.is_stream ? 'بله' : 'خیر'],
+    ['تبدیل درخواست', val(other.request_conversion)],
+    ['کلید', item.token_name || '—'],
+    ['کانال', item.channel_name || item.channel || '—'],
+    ['هزینه', cost(item.quota)],
+    ['واحد خام', num(item.quota)],
+    ['شناسه درخواست', item.request_id || '—'],
+  ]
+  return `<div class="detail-grid">${rows.map(([label, value]) =>
+    `<div><span>${label}</span><strong dir="auto">${value}</strong></div>`).join('')}</div>`
+}
+
 async function loadLogs() {
   const data = await api(`/api/log/self?p=${state.page}&page_size=${state.pageSize}&type=0`)
   const rows = (data.items || []).filter((item) => Number(item.quota) !== 0 || item.model_name)
   const body = $('rows')
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" class="empty">مصرفی ثبت نشده است.</td></tr>'
+    body.innerHTML = '<tr><td colspan="6" class="empty">مصرفی ثبت نشده است.</td></tr>'
   } else {
-    body.innerHTML = rows.map((item) => `<tr>
+    body.innerHTML = rows.map((item, index) => `<tr>
       <td>${stamp(item.created_at)}</td>
       <td dir="ltr">${item.model_name || '—'}</td>
       <td>${num(item.prompt_tokens)}</td>
       <td>${num(item.completion_tokens)}</td>
-      <td>${credit(item.quota)}</td>
-    </tr>`).join('')
+      <td>${cost(item.quota)}</td>
+      <td class="actions"><button type="button" data-detail="${index}">جزئیات</button></td>
+    </tr>
+    <tr class="detail" data-panel="${index}" hidden><td colspan="6">${detailHtml(item)}</td></tr>`).join('')
   }
   const total = Number(data.total || 0)
   const pages = Math.max(1, Math.ceil(total / state.pageSize))
@@ -171,6 +220,16 @@ document.addEventListener('click', (event) => {
       await loadKeys()
     })
   }
+})
+
+
+document.addEventListener('click', (event) => {
+  const trigger = event.target.closest('[data-detail]')
+  if (!trigger) return
+  const panel = document.querySelector(`[data-panel="${trigger.dataset.detail}"]`)
+  if (!panel) return
+  panel.hidden = !panel.hidden
+  trigger.textContent = panel.hidden ? 'جزئیات' : 'بستن'
 })
 
 document.addEventListener('submit', (event) => {

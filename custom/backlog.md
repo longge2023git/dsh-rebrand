@@ -17,7 +17,7 @@
 | D-03 | 待办 | DeepSeek-FA Windows unsigned 包 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
 | S-01 | **已完成** | 网关域名切换到 https://deepseekfa.com（旧 `deepseek-fa.org` 方案作废） | [迁移清单](deepseek-fa-domain-migration.md) |
 | I-01 | 待办 | **服务端消息波斯语翻译**：`i18n/locales` 新增 `fa.yaml`（215 键）+ `LangFa`/localizer/`SupportedLanguages`。未做前 fa 页面的报错文案回落英文 | [i18n](console.md) |
-| C-01 | **已完成** | 迷你波斯语控制台（用量 + 密钥，静态页 + 会话接口） | [console](console.md) |
+| C-01 | **已完成** | 迷你波斯语控制台（用量 + 单笔计费明细 + 密钥增删复制） | [console](console.md) |
 | C-02 | 待办 | 控制台补：旧设备密钥清理入口、RU 版本 | [console](console.md) |
 
 ## F-01 摘要
