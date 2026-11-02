@@ -66,19 +66,29 @@ apps\desktop\.desktop-build\packaging-runs\<timestamp>-<id>\
 
 ## 6. 上传与上线
 
-**方式 A（Windows 有服务器 key）**
+两台服务器的 `root` 已加入构建机公钥（`deepseek-fa-2dev`，ED25519，
+指纹 `SHA256:AGrgJtmBuqFar+EA04AqvrsVHtLUoAsxlE2nDGe/ZPo`），可直接 scp。
+
+| 品牌 | 上传目标 | 公网路径 |
+|---|---|---|
+| FA | `root@87.107.108.14:/var/www/fa-site/downloads/` | `https://www.deepseekfa.com/downloads/<文件名>` |
+| RU | `root@104.248.155.54:/opt/dsh-gateway-ru/downloads/` | `https://www.deepseek-ru.org/downloads/<文件名>` |
 
 ```powershell
-$dmg = "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\<文件名>.exe"
-scp $dmg root@87.107.108.14:/var/www/fa-site/downloads/<文件名>.part
-ssh root@87.107.108.14 "mv /var/www/fa-site/downloads/<文件名>.part /var/www/fa-site/downloads/<文件名>"
+# FA 示例：先传 .part，校验后再改名，避免用户下到半个文件
+$name = "deepseek-fa-0.2.1-rc.2.20261103.1-win-x64-unsigned.exe"
+$src  = "apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\$name"
+scp $src "root@87.107.108.14:/var/www/fa-site/downloads/$name.part"
+ssh root@87.107.108.14 "sha256sum /var/www/fa-site/downloads/$name.part && mv /var/www/fa-site/downloads/$name.part /var/www/fa-site/downloads/$name"
 ```
 
-先传 `.part` 再改名，避免用户在传输中途下到半个文件。RU 版目标是 `root@104.248.155.54:/var/www/ru-site/downloads/`（或 `/opt/dsh-gateway-ru/downloads/`）。
+RU 版把主机换成 `root@104.248.155.54`、目录换成 `/opt/dsh-gateway-ru/downloads/`。
 
-**方式 B（Windows 没有 key）**：把 exe + `build-report.json` 放到共享目录交给 Mac 侧上传。
+上传后核对：`sha256sum` 与本地 `Get-FileHash` 一致，且
+`curl -I https://www.deepseekfa.com/downloads/<文件名>` 返回 200 与正确 `content-length`。
 
-**上线收尾（Mac 侧）**：改 `site/brands/<brand>.mjs` 的 `version` / `file` / `size` / `sha256`，然后 `node site/build.mjs <brand>` 并 rsync 到服务器；页面上就必须出现新版本号与校验和。
+**上线收尾（Mac 侧）**：改 `site/brands/<brand>.mjs` 的 `version` / `file` / `size` / `sha256`，
+然后 `node site/build.mjs <brand>` 并 rsync 到服务器；页面上必须出现新版本号与校验和。
 
 ## 7. 失败回报格式
 
