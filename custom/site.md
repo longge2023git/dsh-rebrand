@@ -41,6 +41,8 @@ cd site/dist/fa && python3 -m http.server 8899   # 预览：必须走 HTTP，fil
 
 ## 部署
 
+> 上传走 SOCKS5 代理，直连慢一倍以上；命令见 [网络与上传](networking.md)。
+
 ```bash
 # FA（伊朗机器）
 rsync -az --delete --exclude downloads -e "ssh -i ~/.ssh/id_ed25519" \
