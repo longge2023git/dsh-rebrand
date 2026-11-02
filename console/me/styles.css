@@ -190,3 +190,8 @@ main.narrow { max-width: 460px; }
   align-self: flex-start;
 }
 .linkish:hover { text-decoration: underline; }
+
+/* Email verification: code input next to its send button */
+.inline { display: flex; gap: 8px; align-items: center; }
+.inline input { flex: 1; }
+.inline .button { white-space: nowrap; }

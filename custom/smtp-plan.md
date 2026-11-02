@@ -89,7 +89,13 @@ TLS 握手也正常（`smtp.resend.com:465` → TLSv1.3，证书 `*.resend.com`�
 | `EmailVerificationEnabled` | `true` | 开启后注册需验证码 |
 | `EmailDomainRestrictionEnabled` | `false` | 不限制邮箱域 |
 
-## 迷你站改造清单（**开验证前必须先做完**）
+## 迷你站改造清单（**已在 `feat/email-verification` 分支完成，未上线**）
+
+实现方式：注册页读取 `/api/status` 的 `email_verification`，为 true 时才显示邮箱/验证码字段并强制校验；为 false 时表单与现在完全一致（不多发字段）。验证码按钮 60 秒冷却，错误文案按语言本地化。开启 `turnstile_check` 时按钮直接提示改用主控制台（我们的页面没有 Turnstile 组件）。
+
+本地验证（拦截 API，不改线上）：13/13 通过——两种开关状态下字段显示、本地拦截、发码请求、提交载荷、错误映射。
+
+原始清单（供核对）：
 
 1. 注册页加：邮箱输入框、`发送验证码` 按钮（`GET /api/verification?email=`）、6 位验证码输入框
 2. 发送按钮 60 秒冷却（服务端 30 秒 2 次，前端更保守）

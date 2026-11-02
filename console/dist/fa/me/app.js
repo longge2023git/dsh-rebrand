@@ -11,7 +11,7 @@ const LANG = ['fa', 'ru', 'en'].includes(requestLang)
 const D = DICT[LANG]
 const numberLocale = LANG === 'fa' ? 'fa-IR' : 'en-US'
 
-const state = { quotaPerUnit: 500000, page: 1, pageSize: 20 }
+const state = { quotaPerUnit: 500000, page: 1, pageSize: 20, emailVerification: false, turnstile: false }
 
 const $ = (id) => document.getElementById(id)
 const num = (value) => new Intl.NumberFormat(numberLocale).format(Math.round(Number(value) || 0))
@@ -113,8 +113,12 @@ async function guard(action) {
 async function loadStatus() {
   try {
     const status = await (await fetch('/api/status')).json()
-    const unit = Number(status?.data?.quota_per_unit)
+    const data = status?.data || {}
+    const unit = Number(data.quota_per_unit)
     if (Number.isFinite(unit) && unit > 0) state.quotaPerUnit = unit
+    // The gateway decides whether registration needs an emailed code; the form follows it.
+    state.emailVerification = data.email_verification === true
+    state.turnstile = data.turnstile_check === true
   } catch {
     /* keep the default unit */
   }
@@ -320,6 +324,9 @@ const AUTH_ERROR_PATTERNS = [
   [/password login has been disabled|关闭了密码登录/i, 'errors.loginDisabled'],
   [/registration has been disabled|关闭了新用户注册/i, 'errors.registerDisabled'],
   [/username already exists|用户名已存在/i, 'errors.exists'],
+  [/verification code.*(error|invalid|expired)|验证码.*(错误|失效|过期)/i, 'errors.badCode'],
+  [/email.*(already|taken|used|occupied)|邮箱.*(已被|已存在|占用)/i, 'errors.emailTaken'],
+  [/(send|sending).*(mail|email).*fail|邮件发送失败/i, 'errors.sendFailed'],
 ]
 
 function errorText(message) {
@@ -375,9 +382,52 @@ async function startLogin() {
   })
 }
 
+
+/** Registration email code: request one and run a 60s client-side cooldown. */
+function wireSendCode() {
+  const button = $('send-code')
+  const emailInput = document.querySelector('input[name="email"]')
+  if (!button || !emailInput) return
+  let readyAt = 0
+  button.addEventListener('click', async () => {
+    if (Date.now() < readyAt) return
+    const email = emailInput.value.trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError(t('errors.emailInvalid'))
+    if (state.turnstile) return showFormError(t('errors.turnstile'))
+    try {
+      const response = await fetch(`/api/verification?email=${encodeURIComponent(email)}`)
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(errorText(payload.message))
+      readyAt = Date.now() + 60000
+      button.disabled = true
+      button.textContent = t('auth.codeSent')
+      const tick = () => {
+        const left = Math.ceil((readyAt - Date.now()) / 1000)
+        if (left <= 0) {
+          button.disabled = false
+          button.textContent = t('auth.sendCode')
+          return
+        }
+        button.textContent = t('auth.codeCooldown', { s: left })
+        setTimeout(tick, 1000)
+      }
+      setTimeout(tick, 900)
+    } catch {
+      showFormError(t('errors.network'))
+    }
+  })
+}
+
 async function startRegister() {
   applyI18n()
+  await loadStatus()
   const form = $('auth-form')
+  const emailOn = state.emailVerification === true
+  if (emailOn) {
+    $('email-field').hidden = false
+    $('code-field').hidden = false
+    wireSendCode()
+  }
   // Deep link from a share card: /me/register?aff=CODE
   const invitedBy = new URLSearchParams(location.search).get('aff')
     || new URLSearchParams(location.search).get('code')
@@ -392,6 +442,13 @@ async function startRegister() {
     if (runes(username) > 20) return showFormError(t('errors.usernameTooLong'))
     if (runes(password) < 8 || runes(password) > 20) return showFormError(t('errors.passwordRange'))
     if (password !== form.confirm.value) return showFormError(t('errors.mismatch'))
+    const email = emailOn ? form.email.value.trim() : ''
+    const code = emailOn ? form.code.value.trim() : ''
+    if (emailOn) {
+      if (!email) return showFormError(t('errors.emailRequired'))
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError(t('errors.emailInvalid'))
+      if (!/^\d{6}$/.test(code)) return showFormError(t('errors.codeRequired'))
+    }
     try {
       const response = await fetch('/api/user/register', {
         method: 'POST',
@@ -400,6 +457,7 @@ async function startRegister() {
         body: JSON.stringify({
           username,
           password,
+          ...(emailOn ? { email, verification_code: code } : {}),
           ...(form.aff && form.aff.value.trim() ? { aff_code: form.aff.value.trim() } : {}),
         }),
       })
