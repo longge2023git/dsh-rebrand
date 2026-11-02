@@ -21,10 +21,13 @@ site/
 ├── brands/fa.mjs        # 品牌：域名、语言、下载清单（版本/大小/sha256）
 ├── brands/ru.mjs
 ├── copy/{fa,ru,en}.mjs  # 文案；{{brand}} 在构建时替换
+├── assets/<brand>/      # 品牌 App 图标：icon.svg（取自 apps/desktop/resources/）+ 32/180 PNG
 └── src/
     ├── render.mjs       # 布局与三个页面：首页 / 下载 / 接入
     └── styles.css       # 逻辑属性（margin-inline 等），同一套样式服务 LTR 与 RTL
 ```
+
+风格参照 DeepSeek 官方站：白底/近黑字、单一蓝 `#4D6BFE`、胶囊按钮、居中大标题；暗色模式随系统。品牌标记直接使用桌面端 App 图标（FA 是波斯纹样鲸鱼，RU 是浅色版），favicon 与 apple-touch-icon 由同一图标生成。
 
 产物：`dist/<brand>/index.html`、`download.html`、`docs.html`、`styles.css`、`favicon.svg`、`robots.txt`、`sitemap.xml`，英文在 `dist/<brand>/en/`。
 
