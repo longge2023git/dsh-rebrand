@@ -7,7 +7,7 @@ export default {
   accent: '#3b82f6',
   defaultLocale: 'fa',
   locales: ['fa', 'en'],
-  consoleUrl: 'https://deepseekfa.com/console',
+  consoleUrl: 'https://deepseekfa.com/me/keys',
   auth: {
     login: 'https://deepseekfa.com/me/login',
     register: 'https://deepseekfa.com/me/register',
