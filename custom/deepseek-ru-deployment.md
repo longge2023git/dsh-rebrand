@@ -124,6 +124,26 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 
 镜像：`20261031-ru-login`（在 `20261031-ru` 上替换 `/new-api` 二进制；上传后校验 md5，避免中断传输造成坏包）。
 
+## 控制台俄语（2026-11-02）
+
+NewAPI 二开本身带 `web/src/i18n/locales/ru.json`，语言下拉里也有「Русский」，但**俄语浏览器进站会落到英文**：i18next 用 `load: 'currentOnly'`，检测到的是区域标签 `ru-RU`，而资源键是 `ru`，匹配不上就回落 `en`。
+
+修复（`c089e311a`）：
+
+- 检测结果先归一化：`ru-RU→ru`、`fr-FR→fr`、`ja-JP→ja`、`vi→vi`、`zh-TW/zh-HK→zh-TW`、其余 `→en`
+- `<html lang>` 跟随当前语言（之前写死 `zh`）
+
+实测 `https://deepseek-ru.org/`：
+
+| 浏览器语言 | 渲染 |
+|---|---|
+| `ru-RU` | 俄语（Главная страница / Единый Шлюз API LLM / Получить ключ），`lang="ru"` |
+| `en-US` | English |
+| `zh-CN` | 简体中文 |
+| `fr-FR` | Français |
+
+截图：[`console-ru.png`](assets/ru-verify/console-ru.png)。镜像 `dsh/new-api-deepseek:20261102-ru-i18n`。
+
 ## macOS 安装包分发（2026-11-01）
 
 安装包已上传到 `/opt/dsh-gateway-ru/downloads/`，由 nginx 只读提供：
