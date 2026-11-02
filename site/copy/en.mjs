@@ -29,14 +29,14 @@ export default {
       },
       {
         title: 'API keys for your tools',
-        body: 'Create a key and use the DeepSeek API from your own agent or application.',
+        body: 'A key is created automatically when you sign in — copy it from the console and use it in your own agent or application.',
       },
     ],
     stepsTitle: 'Start in three steps',
     steps: [
       { title: 'Install', body: 'Download the app and install it on macOS.' },
       { title: 'Sign in', body: 'Register with email or sign in to your account.' },
-      { title: 'API key', body: 'Create a key in the console and paste it into your tool.' },
+      { title: 'Start using it', body: 'Your API key is created on sign-in — use it in your own tool.' },
     ],
   },
   download: {
@@ -58,11 +58,11 @@ export default {
     consoleHintEnd: '.',
   },
   docs: {
-    lead: 'To use the DeepSeek API from your own tool, create a key and point it at the base URL.',
+    lead: 'Signing in creates your API key automatically — point your tool at the base URL and use that key.',
     steps: [
-      { title: 'Open the console', body: 'Sign in with the same account you use in the app.' },
-      { title: 'Create a key', body: 'Open the keys section, create a key, and copy it.' },
-      { title: 'Connect', body: 'Set the base URL and the key in your agent or application.' },
+      { title: 'Sign in', body: 'Register or sign in from the app.' },
+      { title: 'Key is ready', body: 'In the console keys section, copy the key created at sign-in.' },
+      { title: 'Connect', body: 'Set the base URL and that key in your agent or application.' },
     ],
     baseUrlLabel: 'Base URL',
     exampleTitle: 'Request example',
