@@ -70,17 +70,29 @@ export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 export CUSTOM_DMGBUILD_PATH=/tmp/dmgbuild-extract/dmgbuild
 
 pnpm --dir apps/desktop run package:mac:arm64:unsigned \
-  --build-version 0.2.1-rc.2.20261023.1
+  --build-version 0.2.1-rc.2.20261103.1
 ```
 
 产物：
 
 ```text
 apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
-  deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg
+  deepseek-fa-0.2.1-rc.2.20261103.1-mac-arm64-unsigned.dmg
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
+
+RU 品牌同一套命令，换分支 `brand/ru-deepseek-ru`（`PRODUCT_NAME=DeepSeek-RU`、`APP_ID=com.deepseekru.harness`、`GATEWAY_ORIGIN=https://deepseek-ru.org`），产物前缀为 `deepseek-ru`。
+
+产物身份校验（发布前必做）：
+
+```bash
+MP=$(hdiutil attach -nobrowse -readonly <dmg> | grep -o '/Volumes/.*' | head -1)
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+grep -ac 'https://deepseekfa.com' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"   # 应为非 0
+hdiutil detach "$MP" -quiet
+```
 
 ## 安装验证
 
@@ -88,7 +100,7 @@ apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
 2. 未签名包首次启动在“隐私与安全性”中允许；
 3. 应用名/关于/退出文案显示 `DeepSeek-FA`；
 4. 首次启动创建 `~/.deepseek-fa`；
-5. 登录页来自 `ds.openrouters.org`，注册/登录；
+5. 登录页来自 `deepseekfa.com`（RU 为 `deepseek-ru.org`），注册/登录；
 6. 文本、图片、查询用量/充值；
 7. 官方 Harness 的 `~/.dsh` 和 `~/Library/Application Support/@deepseek-ai/dsh-desktop` 不受影响。
 

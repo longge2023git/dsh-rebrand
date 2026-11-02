@@ -1,56 +1,38 @@
 # 进度总览
 
-> 最后更新：2026-10-22
-> 单一进度入口。详细计划见 [PLAN.md](../PLAN.md)，决策见 [ADR-002](adr-002-merge-relay-into-newapi.md)，验收见 [gateway-acceptance.md](gateway-acceptance.md)。
+> 最后更新：2026-11-03
+> 单一进度入口。待办见 [backlog.md](backlog.md)，站点见 [site.md](site.md)，控制台见 [console.md](console.md)，Windows 打包见 [windows-handoff.md](windows-handoff.md)。
 
-## 当前阶段
+## 当前状态
 
-**单网关（NewAPI 二开）已完成**，DSH 不再运行独立 relay；Web 登录/文本/图片已验证，桌面端文本已验证，桌面图片附件待手工确认。
+| 成果 | 状态 | 位置 |
+|---|---|---|
+| 网关 `deepseekfa.com` | 运行中 | 87.107.108.14 `dsh-newapi` :3104，镜像 `20261102-fa-login` |
+| 网关 `deepseek-ru.org` | 运行中 | 104.248.155.54 `dsh-newapi-ru` :3105，镜像 `20261102-ru-i18n` |
+| 网关 `ds.openrouters.org` | 运行中（冻结） | 104.248.155.54 `dsh-newapi` :3104，镜像 `20261025a`；库已与 FA 分叉 |
+| 官网 `www.deepseekfa.com` / `www.deepseek-ru.org` | 上线 | `feat/site` 构建，rsync 部署 |
+| 迷你控制台 `deepseekfa.com/me/`、`deepseek-ru.org/me/` | 上线 | fa/ru/en 三语，含邀请、转账、密钥、计费明细 |
+| macOS 安装包（两品牌） | 已发布 `0.2.1-rc.2.20261103.1` | 下载页 + `/downloads/` |
+| Windows 安装包 | 交接单与脚本就绪，**等 Windows 机器构建** | [windows-handoff.md](windows-handoff.md) |
+| 邀请奖励 | 已开启 | 邀请人 $1.00 / 被邀请人 $0.50 / 新用户 $0.50 |
 
 ## 里程碑
 
 | ID | 事项 | 状态 | 证据 |
 |---|---|---|---|
-| M-00 | NewAPI 二开仓库、基线、AGPL 说明 | 完成 | `new-api-deepseek` main |
-| M-01 | Files API（上传/列表/查询/删除/content） | 完成 | #11 已关闭 |
-| M-02 | DSH 账户协议、PKCE、登录页、8 接口、`/models` | 完成 | `b96c7945e` |
-| M-03 | token 映射 / 多设备隔离 / 跨用户文件隔离 | 完成 | 独立测试 10/10 |
-| M-04 | relay 合并、DSH 指向 13000、Web 端到端 | 完成 | ADR-002、验收记录 |
-| M-05 | 桌面端文本 | 完成 | `DESKTOMGW` |
-| M-06 | 桌面端图片附件 | **待手工确认** | 原生文件选择器无法自动化 |
-| M-07 | Gateway API Key 模式（第一步） | 完成 | [计划](gateway-api-key-plan.md)、网关 key E2E |
-| M-08 | 生产部署 `https://ds.openrouters.org` | 完成 | [部署记录](server-deployment.md) |
-| M-09 | 本地测试切到生产网关 | 完成 | server-gateway.patch.yml、远端 E2E |
-| M-10 | 账号页用量/充值入口指向 NewAPI 控制台 | 完成 | `usagePath`/`topUpPath` |
-| D-01 | DeepSeek-FA 桌面品牌/配置隔离 | 完成 | [桌面说明](deepseek-fa-desktop.md) |
-| D-02 | macOS unsigned 测试包 | 完成 | UI 品牌已统一，`deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg` |
-| D-03 | Windows unsigned 测试包 | 待 Windows 构建 | [Windows 指南](windows-build-guide.md) |
-| V-01 | 发版时移除官方 API Key 入口（第二步） | 未开始 | 计划 §第二步 |
-| S-01 | 网关域名切换到 deepseek-fa.org | 待办 | #13、证书已存本地 |
-| B-01 | 品牌名称 + Logo | **阻塞** | 需要用户提供 |
-| R-01 | RTL 基础层 | 未开始 | PLAN §5 |
-| D-01 | 签名/公证/更新源 | 未开始 | PLAN §7 |
+| M-00~M-05 | 二开仓库、Files API、账户协议、relay 合并、桌面文本 | 完成 | git 历史与旧验收记录 |
+| M-06 | 桌面端图片附件 | 完成 | macOS 包内验证 |
+| M-07 | 双品牌官网（fa/ru） | 完成 | `site/build.mjs`，两站上线 |
+| M-08 | 迷你控制台 | 完成 | `console/build.mjs fa\|ru`，[console.md](console.md) |
+| M-09 | 邀请码 + 奖励 + 转账 | 完成 | [console.md](console.md) |
+| M-10 | macOS 两品牌发布 | 完成 | `0.2.1-rc.2.20261103.1` |
+| M-11 | Windows 构建交接 | 就绪待产出 | [windows-handoff.md](windows-handoff.md) |
 
-## 当前运行
+## 关键决策
 
-| 服务 | 地址 |
-|---|---|
-| NewAPI 单网关（生产） | `https://ds.openrouters.org` |
-| 本地回退 | `http://127.0.0.1:13000`（可选） |
-| DSH Web 测试 | `http://127.0.0.1:3080`（指向生产） |
-| 宿主代理转发 | `0.0.0.0:10810` |
-| relay | **已停止**（仅参考代码） |
-
-## 已知限制
-
-- 桌面端图片附件需人工点一次原生文件选择器。
-- 旧 relay token 不迁移；合并后已重新登录。
-- Email 非唯一索引；多实例并发注册同一邮箱仍可能重复。
-- OpenAI 兼容渠道的 SSE 归一化未在 Go 侧实现；当前使用 DeepSeek Anthropic 原生渠道。
-- `SESSION_SECRET`、`DSH_PUBLIC_ORIGIN` 生产必须固定/设为 HTTPS。
-
-## 下一步
-
-1. 手工确认桌面图片附件（M-06）。
-2. 提供品牌名称 + Logo（B-01），随后进入 RTL（R-01）与分发（D-01）。
-3. 发版前执行 Gateway API Key 第二步：移除官方 API Key 入口（V-01）。
+| 决策 | 结论 | 记录 |
+|---|---|---|
+| 邮箱注册 | **不采用**。New API 的邮箱落库依赖 `EmailVerificationEnabled`，开启又需要 SMTP 验证码；选择保持用户名注册，网关代码与上游一致 | [console.md](console.md) |
+| 邀请奖励数值 | 邀请人 $1.00 → `aff_quota`；被邀请人 $0.50 → 余额；新用户 $0.50 → 余额 | [console.md](console.md) |
+| Windows 构建 | 由 Windows 机器构建（不能从 macOS 交叉打），exe + 清单上传后页面自动出现 | [windows-handoff.md](windows-handoff.md) |
+| 服务端消息波斯语 | 未做，报错文案仍回落英文 | backlog I-01 |

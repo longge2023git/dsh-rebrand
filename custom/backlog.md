@@ -13,12 +13,17 @@
 | G-01 | **已完成** | Gateway API Key 模式（第一步） | [计划](gateway-api-key-plan.md) |
 | G-02 | 待办 | 发版时移除官方 API Key 入口（第二步） | [计划](gateway-api-key-plan.md) |
 | G-03 | **已完成** | 账号页“查询用量/充值”指向 NewAPI 控制台 | `usagePath`/`topUpPath` |
-| D-02 | **已完成** | DeepSeek-FA macOS unsigned 测试包 | [桌面说明](deepseek-fa-desktop.md) |
-| D-03 | 待办 | DeepSeek-FA Windows unsigned 包 | [桌面说明](deepseek-fa-desktop.md#windows仅方案) |
+| D-02 | **已完成** | macOS unsigned 包（FA + RU，`0.2.1-rc.2.20261103.1`） | [site](site.md) |
+| D-03 | **阻塞**（等 Windows 机器构建） | FA / RU Windows unsigned 包；交接单、脚本、上传目录、两只公钥已就绪 | [Windows 交接单](windows-handoff.md) |
 | S-01 | **已完成** | 网关域名切换到 https://deepseekfa.com（旧 `deepseek-fa.org` 方案作废） | [迁移清单](deepseek-fa-domain-migration.md) |
 | I-01 | 待办 | **服务端消息波斯语翻译**：`i18n/locales` 新增 `fa.yaml`（215 键）+ `LangFa`/localizer/`SupportedLanguages`。未做前 fa 页面的报错文案回落英文 | [i18n](console.md) |
 | C-01 | **已完成** | 迷你波斯语控制台（用量 + 单笔计费明细 + 密钥增删复制） | [console](console.md) |
-| C-02 | 待办 | 控制台补：2FA 登录表单（当前提示改用主控制台）、旧设备密钥清理入口、RU 版本 | [console](console.md) |
+| C-02 | 待办（RU 版本已完成） | 控制台补：2FA 登录表单（当前提示改用主控制台）、旧设备密钥清理入口 | [console](console.md) |
+
+| C-03 | 待办 | 邀请奖励数值可调 + 被邀请人总额确认（当前被邀请注册共得 $1.00 = 0.50 新用户 + 0.50 被邀请） | [console](console.md) |
+| S-02 | 待办 | 法务页（服务条款 / 隐私政策）、更新日志、FAQ | [site](site.md) |
+| S-03 | 待办 | 访问统计、ArvanCloud CDN、Windows 包 CDN | [site](site.md) |
+| D-04 | 待办 | Windows 包上传后的页面验收（exe + json 到位后按钮才出现） | [Windows 交接单](windows-handoff.md) |
 
 ## F-01 摘要
 

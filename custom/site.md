@@ -63,6 +63,29 @@ nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `
 
 `styles.css` 与品牌图标在 HTML 里带 `?v=<内容哈希>`（`build.mjs` 用 sha256 前 8 位）。原因：RU 站在 Cloudflare 后面，CSS 被边缘缓存 4 小时（`cf-cache-status: HIT`），改了样式线上仍旧——加版本号后每次构建 URL 变化，自动破缓存。FA 站是 A 记录直连，没有这个问题，但同样受益于浏览器缓存失效。
 
+## Windows 下载位（清单驱动）
+
+Windows 包由 Windows 机器构建（见 [windows-handoff.md](windows-handoff.md)），站点不预置版本号：
+
+- 品牌配置里 `windows` 段给出**固定文件名** `slug.exe` 与**同名清单** `slug.json`
+- 下载页的 Windows 卡片默认隐藏，页面脚本拉取清单；拿到 `version/bytes/sha256` 才显示卡片与按钮，否则保持"即将推出"
+- 所以上传 `slug.exe` + `slug.json` 后页面自动出现，无需改配置重新部署
+
+清单由 `scripts/windows/build-desktop.ps1` 生成（与 exe 同一次构建）。
+
+## 发布（macOS）
+
+构建本身见 [deepseek-fa-desktop.md](deepseek-fa-desktop.md)；RU 版同流程，换分支 `brand/ru-deepseek-ru` 与产物前缀 `deepseek-ru`。发布步骤：
+
+1. 构建：`pnpm --dir apps/desktop run package:mac:arm64:unsigned --build-version <版本>`
+2. 校验（挂载 DMG，三条都要对）：
+   - `CFBundleIdentifier` = `com.deepseek-fa.harness` / `com.deepseekru.harness`
+   - `CFBundleShortVersionString` = 目标版本
+   - `app.asar` 内只含自家域名（FA `deepseekfa.com`，RU `deepseek-ru.org`），对方域名 0 处
+3. 上传：`.part` → 服务端 `sha256sum` 比对 → 改名（见下"下载分发"的目录）
+4. 改 `site/brands/<id>.mjs` 的 `version` / `file` / `size` / `sha256`
+5. `node site/build.mjs`，rsync 部署；打开下载页确认版本与校验和
+
 ## 下载分发
 
 - FA：`/var/www/fa-site/downloads/`，页面直链 `/downloads/<file>`
@@ -74,6 +97,7 @@ nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `
 
 - 文案（尤其波斯语）需要母语用户审校
 - 控制台公告位尚未加入口；RU 已在控制台公告里挂过 `/download`
+- Windows 卡片依赖清单：只传 exe 不传 json 时按钮不出现
 - 未做访问统计，也未接 CDN
 - 英文页的语言切换按钮：`fa` 站显示 `EN`、`ru` 站显示 `EN`，回切标签由 `render.mjs` 的 `otherLabel` 决定
 - 移动端曾把语言开关一起隐藏：`nav.links a:not(.app)` 会匹配到 `.lang a`，已改为 `nav.links > a:not(.app)`

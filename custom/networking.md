@@ -40,3 +40,16 @@ rsync -az --progress \
 
 - 先传成 `<name>.part`，校验 sha256 后再 `mv` 到正式名；直接覆盖正式名会让用户在传输中途下载到半截文件
 - 传完在服务器上 `sha256sum` 比对本地值，再更新站点里的 `sha256` 字段
+
+## 上传目标（2026-11-03）
+
+| 用途 | 主机 | 目录 | 公网路径 |
+|---|---|---|---|
+| FA 官网 | `root@87.107.108.14` | `/var/www/fa-site/` | `https://www.deepseekfa.com/` |
+| FA 安装包 | 同上 | `/var/www/fa-site/downloads/` | `/downloads/<file>` |
+| FA 迷你控制台 | 同上 | `/var/www/fa-console/me/` | `https://deepseekfa.com/me/` |
+| RU 官网 | `root@104.248.155.54` | `/var/www/ru-site/` | `https://www.deepseek-ru.org/` |
+| RU 安装包 | 同上 | `/opt/dsh-gateway-ru/downloads/` | `/downloads/<file>`（nginx alias，**不是** `/var/www/ru-site/downloads`） |
+| RU 迷你控制台 | 同上 | `/var/www/ru-console/me/` | `https://deepseek-ru.org/me/` |
+
+Windows 构建机的公钥 `deepseek-fa-2dev`（ED25519，`SHA256:AGrgJtmBuqFar+EA04AqvrsVHtLUoAsxlE2nDGe/ZPo`）已加入两台服务器的 `root`，供它直接 scp 上传安装包；细节见 [windows-handoff.md](windows-handoff.md)。
