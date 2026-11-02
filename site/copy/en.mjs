@@ -69,5 +69,11 @@ export default {
     note: 'Usage and balance are visible in the console.',
     consoleLinkLabel: 'Open console',
   },
+  notFound: {
+    title: 'Page not found',
+    body: 'This address does not exist or has moved.',
+    home: 'Back to home',
+    download: 'Download page',
+  },
   footer: { rights: 'All rights reserved.' },
 }

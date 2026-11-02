@@ -79,6 +79,12 @@ export function layout({ brand, copy, locale, page, body }) {
 <meta property="og:title" content="${copy.meta.title}">
 <meta property="og:description" content="${copy.meta.description}">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="${brand.name}">
+<meta property="og:image" content="https://${brand.domain}/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://${brand.domain}/assets/og.png">
 <link rel="stylesheet" href="/styles.css">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="icon" href="/assets/icon-32.png" sizes="32x32">
@@ -88,7 +94,7 @@ export function layout({ brand, copy, locale, page, body }) {
 <body>
 <main>
   <header class="site">
-    <a class="brand" href="${pathOf(brand, locale, '')}">${LOGO}${brand.name}</a>
+    <a class="brand" href="${pathOf(brand, locale, '')}">${LOGO}<span class="brand-name">${brand.name}</span></a>
     <nav class="links">
       ${navLink('', copy.nav.home)}
       ${navLink('download', copy.nav.download)}
@@ -236,5 +242,20 @@ export const docsBody = (brand, copy) => {
     <p class="notes">${copy.docs.note} <a href="${brand.consoleUrl}">${copy.docs.consoleLinkLabel}</a></p>
   </section>`
 }
+
+/**
+ * 404 body: one line of explanation and two ways out.
+ * @param {object} brand Brand configuration.
+ * @param {object} copy Locale copy.
+ * @returns {string} Page body HTML.
+ */
+export const notFoundBody = (brand, copy) => `<section class="hero">
+    <h1>${copy.notFound.title}</h1>
+    <p class="intro">${copy.notFound.body}</p>
+    <div class="actions">
+      <a class="button" href="${pathOf(brand, copy.lang, '')}">${copy.notFound.home}</a>
+      <a class="button secondary" href="${pathOf(brand, copy.lang, 'download')}">${copy.notFound.download}</a>
+    </div>
+  </section>`
 
 export { fillDeep }

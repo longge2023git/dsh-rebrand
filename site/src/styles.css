@@ -249,6 +249,8 @@ footer.site {
 }
 
 @media (max-width: 640px) {
+  /* Brand wordmark wraps next to the nav pills; keep the icon only. */
+  .brand .brand-name { display: none; }
   .hero { padding-block: 56px 40px; }
   section { padding-block: 36px; }
   nav.links { gap: 16px; font-size: 14px; }

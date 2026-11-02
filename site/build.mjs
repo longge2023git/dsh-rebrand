@@ -19,7 +19,7 @@ import ruBrand from './brands/ru.mjs'
 import faCopy from './copy/fa.mjs'
 import ruCopy from './copy/ru.mjs'
 import enCopy from './copy/en.mjs'
-import { layout, homeBody, downloadBody, docsBody, prefixOf, fillDeep } from './src/render.mjs'
+import { layout, homeBody, downloadBody, docsBody, notFoundBody, prefixOf, fillDeep } from './src/render.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const outRoot = join(here, 'dist')
@@ -66,6 +66,8 @@ for (const brand of selected) {
       await writeFile(join(dir, page.file), html)
       urls.push(`https://${brand.domain}${prefix === '' ? '/' : `${prefix}/`}${page.file === 'index.html' ? '' : page.file}`)
     }
+    // Branded 404; nginx maps error_page 404 to /404.html of the requested locale where possible.
+    await writeFile(join(dir, '404.html'), layout({ brand, copy, locale, page: '', body: notFoundBody(brand, copy) }))
   }
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
