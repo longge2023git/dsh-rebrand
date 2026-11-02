@@ -1,0 +1,65 @@
+# 官网（两品牌）
+
+> 2026-11-02 上线。FA：`https://www.deepseekfa.com`；RU：`https://www.deepseek-ru.org`。
+
+## 域名分工
+
+`apex` 永远是网关（登录页、`/api`、`/v1`、控制台），官网放 `www`。把官网放到 apex 会顶掉登录页，并且改 `baseURL` 会让登录 token 的 issuer 变化，所有用户强制重登。
+
+| 域名 | 内容 |
+|---|---|
+| `www.deepseekfa.com` | 静态官网（fa RTL / en） |
+| `deepseekfa.com` | 网关 |
+| `www.deepseek-ru.org` | 静态官网（ru / en） |
+| `deepseek-ru.org` | 网关 |
+
+## 结构
+
+```text
+site/
+├── build.mjs            # 无依赖构建脚本，输出 site/dist/<brand>/
+├── brands/fa.mjs        # 品牌：域名、语言、下载清单（版本/大小/sha256）
+├── brands/ru.mjs
+├── copy/{fa,ru,en}.mjs  # 文案；{{brand}} 在构建时替换
+└── src/
+    ├── render.mjs       # 布局与三个页面：首页 / 下载 / 接入
+    └── styles.css       # 逻辑属性（margin-inline 等），同一套样式服务 LTR 与 RTL
+```
+
+产物：`dist/<brand>/index.html`、`download.html`、`docs.html`、`styles.css`、`favicon.svg`、`robots.txt`、`sitemap.xml`，英文在 `dist/<brand>/en/`。
+
+## 构建与预览
+
+```bash
+node site/build.mjs           # 两个品牌
+node site/build.mjs fa        # 单品牌
+cd site/dist/fa && python3 -m http.server 8899   # 预览：必须走 HTTP，file:// 下绝对路径样式会丢
+```
+
+## 部署
+
+```bash
+# FA（伊朗机器）
+rsync -az --delete --exclude downloads -e "ssh -i ~/.ssh/id_ed25519" \
+  site/dist/fa/ root@87.107.108.14:/var/www/fa-site/
+
+# RU（hub 机器）
+rsync -az --delete -e "ssh -i ~/.ssh/id_ed25519_hub_104_248_155_54" \
+  site/dist/ru/ root@104.248.155.54:/var/www/ru-site/
+```
+
+nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `deepseekfa.conf` 只保留主域）；RU 是 `/etc/nginx/conf.d/deepseek-ru.conf` 的 `www` server 块。两者都用 `try_files $uri $uri.html $uri/index.html` 支持 `/download` 这种无扩展名路径。
+
+## 下载分发
+
+- FA：`/var/www/fa-site/downloads/`，页面直链 `/downloads/<file>`
+- RU：`/opt/dsh-gateway-ru/downloads/`，由 `www` 与 apex 两个 server 块共同暴露
+- 发新版本时改 `site/brands/<id>.mjs` 的 `version`、`file`、`size`、`sha256`，再构建部署；**页面上的校验和必须与上传的文件一致**
+- 安装包体积 250 MB 左右，FA 走伊朗源站带宽有限（实测 ~4 Mbps），并发下载会打满，后续建议接 ArvanCloud CDN
+
+## 待办
+
+- 文案（尤其波斯语）需要母语用户审校
+- 控制台公告位尚未加入口；RU 已在控制台公告里挂过 `/download`
+- 未做访问统计，也未接 CDN
+- 英文页的语言切换按钮：`fa` 站显示 `EN`、`ru` 站显示 `EN`，回切标签由 `render.mjs` 的 `otherLabel` 决定
