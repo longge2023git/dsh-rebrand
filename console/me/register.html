@@ -6,37 +6,45 @@
 <title>ثبت‌نام · DeepSeek-FA</title>
 <link rel="stylesheet" href="/me/styles.css">
 </head>
-<body>
+<body data-page-title="auth.signUpTitle">
 <header>
   <a class="brand" href="https://www.deepseekfa.com/">
     <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
   </a>
   <nav>
-    <a href="https://www.deepseekfa.com/">خانه</a>
-    <a href="https://www.deepseekfa.com/docs">راهنما</a>
-    <a href="/me/login">ورود</a>
+    <a href="https://www.deepseekfa.com/" data-i18n="nav.home">خانه</a>
+    <a href="https://www.deepseekfa.com/docs" data-i18n="nav.docs">راهنما</a>
+    <a href="/me/login" data-i18n="auth.loginLink">وارد شوید</a>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
   </nav>
 </header>
 
 <main class="narrow">
-  <h1>ساخت حساب</h1>
+  <h1 data-i18n="auth.signUpTitle">ساخت حساب</h1>
   <form id="auth-form" class="stack" novalidate>
-    <label>نام کاربری
+    <label><span data-i18n="auth.username">نام کاربری</span>
       <input type="text" name="username" autocomplete="username">
     </label>
-    <label>گذرواژه
+    <label><span data-i18n="auth.password">گذرواژه</span>
       <input type="password" name="password" autocomplete="new-password">
     </label>
-    <label>تکرار گذرواژه
+    <label><span data-i18n="auth.confirm">تکرار گذرواژه</span>
       <input type="password" name="confirm" autocomplete="new-password">
     </label>
-    <p class="hint compact">نام کاربری تا ۲۰ نویسه، گذرواژه ۸ تا ۲۰ نویسه.</p>
+    <p class="hint compact" data-i18n="auth.passwordHint">نام کاربری تا ۲۰ نویسه، گذرواژه ۸ تا ۲۰ نویسه.</p>
     <p id="error" class="form-error" hidden></p>
-    <button class="button" type="submit">ساخت حساب</button>
+    <button class="button" type="submit" data-i18n="auth.signUp">ساخت حساب</button>
   </form>
-  <p class="hint">حساب دارید؟ <a href="/me/login">وارد شوید</a></p>
+  <p class="hint">
+    <span data-i18n="auth.hasAccount">حساب دارید؟</span>
+    <a href="/me/login" data-i18n="auth.loginLink">وارد شوید</a>
+  </p>
 </main>
 
+<script src="/me/dict.js"></script>
 <script src="/me/app.js"></script>
 <script>
   startRegister()

@@ -6,57 +6,71 @@
 <title>پنل کاربری · DeepSeek-FA</title>
 <link rel="stylesheet" href="/me/styles.css">
 </head>
-<body>
+<body data-page-title="nav.usage">
 <header>
   <a class="brand" href="https://www.deepseekfa.com/">
     <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
   </a>
   <nav>
-    <a href="/me/" aria-current="page">مصرف</a>
-    <a href="/me/keys">کلیدها</a>
-    <a href="https://www.deepseekfa.com/download">دانلود برنامه</a>
+    <a href="/me/" aria-current="page" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" data-i18n="nav.keys">کلیدها</a>
+    <a href="https://www.deepseekfa.com/download" data-i18n="nav.download">دانلود برنامه</a>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
   </nav>
 </header>
 
 <main>
   <div id="auth" class="notice" hidden>
-    برای دیدن مصرف و کلیدها باید وارد شوید.
-    <a class="button" href="/me/login">ورود</a>
-    <a class="button secondary" href="/me/register">ساخت حساب</a>
+    <span data-i18n="auth.needLoginUsage">برای دیدن مصرف و کلیدها باید وارد شوید.</span>
+    <a class="button" href="/me/login" data-i18n="auth.signIn">ورود</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">ساخت حساب</a>
   </div>
 
   <section id="app" hidden>
-    <h1>سلام، <span id="who">—</span></h1>
+    <h1 id="who">—</h1>
 
     <div class="cards">
-      <div class="card"><span class="label">موجودی</span><strong id="balance">—</strong></div>
-      <div class="card"><span class="label">مصرف کل</span><strong id="used">—</strong></div>
-      <div class="card"><span class="label">تعداد درخواست</span><strong id="requests">—</strong></div>
+      <div class="card"><span class="label" data-i18n="usage.balance">موجودی</span><strong id="balance">—</strong></div>
+      <div class="card"><span class="label" data-i18n="usage.used">مصرف کل</span><strong id="used">—</strong></div>
+      <div class="card"><span class="label" data-i18n="usage.requests">تعداد درخواست</span><strong id="requests">—</strong></div>
     </div>
 
-    <h2>آخرین مصرف</h2>
+    <h2 data-i18n="usage.recent">آخرین مصرف</h2>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>زمان</th><th>مدل</th><th>ورودی</th><th>خروجی</th><th>هزینه</th><th></th></tr>
+          <tr>
+            <th data-i18n="usage.colTime">زمان</th>
+            <th data-i18n="usage.colModel">مدل</th>
+            <th data-i18n="usage.colPrompt">ورودی</th>
+            <th data-i18n="usage.colCompletion">خروجی</th>
+            <th data-i18n="usage.colCost">هزینه</th>
+            <th></th>
+          </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="6" class="empty">در حال بارگذاری…</td></tr>
+          <tr><td colspan="6" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
         </tbody>
       </table>
     </div>
     <div class="pager">
-      <button id="prev" type="button">جدیدتر</button>
+      <button id="prev" type="button" data-i18n="common.prev">جدیدتر</button>
       <span id="pageinfo"></span>
-      <button id="next" type="button">قدیمی‌تر</button>
+      <button id="next" type="button" data-i18n="common.next">قدیمی‌تر</button>
     </div>
 
     <p class="hint">
-      برای دیدن کلید API به صفحهٔ <a href="/me/keys">کلیدها</a> بروید. کلید هنگام ورود به برنامه به‌صورت خودکار ساخته می‌شود.
+      <span data-i18n="usage.keysHint">برای دیدن کلید API به صفحهٔ</span>
+      <a href="/me/keys" data-i18n="usage.keysLink">کلیدها</a>
+      <span data-i18n="usage.keysHintEnd">بروید.</span>
     </p>
   </section>
 </main>
 
+<script src="/me/dict.js"></script>
 <script src="/me/app.js"></script>
 <script>
   startUsage()

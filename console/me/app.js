@@ -1,12 +1,30 @@
-/* Minimal Persian console for the DeepSeek-FA gateway.
+/* Persian/English console for the DeepSeek-FA gateway.
    Same origin as the API, so the New API session cookie authenticates every call. */
+/* global DICT */
+
+const requestLang = new URLSearchParams(location.search).get('lang')
+const storedLang = localStorage.getItem('console-lang')
+const LANG = ['fa', 'en'].includes(requestLang)
+  ? requestLang
+  : (['fa', 'en'].includes(storedLang) ? storedLang : 'fa')
+const D = DICT[LANG]
+const numberLocale = LANG === 'fa' ? 'fa-IR' : 'en-US'
 
 const state = { quotaPerUnit: 500000, page: 1, pageSize: 20 }
 
 const $ = (id) => document.getElementById(id)
-const num = (value) => new Intl.NumberFormat('fa-IR').format(Math.round(Number(value) || 0))
+const num = (value) => new Intl.NumberFormat(numberLocale).format(Math.round(Number(value) || 0))
+
+/** Resolve a dotted dictionary key, substituting {placeholders}. */
+function t(path, vars = {}) {
+  if (!path) return ''
+  const value = path.split('.').reduce((node, key) => (node == null ? undefined : node[key]), D)
+  if (typeof value !== 'string') return path
+  return value.replace(/\{(\w+)\}/g, (_, key) => (vars[key] === undefined ? '' : String(vars[key])))
+}
+
 const credit = (quota) => (Number(quota || 0) / state.quotaPerUnit).toFixed(2)
-/** Per-call costs are often far below 0.01 credits, so keep four decimals there. */
+/** Per-call costs are often far below 0.01 credits, so keep more decimals there. */
 const cost = (quota) => {
   const value = Number(quota || 0) / state.quotaPerUnit
   if (value === 0) return '0'
@@ -16,8 +34,28 @@ const cost = (quota) => {
 /** Gateway writes -1 for ratios a request did not use. */
 const val = (value) => (value === undefined || value === null || value === -1 ? '—' : value)
 const stamp = (seconds) => (seconds
-  ? new Date(seconds * 1000).toLocaleString('fa-IR', { dateStyle: 'short', timeStyle: 'short' })
+  ? new Date(seconds * 1000).toLocaleString(numberLocale, { dateStyle: 'short', timeStyle: 'short' })
   : '—')
+
+/** Apply dictionary text to every tagged node and align the document direction. */
+function applyI18n() {
+  document.documentElement.lang = LANG
+  document.documentElement.dir = D.dir
+  localStorage.setItem('console-lang', LANG)
+  document.querySelectorAll('[data-i18n]').forEach((node) => {
+    node.textContent = t(node.dataset.i18n)
+  })
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((node) => {
+    node.setAttribute('placeholder', t(node.dataset.i18nPlaceholder))
+  })
+  document.querySelectorAll('[data-lang-link]').forEach((node) => {
+    node.setAttribute('href', `?lang=${node.dataset.langLink}`)
+    node.setAttribute('aria-current', String(node.dataset.langLink === LANG))
+  })
+  if (document.body.dataset.pageTitle) {
+    document.title = `${t(document.body.dataset.pageTitle)} · ${D.brand}`
+  }
+}
 
 class Unauthorized extends Error {}
 
@@ -48,7 +86,7 @@ async function api(path, options = {}) {
   if (response.status === 401) throw new Unauthorized(path)
   const payload = await response.json().catch(() => ({}))
   if (!response.ok || payload.success === false) {
-    throw new Error(payload.message || `خطا در ${path}`)
+    throw new Error(payload.message || t('errors.generic'))
   }
   return payload.data
 }
@@ -59,7 +97,7 @@ function needLogin() {
   $('app').hidden = true
 }
 
-/** Wire a click handler that surfaces failures in the page hint. */
+/** Wire an action that surfaces failures in the page hint. */
 async function guard(action) {
   try {
     await action()
@@ -81,130 +119,21 @@ async function loadStatus() {
   }
 }
 
-
-/** Map the gateway's English/Chinese auth errors onto Persian copy. */
-const AUTH_ERRORS = [
-  // Field-specific length errors first: New API reports `Key: 'User.Username' ... max`.
-  [/User\.Username.*max|username.*max/i, 'نام کاربری حداکثر ۲۰ نویسه است.'],
-  [/User\.Password.*max|password.*max/i, 'گذرواژه حداکثر ۲۰ نویسه است.'],
-  [/User\.Password.*min|at least 8/i, 'گذرواژه حداقل ۸ نویسه است.'],
-  [/username or password is empty|用户名或密码为空/i, 'نام کاربری یا گذرواژه خالی است.'],
-  [/username or password is incorrect|用户名或密码错误/i, 'نام کاربری یا گذرواژه نادرست است.'],
-  [/password login has been disabled|密码登录已被关闭|关闭了密码登录/i, 'ورود با گذرواژه توسط مدیر بسته شده است.'],
-  [/registration has been disabled|关闭了新用户注册/i, 'ثبت‌نام بسته شده است.'],
-  [/password registration has been disabled/i, 'ثبت‌نام با گذرواژه بسته شده است.'],
-  [/username already exists|用户名已存在/i, 'این ایمیل (یا نام کاربری) قبلاً ثبت شده است.'],
-  [/at least 8|密码长度/i, 'گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.'],
-]
-
-/** Translate one gateway auth error, keeping the raw text as a last resort. */
-function persianError(message) {
-  const text = String(message || '').trim()
-  if (!text) return 'خطایی رخ داد. دوباره تلاش کنید.'
-  for (const [pattern, copy] of AUTH_ERRORS) if (pattern.test(text)) return copy
-  return `خطا: ${text}`
-}
-
-/** Show an inline error under the form. */
-function showFormError(message) {
-  const box = $('error')
-  if (!box) return
-  box.textContent = message
-  box.hidden = false
-}
-
-/** Where to go after signing in: honour ?next= on the same origin only. */
-function nextUrl() {
-  const next = new URLSearchParams(location.search).get('next')
-  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/me/'
-}
-
-/** Remember the signed-in user so the console can set the New-Api-User header. */
-function rememberUser(data) {
-  localStorage.setItem('user', JSON.stringify(data))
-}
-
-async function startLogin() {
-  const form = $('auth-form')
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault()
-    const username = form.username.value.trim()
-    const password = form.password.value
-    if (!username) return showFormError('نام کاربری را وارد کنید.')
-    if (!password) return showFormError('گذرواژه را وارد کنید.')
-    const body = JSON.stringify({ username, password })
-    try {
-      const response = await fetch('/api/user/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!payload.success) return showFormError(persianError(payload.message))
-      if (payload.data?.require_2fa) return showFormError('این حساب ورود دو مرحله‌ای دارد؛ فعلاً از کنسول اصلی وارد شوید.')
-      rememberUser(payload.data || {})
-      location.replace(nextUrl())
-    } catch {
-      showFormError('اتصال برقرار نشد. دوباره تلاش کنید.')
-    }
-  })
-}
-
-async function startRegister() {
-  const form = $('auth-form')
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault()
-    const username = form.username.value.trim()
-    const password = form.password.value
-    // Mirror model.User: `username max=20` (no minimum, no format rule), `password min=8,max=20`.
-    const runes = (value) => Array.from(value).length
-    if (!username) return showFormError('نام کاربری را وارد کنید.')
-    if (runes(username) > 20) return showFormError('نام کاربری حداکثر ۲۰ نویسه است.')
-    if (runes(password) < 8 || runes(password) > 20) return showFormError('گذرواژه باید بین ۸ تا ۲۰ نویسه باشد.')
-    if (password !== form.confirm.value) return showFormError('گذرواژه‌ها یکسان نیستند.')
-    try {
-      const response = await fetch('/api/user/register', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!payload.success) return showFormError(persianError(payload.message))
-
-      const login = await fetch('/api/user/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      const session = await login.json().catch(() => ({}))
-      if (!session.success) return showFormError('حساب ساخته شد؛ لطفاً از صفحهٔ ورود وارد شوید.')
-      rememberUser(session.data || {})
-      location.replace('/me/keys')
-    } catch {
-      showFormError('اتصال برقرار نشد. دوباره تلاش کنید.')
-    }
-  })
-}
-
 async function startUsage() {
+  applyI18n()
   await loadStatus()
   await guard(async () => {
     const me = await api('/api/user/self')
     $('auth').hidden = true
     $('app').hidden = false
-    // Registrations derive an internal username; greet people by what they know: their email.
     const displayName = me.display_name && me.display_name !== me.username ? me.display_name : ''
-    $('who').textContent = displayName || me.email || me.username || 'کاربر'
+    $('who').textContent = t('usage.greeting', { name: displayName || me.email || me.username || '—' })
     $('balance').textContent = credit(me.quota)
     $('used').textContent = credit(me.used_quota)
     $('requests').textContent = num(me.request_count)
     await loadLogs()
   })
 }
-
 
 /** Per-call billing breakdown: the gateway stores ratios and cache figures in `other`. */
 function detailHtml(item) {
@@ -215,32 +144,32 @@ function detailHtml(item) {
     other = {}
   }
   const rows = [
-    ['مدل', item.model_name || '—'],
-    ['گروه', item.group || '—'],
-    ['مسیر درخواست', val(other.request_path)],
-    ['منبع صورتحساب', val(other.billing_source)],
-    ['نسبت مدل', val(other.model_ratio)],
-    ['نسبت گروه', val(other.user_group_ratio ?? other.group_ratio)],
-    ['نسبت تکمیل', val(other.completion_ratio)],
-    ['نسبت کش', val(other.cache_ratio)],
-    ['نسبت ساخت کش', val(other.cache_creation_ratio)],
-    ['توکن کش‌شده', other.cache_tokens == null ? '—' : num(other.cache_tokens)],
-    ['توکن ساخت کش', other.cache_creation_tokens == null ? '—' : num(other.cache_creation_tokens)],
-    ['قیمت مدل', Number(other.model_price) > 0 ? credit(Number(other.model_price) * state.quotaPerUnit) : '—'],
-    ['توکن ورودی', num(item.prompt_tokens)],
-    ['توکن خروجی', num(item.completion_tokens)],
-    ['زمان پاسخ اول', other.frt == null || Number(other.frt) < 0 ? '—' : `${num(other.frt)} میلی‌ثانیه`],
-    ['مدت', `${Number(item.use_time || 0).toFixed(2)} ثانیه`],
-    ['جریان (stream)', item.is_stream ? 'بله' : 'خیر'],
-    ['تبدیل درخواست', val(other.request_conversion)],
-    ['کلید', item.token_name || '—'],
-    ['کانال', item.channel_name || item.channel || '—'],
-    ['هزینه', cost(item.quota)],
-    ['واحد خام', num(item.quota)],
-    ['شناسه درخواست', item.request_id || '—'],
+    ['detail.model', item.model_name || '—'],
+    ['detail.group', item.group || '—'],
+    ['detail.path', val(other.request_path)],
+    ['detail.billing', val(other.billing_source)],
+    ['detail.modelRatio', val(other.model_ratio)],
+    ['detail.groupRatio', val(other.user_group_ratio ?? other.group_ratio)],
+    ['detail.completionRatio', val(other.completion_ratio)],
+    ['detail.cacheRatio', val(other.cache_ratio)],
+    ['detail.cacheCreationRatio', val(other.cache_creation_ratio)],
+    ['detail.cacheTokens', other.cache_tokens == null ? '—' : num(other.cache_tokens)],
+    ['detail.cacheCreationTokens', other.cache_creation_tokens == null ? '—' : num(other.cache_creation_tokens)],
+    ['detail.modelPrice', Number(other.model_price) > 0 ? credit(Number(other.model_price) * state.quotaPerUnit) : '—'],
+    ['detail.promptTokens', num(item.prompt_tokens)],
+    ['detail.completionTokens', num(item.completion_tokens)],
+    ['detail.firstByte', other.frt == null || Number(other.frt) < 0 ? '—' : t('detail.millis', { value: num(other.frt) })],
+    ['detail.duration', t('detail.seconds', { value: Number(item.use_time || 0).toFixed(2) })],
+    ['detail.stream', item.is_stream ? t('detail.yes') : t('detail.no')],
+    ['detail.conversion', val(other.request_conversion)],
+    ['detail.key', item.token_name || '—'],
+    ['detail.channel', item.channel_name || item.channel || '—'],
+    ['detail.cost', cost(item.quota)],
+    ['detail.raw', num(item.quota)],
+    ['detail.requestId', item.request_id || '—'],
   ]
   return `<div class="detail-grid">${rows.map(([label, value]) =>
-    `<div><span>${label}</span><strong dir="auto">${value}</strong></div>`).join('')}</div>`
+    `<div><span>${t(label)}</span><strong dir="auto">${value}</strong></div>`).join('')}</div>`
 }
 
 async function loadLogs() {
@@ -248,7 +177,7 @@ async function loadLogs() {
   const rows = (data.items || []).filter((item) => Number(item.quota) !== 0 || item.model_name)
   const body = $('rows')
   if (rows.length === 0) {
-    body.innerHTML = '<tr><td colspan="6" class="empty">مصرفی ثبت نشده است.</td></tr>'
+    body.innerHTML = `<tr><td colspan="6" class="empty">${t('common.empty')}</td></tr>`
   } else {
     body.innerHTML = rows.map((item, index) => `<tr>
       <td>${stamp(item.created_at)}</td>
@@ -256,18 +185,21 @@ async function loadLogs() {
       <td>${num(item.prompt_tokens)}</td>
       <td>${num(item.completion_tokens)}</td>
       <td>${cost(item.quota)}</td>
-      <td class="actions"><button type="button" data-detail="${index}">جزئیات</button></td>
+      <td class="actions"><button type="button" data-detail="${index}">${t('common.details')}</button></td>
     </tr>
     <tr class="detail" data-panel="${index}" hidden><td colspan="6">${detailHtml(item)}</td></tr>`).join('')
   }
   const total = Number(data.total || 0)
   const pages = Math.max(1, Math.ceil(total / state.pageSize))
-  $('pageinfo').textContent = `صفحهٔ ${num(state.page)} از ${num(pages)}`
+  $('pageinfo').textContent = t('common.page', { page: num(state.page), pages: num(pages) })
+  $('prev').textContent = t('common.prev')
+  $('next').textContent = t('common.next')
   $('prev').disabled = state.page <= 1
   $('next').disabled = state.page >= pages
 }
 
 async function startKeys() {
+  applyI18n()
   await loadStatus()
   await guard(async () => {
     await api('/api/user/self')
@@ -278,24 +210,24 @@ async function startKeys() {
 }
 
 async function loadKeys() {
-  const data = await api(`/api/token/?p=1&size=100`)
+  const data = await api('/api/token/?p=1&size=100')
   const tokens = data.items || []
   const body = $('rows')
   if (tokens.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" class="empty">کلیدی وجود ندارد.</td></tr>'
+    body.innerHTML = `<tr><td colspan="5" class="empty">${t('common.empty')}</td></tr>`
     return
   }
   body.innerHTML = tokens.map((token) => {
     const masked = `sk-${String(token.key).slice(0, 6)}…${String(token.key).slice(-4)}`
-    const status = token.status === 1 ? 'فعال' : 'غیرفعال'
+    const status = token.status === 1 ? t('keys.active') : t('keys.inactive')
     return `<tr>
       <td>${token.name || '—'}</td>
       <td dir="ltr"><code>${masked}</code></td>
       <td>${credit(token.used_quota)}</td>
       <td>${status}</td>
       <td class="actions">
-        <button type="button" data-copy="sk-${token.key}">کپی</button>
-        <button type="button" class="danger" data-delete="${token.id}">حذف</button>
+        <button type="button" data-copy="${token.key}">${t('common.copy')}</button>
+        <button type="button" class="danger" data-delete="${token.id}">${t('common.remove')}</button>
       </td>
     </tr>`
   }).join('')
@@ -318,8 +250,9 @@ document.addEventListener('click', (event) => {
   const copy = event.target.closest('[data-copy]')
   if (copy) {
     copyText(copy.dataset.copy).then(() => {
-      copy.textContent = 'کپی شد'
-      setTimeout(() => { copy.textContent = 'کپی' }, 1500)
+      const original = t('common.copy')
+      copy.textContent = t('common.copied')
+      setTimeout(() => { copy.textContent = original }, 1500)
     })
     return
   }
@@ -329,41 +262,120 @@ document.addEventListener('click', (event) => {
       await api(`/api/token/${remove.dataset.delete}`, { method: 'DELETE' })
       await loadKeys()
     })
+    return
+  }
+  const trigger = event.target.closest('[data-detail]')
+  if (trigger) {
+    const panel = document.querySelector(`[data-panel="${trigger.dataset.detail}"]`)
+    if (!panel) return
+    panel.hidden = !panel.hidden
+    trigger.textContent = panel.hidden ? t('common.details') : t('common.close')
   }
 })
 
+/** Map the gateway's English/Chinese auth errors onto the active language. */
+const AUTH_ERROR_PATTERNS = [
+  [/User\.Username.*max|username.*max/i, 'errors.usernameTooLong'],
+  [/User\.Password.*max|password.*max/i, 'errors.passwordRange'],
+  [/User\.Password.*min|at least 8/i, 'errors.passwordRange'],
+  [/username or password is empty|用户名或密码为空/i, 'errors.emptyCredentials'],
+  [/username or password is incorrect|用户名或密码错误/i, 'errors.wrongCredentials'],
+  [/password login has been disabled|关闭了密码登录/i, 'errors.loginDisabled'],
+  [/registration has been disabled|关闭了新用户注册/i, 'errors.registerDisabled'],
+  [/username already exists|用户名已存在/i, 'errors.exists'],
+]
 
-document.addEventListener('click', (event) => {
-  const trigger = event.target.closest('[data-detail]')
-  if (!trigger) return
-  const panel = document.querySelector(`[data-panel="${trigger.dataset.detail}"]`)
-  if (!panel) return
-  panel.hidden = !panel.hidden
-  trigger.textContent = panel.hidden ? 'جزئیات' : 'بستن'
-})
+function errorText(message) {
+  const text = String(message || '').trim()
+  if (!text) return t('errors.generic')
+  for (const [pattern, key] of AUTH_ERROR_PATTERNS) if (pattern.test(text)) return t(key)
+  return t('errors.raw', { message: text })
+}
 
-document.addEventListener('submit', (event) => {
-  if (event.target.id !== 'create') return
-  event.preventDefault()
-  const input = $('name')
-  guard(async () => {
-    await api('/api/token/', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: input.value.trim() || new Date().toISOString().slice(0, 16),
-        remain_quota: 0,
-        expired_time: -1,
-        unlimited_quota: true,
-        model_limits_enabled: false,
-        model_limits: '',
-        allow_ips: '',
-        group: '',
-      }),
-    })
-    input.value = ''
-    await loadKeys()
+/** Show an inline error under the form. */
+function showFormError(message) {
+  const box = $('error')
+  if (!box) return
+  box.textContent = message
+  box.hidden = false
+}
+
+/** Where to go after signing in: honour ?next= on the same origin only. */
+function nextUrl() {
+  const next = new URLSearchParams(location.search).get('next')
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/me/'
+}
+
+/** Remember the signed-in user so the console can set the New-Api-User header. */
+function rememberUser(data) {
+  localStorage.setItem('user', JSON.stringify(data))
+}
+
+async function startLogin() {
+  applyI18n()
+  const form = $('auth-form')
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const username = form.username.value.trim()
+    const password = form.password.value
+    if (!username) return showFormError(t('errors.requiredUsername'))
+    if (!password) return showFormError(t('errors.requiredPassword'))
+    try {
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(errorText(payload.message))
+      if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
+      rememberUser(payload.data || {})
+      location.replace(nextUrl())
+    } catch {
+      showFormError(t('errors.network'))
+    }
   })
-})
+}
+
+async function startRegister() {
+  applyI18n()
+  const form = $('auth-form')
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const username = form.username.value.trim()
+    const password = form.password.value
+    // Mirror model.User: `username max=20` (no minimum, no format rule), `password min=8,max=20`.
+    const runes = (value) => Array.from(value).length
+    if (!username) return showFormError(t('errors.requiredUsername'))
+    if (runes(username) > 20) return showFormError(t('errors.usernameTooLong'))
+    if (runes(password) < 8 || runes(password) > 20) return showFormError(t('errors.passwordRange'))
+    if (password !== form.confirm.value) return showFormError(t('errors.mismatch'))
+    try {
+      const response = await fetch('/api/user/register', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(errorText(payload.message))
+
+      const login = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      const session = await login.json().catch(() => ({}))
+      if (!session.success) return showFormError(t('errors.registerThenLogin'))
+      rememberUser(session.data || {})
+      location.replace('/me/keys')
+    } catch {
+      showFormError(t('errors.network'))
+    }
+  })
+}
 
 for (const [id, step] of [['prev', -1], ['next', 1]]) {
   const button = $(id)

@@ -59,6 +59,11 @@ nav { display: flex; gap: 18px; font-size: 14px; }
 nav a { color: var(--muted); }
 nav a[aria-current="page"] { color: var(--text); font-weight: 600; }
 
+.lang { display: inline-flex; gap: 2px; align-items: center; }
+.lang a { color: var(--muted); border: 1px solid transparent; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+.lang a:hover { color: var(--text); }
+.lang a[aria-current="true"] { color: var(--text); border-color: var(--line); }
+
 main { width: min(980px, calc(100vw - 40px)); margin: 32px auto 72px; }
 
 h1 { font-size: 26px; letter-spacing: -0.6px; margin: 0 0 18px; }

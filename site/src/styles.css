@@ -254,6 +254,7 @@ footer.site {
   .hero { padding-block: 56px 40px; }
   section { padding-block: 36px; }
   nav.links { gap: 16px; font-size: 14px; }
-  nav.links a:not(.app) { display: none; }
-  nav.links a[aria-current="page"] { display: inline-flex; }
+  /* Hide the page links only; the language switch sits inside .lang and must stay. */
+  nav.links > a:not(.app) { display: none; }
+  nav.links > a[aria-current="page"] { display: inline-flex; }
 }

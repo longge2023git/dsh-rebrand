@@ -68,3 +68,4 @@ nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `
 - 控制台公告位尚未加入口；RU 已在控制台公告里挂过 `/download`
 - 未做访问统计，也未接 CDN
 - 英文页的语言切换按钮：`fa` 站显示 `EN`、`ru` 站显示 `EN`，回切标签由 `render.mjs` 的 `otherLabel` 决定
+- 移动端曾把语言开关一起隐藏：`nav.links a:not(.app)` 会匹配到 `.lang a`，已改为 `nav.links > a:not(.app)`

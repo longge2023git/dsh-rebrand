@@ -32,6 +32,18 @@
 - 2FA 账号会被拦下并提示改用主控制台（迷你站没有 2FA 表单）
 - SPA 的 `/register` 由 nginx `location = /register` 302 到 `/me/register`，注册统一走迷你站
 
+## 界面语言（fa / en）
+
+| 项 | 说明 |
+|---|---|
+| 文案 | `console/me/dict.js`（`DICT.fa` / `DICT.en`）；静态文本用 `data-i18n="key"`，动态文本用 `t('key', {vars})` |
+| 切换 | 页头 `FA / EN`，链接为 `?lang=fa|en`；选择写入 `localStorage['console-lang']`，之后打开任意页面沿用 |
+| 方向 | `applyI18n()` 同步 `document.documentElement.lang` 与 `dir`（fa=rtl、en=ltr） |
+| 数字/日期 | `Intl.NumberFormat('fa-IR' | 'en-US')`，日期同理 |
+| 报错 | 服务端返回英文/中文错误，`AUTH_ERROR_PATTERNS` 映射到当前语言的词条，未命中保留原文 |
+
+浏览器原生校验仍然关闭（`novalidate`），否则提示语会跟随浏览器界面语言。
+
 ## 用到的接口
 
 | 页面 | 接口 |
