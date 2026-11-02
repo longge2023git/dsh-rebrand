@@ -171,13 +171,23 @@ export const downloadBody = (brand, copy) => {
     </article>`)
     .join('\n    ')
 
-  const windows = brand.windows === 'soon'
-    ? `<article class="card dl-card">
+  // Windows card is manifest-driven: the page fills version/size/sha from
+  // /downloads/<slug>.json when the build has been uploaded, and shows "soon" otherwise.
+  const win = brand.windows
+  const windows = `<article class="card dl-card" id="win-card" hidden
+      data-manifest="${win.manifest}" data-exe="${win.exe}"
+      data-ver="${copy.download.versionLabel}" data-size="${copy.download.sizeLabel}" data-sha="${copy.download.shaLabel}"
+      data-ago="${copy.download.uploadedLabel ?? ''}">
+      <h3>${copy.download.windowsTitle}</h3>
+      <p class="meta" data-win-meta>&nbsp;</p>
+      <a class="button" data-win-link href="${win.exe}" download>${copy.download.buttonWin ?? copy.download.button}</a>
+      <p class="sha" data-win-sha></p>
+    </article>
+    <article class="card dl-card" id="win-soon">
       <h3>${copy.download.windowsTitle}</h3>
       <p class="meta">&nbsp;</p>
       <span class="soon">${copy.download.soon}</span>
     </article>`
-    : ''
 
   const notes = copy.download.installSteps.map((step) => `<li>${step}</li>`).join('\n        ')
 
@@ -192,6 +202,25 @@ export const downloadBody = (brand, copy) => {
       ${windows}
     </div>
   </section>
+
+  <script>
+    (function () {
+      var card = document.getElementById('win-card')
+      var soon = document.getElementById('win-soon')
+      if (!card) return
+      fetch(card.dataset.manifest, { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('missing')) })
+        .then(function (m) {
+          var sizeMb = (m.bytes / 1048576).toFixed(0)
+          card.querySelector('[data-win-meta]').textContent =
+            card.dataset.ver + ' ' + m.version + ' · x64 · ' + sizeMb + ' MiB'
+          card.querySelector('[data-win-sha]').textContent = card.dataset.sha + ': ' + m.sha256
+          card.hidden = false
+          if (soon) soon.hidden = true
+        })
+        .catch(function () { /* no build uploaded yet: keep the "soon" card */ })
+    })()
+  </script>
 
   <section>
     <h2>${copy.download.installTitle}</h2>

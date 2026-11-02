@@ -22,5 +22,9 @@ export default {
       sha256: 'bb149280dbea57b22ad1525ce7c140fb6b25ee1bb6fc9cd15e47a9de773d3893',
     },
   ],
-  windows: 'soon',
+  windows: {
+    slug: 'deepseek-ru-win-x64-unsigned',
+    exe: '/downloads/deepseek-ru-win-x64-unsigned.exe',
+    manifest: '/downloads/deepseek-ru-win-x64-unsigned.json',
+  },
 }

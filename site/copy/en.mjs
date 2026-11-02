@@ -41,6 +41,7 @@ export default {
   },
   download: {
     lead: 'Builds are unsigned — allow the app in your security settings on first launch.',
+    buttonWin: 'Download for Windows',
     button: 'Download for macOS',
     versionLabel: 'Version',
     sizeLabel: 'Size',

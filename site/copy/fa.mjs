@@ -42,6 +42,7 @@ export default {
   },
   download: {
     lead: 'نسخه‌ها بدون امضای Apple هستند؛ در اولین اجرا برنامه را در تنظیمات امنیتی مجاز کنید.',
+    buttonWin: 'دانلود برای ویندوز',
     button: 'دانلود برای macOS',
     versionLabel: 'نسخه',
     sizeLabel: 'حجم',

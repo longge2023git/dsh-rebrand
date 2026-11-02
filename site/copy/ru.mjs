@@ -42,6 +42,7 @@ export default {
   },
   download: {
     lead: 'Сборки без подписи Apple — при первом запуске разрешите приложение в настройках безопасности.',
+    buttonWin: 'Скачать для Windows',
     button: 'Скачать для macOS',
     versionLabel: 'Версия',
     sizeLabel: 'Размер',
