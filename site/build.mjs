@@ -25,6 +25,12 @@ import { layout, homeBody, downloadBody, docsBody, notFoundBody, prefixOf, fillD
 const here = dirname(fileURLToPath(import.meta.url))
 const outRoot = join(here, 'dist')
 
+/** Each brand's pages must not mention the other brand by name or domain. */
+const FORBIDDEN = {
+  fa: ['DeepSeek-RU', 'deepseek-ru.org'],
+  ru: ['DeepSeek-FA', 'deepseekfa.com'],
+}
+
 const brands = [faBrand, ruBrand]
 const copies = { fa: faCopy, ru: ruCopy, en: enCopy }
 
@@ -77,6 +83,25 @@ for (const brand of selected) {
     .map((url) => `  <url><loc>${url}</loc></url>`)
     .join('\n')}\n</urlset>\n`
   await writeFile(join(brandOut, 'sitemap.xml'), sitemap)
+
+  // Guard the multi-brand build: no foreign brand name/domain, no unresolved tokens.
+  const problems = []
+  for (const page of pages) {
+    for (const locale of brand.locales) {
+      const prefix = prefixOf(brand, locale)
+      const file = join(brandOut, ...(prefix ? [prefix.slice(1)] : []), page.file)
+      const html = await readFile(file, 'utf8')
+      for (const needle of FORBIDDEN[brand.id]) {
+        if (html.includes(needle)) problems.push(`${file}: 含有其它品牌字样 "${needle}"`)
+      }
+      const leftover = html.match(/\{\{[a-z]+\}\}/g)
+      if (leftover) problems.push(`${file}: 未替换的占位符 ${[...new Set(leftover)].join(', ')}`)
+    }
+  }
+  if (problems.length > 0) {
+    console.error(`site/${brand.id} 构建校验失败：\n  ` + problems.join('\n  '))
+    process.exit(1)
+  }
 
   console.log(`built ${brand.id}: ${brand.locales.length} locales, ${urls.length} pages -> ${resolve(brandOut)}`)
 }

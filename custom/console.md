@@ -43,6 +43,8 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 页面里的 `{{brand}}` `{{lang}}` `{{dir}}` `{{site}}` `{{api}}` 由构建脚本替换（品牌名、默认语言、方向、官网域名、API 域名）。
 
+**构建自带校验**：产物 HTML 里若出现另一个品牌的名称/域名（如 RU 产物里出现 `DeepSeek-FA` 或 `deepseekfa.com`），或残留 `{{token}}`，构建直接以退出码 1 失败并指出文件与字样。`dict.js` 是共享词表、同时包含两个品牌，不在校验范围内。
+
 | 部署 | 目标 | nginx |
 |---|---|---|
 | FA | `root@87.107.108.14:/var/www/fa-console/me/` | apex vhost 的 `location /me/`（root `/var/www/fa-console`） |
