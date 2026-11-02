@@ -124,6 +124,21 @@ ssh root@104.248.155.54 'cd /opt/dsh-gateway-ru && docker create --name ru-patch
 
 镜像：`20261031-ru-login`（在 `20261031-ru` 上替换 `/new-api` 二进制；上传后校验 md5，避免中断传输造成坏包）。
 
+## 下载页（2026-11-02）
+
+`https://deepseek-ru.org/download` 是 nginx 直接提供的静态页（不进控制台，因此不影响 FA 站点）：
+
+- 俄语默认、EN 可切换；深色模式跟随系统
+- macOS 卡片：版本、arm64、253 MiB、未签名说明、下载按钮、SHA-256
+- Windows 卡片：显示「Скоро」，等 `D-03` 出包后补
+- 底部说明：macOS 拦截时的放行步骤、登录入口指到 `/console`
+
+实现：`custom/download-page/index.html`（入库），服务器上 `/opt/dsh-gateway-ru/download-page.html`；nginx 用 `location = /download` 指向该文件，`/download/` 302 到 `/download`。**不要再改成 alias 到目录 + `index`**：`/download/index.html` 会被 `location /` 接走，命中控制台 SPA。
+
+入口：控制台首页公告（`console_setting.announcements`）已配置，面板显示「DeepSeek-RU для macOS — установщик готов」，附「Скачать」链接。
+
+截图：[`download-page-ru.png`](assets/ru-verify/download-page-ru.png)
+
 ## 控制台俄语（2026-11-02）
 
 NewAPI 二开本身带 `web/src/i18n/locales/ru.json`，语言下拉里也有「Русский」，但**俄语浏览器进站会落到英文**：i18next 用 `load: 'currentOnly'`，检测到的是区域标签 `ru-RU`，而资源键是 `ru`，匹配不上就回落 `en`。
