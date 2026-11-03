@@ -876,7 +876,8 @@ async function startRegister() {
     if (emailOn) {
       if (!email) return showFormError(t('errors.emailRequired'))
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError(t('errors.emailInvalid'))
-      if (!/^\d{6}$/.test(code)) return showFormError(t('errors.codeRequired'))
+      // Codes are the first six hex characters of a UUID, so letters a-f are valid.
+      if (!/^[0-9a-fA-F]{6}$/.test(code)) return showFormError(t('errors.codeRequired'))
       // The gateway still stores a username; derive a stable one from the address.
       username = deriveUsername(email)
     } else {
@@ -892,7 +893,7 @@ async function startRegister() {
         body: JSON.stringify({
           username,
           password,
-          ...(emailOn ? { email, verification_code: code } : {}),
+          ...(emailOn ? { email, verification_code: code.toLowerCase() } : {}),
           ...(form.aff && form.aff.value.trim() ? { aff_code: form.aff.value.trim() } : {}),
         }),
       })

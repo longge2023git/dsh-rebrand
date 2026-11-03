@@ -128,11 +128,11 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await page.click('#send-code')
       await page.waitForTimeout(600)
       checker.check('发送验证码请求正确', calls.some((c) => c.includes('verification:?email=user%40example.com')), calls.find((c) => c.startsWith('verification')) || '无')
-      await page.fill('input[name="code"]', '123456')
+      await page.fill('input[name="code"]', '29a2b2')  // 验证码是 hex，必须接受 a-f
       await page.click('#auth-form button[type="submit"]')
       await page.waitForTimeout(700)
       const payload = calls.find((c) => c.startsWith('register:')) || ''
-      checker.check('提交载荷带 email + verification_code + 派生用户名', payload.includes('"email":"user@example.com"') && payload.includes('"verification_code":"123456"') && /"username":"[a-z0-9]+_[a-z0-9]{4}"/.test(payload), payload.slice(0, 140))
+      checker.check('提交载荷带 email + hex 验证码 + 派生用户名', payload.includes('"email":"user@example.com"') && payload.includes('"verification_code":"29a2b2"') && /"username":"[a-z0-9]+_[a-z0-9]{4}"/.test(payload), payload.slice(0, 140))
       await context.close()
     }
 
