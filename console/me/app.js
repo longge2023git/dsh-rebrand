@@ -478,6 +478,68 @@ async function startDsh() {
   })
 }
 
+
+/** Top-up page: current balance, redeem-code form, and past top-ups. */
+async function startTopup() {
+  applyI18n()
+  const form = $('redeem')
+  // Bind before any await: a fast submit must never fall through to a native GET.
+  const statusReady = loadStatus()
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    await statusReady
+    const code = form.code.value.trim()
+    if (!code) return
+    try {
+      const result = await api('/api/user/topup', { method: 'POST', body: JSON.stringify({ key: code }) })
+      form.code.value = ''
+      const added = Number(result) > 0 ? credit(result) : ''
+      showTopupMessage(`${t('topup.redeemed')}${added ? ' (+' + added + ')' : ''}`, true)
+      await loadTopup()
+    } catch (error) {
+      showTopupMessage(error instanceof Unauthorized ? t('auth.needLoginUsage') : errorText(error.message), false)
+    }
+  })
+  await guard(async () => {
+    const me = await api('/api/user/self')
+    $('auth').hidden = true
+    $('app').hidden = false
+    if ($('sign-out')) $('sign-out').hidden = false
+    $('balance').textContent = credit(me.quota)
+    await loadTopup()
+  })
+}
+
+/** Render one line of feedback under the redeem form. */
+function showTopupMessage(text, ok) {
+  const box = $('message')
+  box.textContent = text
+  box.hidden = false
+  box.classList.toggle('ok', ok)
+  box.classList.toggle('bad', !ok)
+}
+
+/** Load the paginated top-up history. */
+async function loadTopup() {
+  const data = await api('/api/user/topup/self?p=1&page_size=20')
+  const rows = data.items ?? []
+  const body = $('rows')
+  if (rows.length === 0) {
+    body.innerHTML = `<tr><td colspan="4" class="empty">${t('common.empty')}</td></tr>`
+    return
+  }
+  body.innerHTML = rows.map((item) => {
+    const status = item.status === 'success' ? t('topup.statusSuccess')
+      : item.status === 'failed' ? t('topup.statusFailed') : t('topup.statusPending')
+    return `<tr>
+      <td>${stamp(item.create_time)}</td>
+      <td>${item.money > 0 ? '$' + Number(item.money).toFixed(2) : credit(item.amount)}</td>
+      <td>${item.payment_method === 'redeem' ? t('topup.methodRedeem') : (item.payment_method || '—')}</td>
+      <td>${status}</td>
+    </tr>`
+  }).join('')
+}
+
 async function startLogin() {
   applyI18n()
   const form = $('auth-form')

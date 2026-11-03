@@ -173,7 +173,31 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await context.close()
     }
 
-    // 7. 桌面登录：已登录直接完成 / 2FA 提示
+    // 7. 充值页：余额、兑换、历史
+    {
+      const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
+      await page.route('**/api/user/topup/self**', (route) => route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { items: [{ id: 1, amount: 250000, money: 0, payment_method: 'redeem', create_time: 1793600000, status: 'success' }] } }),
+      }))
+      await page.route('**/api/user/topup', async (route) => {
+        calls.push('topup:' + String(route.request().postData() ?? ''))
+        await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: 250000 }) })
+      })
+      await page.goto(`${base}/me/topup`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(600)
+      checker.check('充值页显示余额', (await page.locator('#balance').innerText()).trim() === '0.10', await page.locator('#balance').innerText())
+      checker.check('充值页显示历史记录', (await page.locator('#rows tr').count()) === 1)
+      await page.fill('#code', 'RDM-1')
+      await page.click('#redeem button[type="submit"]')
+      await page.waitForTimeout(800)
+      checker.check('兑换码请求正确', calls.some((c) => c === 'topup:{"key":"RDM-1"}'), calls.join(' | '))
+      checker.check('兑换后有提示', !(await page.locator('#message').isHidden()))
+      await context.close()
+    }
+
+    // 8. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

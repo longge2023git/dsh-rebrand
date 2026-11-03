@@ -29,6 +29,7 @@
 | M-11 | Windows 构建交接 | 就绪待产出 | [windows-handoff.md](windows-handoff.md) |
 | M-12 | 桌面端登录改用迷你页 | 完成（客户端无需升级） | [console.md](console.md#桌面登录的路径约束改之前必读) |
 | M-13 | apex 入口切换到迷你站 | 完成 | [site.md](site.md#apex-入口路由) |
+| M-14 | 迷你站补充值页与退出登录 | 完成 | [console.md](console.md) |
 
 ## 关键决策
 

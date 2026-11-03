@@ -218,3 +218,7 @@ main.narrow { max-width: 460px; }
 .eye .eye-off { display: none; }
 .eye[aria-pressed="true"] .eye-open { display: none; }
 .eye[aria-pressed="true"] .eye-off { display: inline; }
+
+/* Top-up feedback line */
+.hint.ok { color: var(--ok, #1a7f37); }
+.hint.bad { color: var(--danger, #b42318); }

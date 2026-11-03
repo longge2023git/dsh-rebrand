@@ -52,6 +52,10 @@ export async function runSite({ brand, checker }) {
     await page.waitForTimeout(1000)
     checker.check('语言切回本语言', (await page.evaluate(() => document.documentElement.lang)) === brand.lang)
 
+    const topUp = await page.goto(`${brand.app}/top_up`, { waitUntil: 'domcontentloaded' })
+    checker.check('充值入口跳到迷你站充值页', page.url().includes('/me/topup'), page.url())
+    checker.check('充值页可访问', topUp?.status() === 200, `status=${topUp?.status()}`)
+
     const notFound = await page.goto(`${brand.site}/no-such-page-${Date.now()}`, { waitUntil: 'domcontentloaded' })
     checker.check('404 状态码', notFound?.status() === 404, `status=${notFound?.status()}`)
     checker.check('404 是品牌页', await page.locator('h1').first().isVisible())

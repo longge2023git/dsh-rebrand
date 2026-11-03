@@ -114,6 +114,10 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
 
+## 充值页（/me/topup）
+
+显示余额、兑换码（`POST /api/user/topup {key}`）与充值历史（`GET /api/user/topup/self`）；没有支付渠道，页面提示"联系支持"。入口在头部导航「شارژ / Пополнение / Add credit」，`/top_up` 也 302 到这里（`DSH_MINI_LOGIN=0` 时回 `/console/topup`）。
+
 ## 退出登录
 
 用量页与密钥页的头部在登录态显示「退出」（未登录隐藏）。点击后：
