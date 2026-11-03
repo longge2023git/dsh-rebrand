@@ -55,7 +55,11 @@ function applyI18n() {
     node.setAttribute('title', label)
   })
   document.querySelectorAll('[data-lang-link]').forEach((node) => {
-    node.setAttribute('href', `?lang=${node.dataset.langLink}`)
+    // Keep every other query parameter: dropping tx (desktop sign-in), dsh (register →
+    // authorize) or aff (invite) turns a language switch into a broken flow.
+    const params = new URLSearchParams(location.search)
+    params.set('lang', node.dataset.langLink)
+    node.setAttribute('href', `${location.pathname}?${params.toString()}${location.hash}`)
     node.setAttribute('aria-current', String(node.dataset.langLink === LANG))
   })
   if (document.body.dataset.pageTitle) {
