@@ -55,6 +55,20 @@ rsync -az --delete -e "ssh -i ~/.ssh/id_ed25519_hub_104_248_155_54" \
 
 nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `deepseekfa.conf` 只保留主域）；RU 是 `/etc/nginx/conf.d/deepseek-ru.conf` 的 `www` server 块。两者都用 `try_files $uri $uri.html $uri/index.html` 支持 `/download` 这种无扩展名路径。
 
+## apex 入口路由
+
+apex 不再直接暴露 New API 的 SPA：
+
+| 路径 | 行为 |
+|---|---|
+| `/` | 302 → `/me/`（迷你控制台首页） |
+| `/login` | 302 → `/me/login` |
+| `/register` | 302 → `/me/register` |
+| `/console`、`/console/log`、… | **保留**，管理员与 2FA 用户仍需要 |
+| `/api/*`、`/v1/*`、`/dsh/*` | 原样代理到网关 |
+
+改法是在 apex 的 server 块里加两条 `location =`（`/etc/nginx/sites-enabled/deepseekfa.conf`、`/etc/nginx/conf.d/deepseek-ru.conf`）；回退就是删掉这两条并 reload。
+
 ## 构建校验
 
 `build.mjs` 在写完后扫描每个品牌的 HTML：出现另一个品牌的名称或域名（FA 产物含 `DeepSeek-RU` / `deepseek-ru.org`，反之亦然），或残留 `{{token}}`，就打印问题并以退出码 1 失败。多品牌模板最容易出的事故就是"某处忘了参数化"，这条断言把它变成构建失败而不是线上事故。
