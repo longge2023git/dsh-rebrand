@@ -67,6 +67,41 @@
     </form>
     <p id="saved" class="hint ok" hidden data-i18n="account.saved">گذرواژه تغییر کرد.</p>
 
+
+    <h2 data-i18n="twofa.title">ورود دو مرحله‌ای</h2>
+    <p id="twofa-error" class="form-error" hidden></p>
+
+    <div id="twofa-off">
+      <p class="hint" data-i18n="twofa.intro">پس از فعال‌سازی، برای ورود به کد ۶ رقمی هم نیاز است.</p>
+      <button class="button" type="button" id="twofa-start" data-i18n="twofa.enable">فعال‌سازی ورود دو مرحله‌ای</button>
+    </div>
+
+    <div id="twofa-setup" hidden>
+      <p class="hint" data-i18n="twofa.secretHint">این کلید را به‌صورت دستی در برنامهٔ احرازگر اضافه کنید:</p>
+      <p class="field"><code id="twofa-secret" dir="ltr"></code>
+        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
+      </p>
+      <p class="hint" data-i18n="twofa.backupHint">کدهای پشتیبان فقط یک بار نمایش داده می‌شوند؛ همین حالا ذخیره کنید:</p>
+      <ul id="twofa-backup" class="codes"></ul>
+      <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">کپی همهٔ کدهای پشتیبان</button></p>
+      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">کدهای پشتیبان را ذخیره کردم</span></label>
+      <label><span data-i18n="twofa.code">کد ۶ رقمی</span>
+        <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">تأیید و فعال‌سازی</button>
+    </div>
+
+    <div id="twofa-on" hidden>
+      <p class="hint ok" data-i18n="twofa.on">فعال است.</p>
+      <label><span data-i18n="twofa.codeOrBackup">کد تأیید یا کد پشتیبان</span>
+        <input id="twofa-manage-code" type="text" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <div class="actions">
+        <button class="button" type="button" id="twofa-regen" data-i18n="twofa.regen">تولید مجدد کدهای پشتیبان</button>
+        <button class="button secondary" type="button" id="twofa-disable" data-i18n="twofa.disable">غیرفعال‌سازی</button>
+      </div>
+    </div>
+
     <h2 data-i18n="account.recoverTitle">فراموشی گذرواژه</h2>
     <p class="hint"><a href="/me/forgot" data-i18n="account.forgot">بازیابی از طریق ایمیل</a></p>
   </section>

@@ -291,7 +291,60 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await context.close()
     }
 
-    // 10. 桌面登录：已登录直接完成 / 2FA 提示
+    // 10. 两步验证：启用流程与登录动态码步骤
+    {
+      const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
+      let enabled = false
+      await page.route('**/api/user/2fa/status', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: { enabled } }) }))
+      await page.route('**/api/user/2fa/setup', (route) => route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { secret: 'JBSWY3DPEHPK3PXP', qr_code_data: 'otpauth://x', backup_codes: ['A1B2-C3D4', 'E5F6-G7H8'] } }),
+      }))
+      await page.route('**/api/user/2fa/enable', async (route) => {
+        calls.push('2fa-enable:' + String(route.request().postData() ?? ''))
+        enabled = true
+        await route.fulfill({ contentType: 'application/json', body: '{"success":true}' })
+      })
+      await page.goto(`${base}/me/account`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(500)
+      checker.check('账号页默认未启用 2FA', await page.locator('#twofa-off').isVisible())
+      await page.click('#twofa-start')
+      await page.waitForSelector('#twofa-setup:not([hidden])', { timeout: 10000 })
+      checker.check('2FA 设置显示密钥', (await page.locator('#twofa-secret').innerText()).trim() === 'JBSWY3DPEHPK3PXP')
+      checker.check('2FA 设置显示备份码', (await page.locator('#twofa-backup code').count()) === 2)
+      await page.fill('#twofa-code', '123456')
+      await page.click('#twofa-confirm')
+      await page.waitForTimeout(400)
+      checker.check('未确认已保存时拦截启用', !calls.some((c) => c.startsWith('2fa-enable:')))
+      await page.check('#twofa-saved')
+      await page.click('#twofa-confirm')
+      await page.waitForTimeout(800)
+      checker.check('启用请求正确', calls.some((c) => c === '2fa-enable:{"code":"123456"}'), calls.join(' | '))
+      checker.check('启用后显示已启用', await page.locator('#twofa-on').isVisible())
+
+      await page.route('**/api/user/login', (route) => route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":{"require_2fa":true}}' }))
+      await page.route('**/api/user/login/2fa', async (route) => {
+        calls.push('login-2fa:' + String(route.request().postData() ?? ''))
+        await route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":{"id":7,"username":"u"}}' })
+      })
+      await page.context().clearCookies()
+      await page.evaluate(() => localStorage.clear())
+      await page.goto(`${base}/me/login`, { waitUntil: 'domcontentloaded' })
+      await page.fill('input[name="username"]', 'u')
+      await page.fill('input[name="password"]', 'Password123')
+      await page.click('#auth-form button[type="submit"]')
+      await page.waitForSelector('#twofa-form:not([hidden])', { timeout: 10000 })
+      checker.check('密码后进入动态码步骤', true)
+      await page.fill('#twofa-login-code', '654321')
+      await page.click('#twofa-form button[type="submit"]')
+      await page.waitForTimeout(1200)
+      checker.check('动态码提交正确', calls.some((c) => c === 'login-2fa:{"code":"654321"}'), calls.join(' | '))
+      checker.check('2FA 登录后进入控制台', page.url().includes('/me/'), page.url())
+      await context.close()
+    }
+
+    // 11. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

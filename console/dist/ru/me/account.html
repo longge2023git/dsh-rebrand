@@ -67,6 +67,41 @@
     </form>
     <p id="saved" class="hint ok" hidden data-i18n="account.saved">Пароль изменён.</p>
 
+
+    <h2 data-i18n="twofa.title">Двухфакторная аутентификация</h2>
+    <p id="twofa-error" class="form-error" hidden></p>
+
+    <div id="twofa-off">
+      <p class="hint" data-i18n="twofa.intro">После включения для входа потребуется 6-значный код.</p>
+      <button class="button" type="button" id="twofa-start" data-i18n="twofa.enable">Включить 2FA</button>
+    </div>
+
+    <div id="twofa-setup" hidden>
+      <p class="hint" data-i18n="twofa.secretHint">Добавьте этот ключ в приложение-аутентификатор вручную:</p>
+      <p class="field"><code id="twofa-secret" dir="ltr"></code>
+        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">Копировать</button>
+      </p>
+      <p class="hint" data-i18n="twofa.backupHint">Резервные коды показываются один раз — сохраните их сейчас:</p>
+      <ul id="twofa-backup" class="codes"></ul>
+      <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">Скопировать все резервные коды</button></p>
+      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">Я сохранил резервные коды</span></label>
+      <label><span data-i18n="twofa.code">6-значный код</span>
+        <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">Подтвердить и включить</button>
+    </div>
+
+    <div id="twofa-on" hidden>
+      <p class="hint ok" data-i18n="twofa.on">Включено.</p>
+      <label><span data-i18n="twofa.codeOrBackup">Код подтверждения или резервный код</span>
+        <input id="twofa-manage-code" type="text" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <div class="actions">
+        <button class="button" type="button" id="twofa-regen" data-i18n="twofa.regen">Перегенерировать резервные коды</button>
+        <button class="button secondary" type="button" id="twofa-disable" data-i18n="twofa.disable">Отключить</button>
+      </div>
+    </div>
+
     <h2 data-i18n="account.recoverTitle">Забыли пароль?</h2>
     <p class="hint"><a href="/me/forgot" data-i18n="account.forgot">Восстановить по почте</a></p>
   </section>

@@ -16,6 +16,7 @@ import { runConsoleLocal } from './suites/console-local.mjs'
 import { runConsoleLive } from './suites/console-live.mjs'
 import { runDesktop } from './suites/desktop.mjs'
 import { runSecurity } from './suites/security.mjs'
+import { runTwofa } from './suites/twofa.mjs'
 
 const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, value, index, all) => {
   if (value.startsWith('--')) pairs.push([value.slice(2), all[index + 1] ?? 'true'])
@@ -53,6 +54,7 @@ for (const brandId of brands) {
       if (suite === 'all' || suite === 'console') await runConsoleLive({ brand, checker, users })
       if (suite === 'all' || suite === 'desktop') await runDesktop({ brand, checker, users })
       if (suite === 'all' || suite === 'security') await runSecurity({ brand, checker, users })
+      if (suite === 'all' || suite === 'twofa') await runTwofa({ brand, checker, users })
     } else {
       await runConsoleLocal({ base: brand.app, brand, checker })
     }

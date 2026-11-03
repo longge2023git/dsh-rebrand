@@ -118,6 +118,18 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 `/me/` 的 nginx location 加了三条：`X-Robots-Tag: noindex, nofollow`（控制台不该被索引）、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`。CSP 暂未加——页面用内联脚本，直接上 CSP 会打断现有逻辑。
 
+## 两步验证（2FA，可选）
+
+| 项 | 说明 |
+|---|---|
+| 开启 | `/me/account` → 显示 TOTP 密钥（手动加入认证器，无二维码）+ **4 个备份码**（只显示一次，可一键复制）+ 勾选"已保存" + 输入 6 位码确认 |
+| 登录 | 密码通过后若 `require_2fa`，表单切换为动态码步骤（`/api/user/login/2fa`），支持 TOTP 或备份码 |
+| 桌面登录 | `/me/dsh` 同样处理，验证后自动完成 `complete` |
+| 管理 | 关闭 / 重新生成备份码都需要输入一个 TOTP 或备份码 |
+| 备份码数量 | **4 个**（服务端 `BackupCodeCount = 4`） |
+
+E2E 用自实现的 TOTP（RFC 6238 向量校验过）自动算码，不需要手机。
+
 ## 注册方式（邮箱优先）
 
 `EmailVerificationEnabled=true`（2026-11-03 起两站均开启）后：

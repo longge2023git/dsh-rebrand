@@ -67,6 +67,41 @@
     </form>
     <p id="saved" class="hint ok" hidden data-i18n="account.saved">گذرواژه تغییر کرد.</p>
 
+
+    <h2 data-i18n="twofa.title">两步验证</h2>
+    <p id="twofa-error" class="form-error" hidden></p>
+
+    <div id="twofa-off">
+      <p class="hint" data-i18n="twofa.intro">开启后登录需要额外的 6 位验证码。</p>
+      <button class="button" type="button" id="twofa-start" data-i18n="twofa.enable">启用两步验证</button>
+    </div>
+
+    <div id="twofa-setup" hidden>
+      <p class="hint" data-i18n="twofa.secretHint">在认证器 App 里手动添加这个密钥：</p>
+      <p class="field"><code id="twofa-secret" dir="ltr"></code>
+        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
+      </p>
+      <p class="hint" data-i18n="twofa.backupHint">备份码只显示一次，请立即保存（手机丢失时用它登录）：</p>
+      <ul id="twofa-backup" class="codes"></ul>
+      <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">复制全部备份码</button></p>
+      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">我已保存备份码</span></label>
+      <label><span data-i18n="twofa.code">6 位验证码</span>
+        <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">确认启用</button>
+    </div>
+
+    <div id="twofa-on" hidden>
+      <p class="hint ok" data-i18n="twofa.on">已启用。</p>
+      <label><span data-i18n="twofa.codeOrBackup">验证码或备份码</span>
+        <input id="twofa-manage-code" type="text" dir="ltr" autocomplete="one-time-code">
+      </label>
+      <div class="actions">
+        <button class="button" type="button" id="twofa-regen" data-i18n="twofa.regen">重新生成备份码</button>
+        <button class="button secondary" type="button" id="twofa-disable" data-i18n="twofa.disable">关闭两步验证</button>
+      </div>
+    </div>
+
     <h2 data-i18n="account.recoverTitle">فراموشی گذرواژه</h2>
     <p class="hint"><a href="/me/forgot" data-i18n="account.forgot">بازیابی از طریق ایمیل</a></p>
   </section>

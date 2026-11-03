@@ -44,6 +44,15 @@
     <button class="button" type="submit" data-i18n="auth.signIn">Войти</button>
   </form>
 
+  <form id="twofa-form" class="stack" novalidate hidden>
+    <p class="hint" data-i18n="twofa.loginHint">Нужен код: 6 цифр из приложения или один резервный код.</p>
+    <label><span data-i18n="twofa.codeOrBackup">Код подтверждения или резервный код</span>
+      <input id="twofa-login-code" type="text" dir="ltr" autocomplete="one-time-code">
+    </label>
+    <p id="twofa-login-error" class="form-error" hidden></p>
+    <button class="button" type="submit" data-i18n="twofa.verify">Подтвердить</button>
+  </form>
+
   <p class="hint">
     <span data-i18n="auth.noAccount">Нет аккаунта?</span>
     <a id="register-link" href="/me/register" data-i18n="auth.registerLink">Зарегистрироваться</a>

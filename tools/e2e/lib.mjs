@@ -7,6 +7,7 @@
  */
 import { chromium } from './playwright.mjs'
 import { execFileSync } from 'node:child_process'
+import crypto from 'node:crypto'
 
 export const BRANDS = {
   fa: { id: 'fa', site: 'https://www.deepseekfa.com', app: 'https://deepseekfa.com', lang: 'fa', dir: 'rtl', product: 'DeepSeek-FA', locale: 'fa-IR', sshEnv: 'E2E_SSH_FA' },
@@ -66,6 +67,45 @@ export function apiJson(base, path, body) {
   return JSON.parse(execFileSync('curl', args, { encoding: 'utf8' }) || '{}')
 }
 
+/** Decode a base32 secret (RFC 4648, no padding) into a key buffer. */
+function base32Decode(secret) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  const clean = String(secret).toUpperCase().replace(/[^A-Z2-7]/g, '')
+  let bits = 0
+  let value = 0
+  const bytes = []
+  for (const char of clean) {
+    value = (value << 5) | alphabet.indexOf(char)
+    bits += 5
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 0xff)
+      bits -= 8
+    }
+  }
+  return Buffer.from(bytes)
+}
+
+/** Compute a TOTP code for the given secret at `at` milliseconds. */
+export function totpCode(secret, at = Date.now()) {
+  const counter = Math.floor(at / 30000)
+  const buffer = Buffer.alloc(8)
+  buffer.writeUInt32BE(Math.floor(counter / 2 ** 32), 0)
+  buffer.writeUInt32BE(counter % 2 ** 32, 4)
+  const hmac = crypto.createHmac('sha1', base32Decode(secret)).update(buffer).digest()
+  const offset = hmac[hmac.length - 1] & 0x0f
+  const value = ((hmac[offset] & 0x7f) << 24)
+    | (hmac[offset + 1] << 16)
+    | (hmac[offset + 2] << 8)
+    | hmac[offset + 3]
+  return String(value % 1000000).padStart(6, '0')
+}
+
+/** Current code, plus neighbours for clock drift at a 30-second boundary. */
+export function totpCandidates(secret) {
+  const now = Date.now()
+  return [totpCode(secret, now), totpCode(secret, now + 30000), totpCode(secret, now - 30000)]
+}
+
 /** Create a test account directly in SQLite (email verification blocks API registration). */
 export function createUserViaDb(brand, username, password, email = '') {
   const ssh = process.env[BRANDS[brand].sshEnv]
@@ -79,8 +119,10 @@ export function createUserViaDb(brand, username, password, email = '') {
     `c = sqlite3.connect(${JSON.stringify(dbPath)})`,
     `sql = ${JSON.stringify(sql)}`,
     `c.execute(sql, (${JSON.stringify(username)}, hash, ${JSON.stringify(username)}, ${JSON.stringify(email)}, "default", aff))`,
+    'new_id = c.execute("select id from users where username=?", (' + JSON.stringify(username) + ',)).fetchone()[0]',
+    'for table in ("two_fas", "two_fa_backup_codes"): c.execute(f"delete from {table} where user_id=?", (new_id,))',
     'c.commit()',
-    `print("[fixture] created", ${JSON.stringify(username)})`,
+    `print("[fixture] created", ${JSON.stringify(username)}, new_id)`,
   ].join('\n')
   execFileSync('bash', ['-c', `${ssh} python3 -`], { input: script, encoding: 'utf8' })
 }
@@ -113,7 +155,7 @@ export function cleanupUsers(brand, usernames, dbPath) {
     `c = sqlite3.connect(${JSON.stringify(dbPath)})`,
     "ids = [row[0] for row in c.execute('select id, username from users') if row[1] in names]",
     'for uid in ids:',
-    "    for table in ('tokens', 'logs'): c.execute(f'delete from {table} where user_id=?', (uid,))",
+    "    for table in ('tokens', 'logs', 'two_fas', 'two_fa_backup_codes'): c.execute(f'delete from {table} where user_id=?', (uid,))",
     "    c.execute('delete from users where id=?', (uid,))",
     'c.commit()',
     "print('[cleanup] deleted', len(ids), 'users')",

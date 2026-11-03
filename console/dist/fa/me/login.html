@@ -42,6 +42,15 @@
     <p id="error" class="form-error" hidden></p>
     <button class="button" type="submit" data-i18n="auth.signIn">ورود</button>
   </form>
+
+  <form id="twofa-form" class="stack" novalidate hidden>
+    <p class="hint" data-i18n="twofa.loginHint">این مرحله به کد نیاز دارد: کد ۶ رقمی برنامهٔ احرازگر یا یکی از کدهای پشتیبان.</p>
+    <label><span data-i18n="twofa.codeOrBackup">کد تأیید یا کد پشتیبان</span>
+      <input id="twofa-login-code" type="text" dir="ltr" autocomplete="one-time-code">
+    </label>
+    <p id="twofa-login-error" class="form-error" hidden></p>
+    <button class="button" type="submit" data-i18n="twofa.verify">تأیید</button>
+  </form>
   <p class="hint">
     <span data-i18n="auth.noAccount">حساب ندارید؟</span>
     <a href="/me/register" data-carry data-i18n="auth.registerLink">ثبت‌نام کنید</a>

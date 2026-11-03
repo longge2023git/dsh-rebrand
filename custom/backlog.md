@@ -33,7 +33,7 @@
 | C-08 | 待办 | 用量统计：按天/模型汇总（现在只有分页明细） | [console](console.md) |
 | C-09 | **已完成** | 公告：用量页横幅（最新一条、可关闭） | [console](console.md) |
 | C-10 | **已完成** | 价格页：`/me/pricing`（ratio → $/百万 token） | [console](console.md) |
-| C-11 | 待办 | 2FA 设置与登录（`/api/user/2fa/*` 已存在） | [console](console.md) |
+| C-11 | **已完成** | 2FA：启用（密钥 + 4 备份码）、登录动态码步骤、关闭/重生成 | [console](console.md) |
 | C-12 | **已完成** | `/me/*` 已加 `X-Robots-Tag: noindex`、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer` | [console](console.md) |
 
 ## F-01 摘要

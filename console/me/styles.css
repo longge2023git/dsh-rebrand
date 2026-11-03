@@ -235,3 +235,8 @@ dialog .stack { display: flex; flex-direction: column; gap: 12px; }
 dialog h2 { margin: 0 0 4px; font-size: 17px; }
 dialog .row { display: flex; align-items: center; gap: 8px; }
 dialog .actions { display: flex; gap: 8px; }
+
+/* Backup code list */
+.codes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; padding: 0; margin: 8px 0 14px; list-style: none; }
+.codes code { display: block; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; text-align: center; }
+.codes li { margin: 0; }

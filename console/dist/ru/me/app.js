@@ -539,7 +539,7 @@ async function startDsh() {
       if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
-      if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
+      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { await complete() })
       rememberUser(payload.data || {})
       await complete()
     } catch {
@@ -612,6 +612,142 @@ async function loadTopup() {
 
 
 /** Account page: rotate the password of the signed-in account. */
+
+/** Render the one-time backup codes list. */
+function renderBackupCodes(codes) {
+  const list = $('twofa-backup')
+  list.innerHTML = codes.map((code) => `<li><code dir="ltr">${code}</code></li>`).join('')
+}
+
+/** Show a 2FA management error. */
+function showTwofaError(message) {
+  const box = $('twofa-error')
+  box.textContent = message
+  box.hidden = false
+}
+
+/** Load whether 2FA is enabled for this account. */
+async function loadTwofa() {
+  const status = await api('/api/user/2fa/status').catch(() => null)
+  const enabled = Boolean(status?.enabled)
+  $('twofa-off').hidden = enabled
+  $('twofa-on').hidden = !enabled
+  $('twofa-setup').hidden = true
+}
+
+/** Wire the 2FA section on the account page. */
+function wireTwofa() {
+  $('twofa-start')?.addEventListener('click', async () => {
+    $('twofa-error').hidden = true
+    try {
+      const data = await api('/api/user/2fa/setup', { method: 'POST' })
+      $('twofa-secret').textContent = data.secret
+      renderBackupCodes(data.backup_codes ?? [])
+      $('twofa-saved').checked = false
+      $('twofa-code').value = ''
+      $('twofa-off').hidden = true
+      $('twofa-setup').hidden = false
+    } catch (error) {
+      showTwofaError(error instanceof Unauthorized ? t('auth.needLoginUsage') : errorText(error.message))
+    }
+  })
+
+  $('twofa-copy-secret')?.addEventListener('click', () => {
+    navigator.clipboard?.writeText($('twofa-secret').textContent ?? '').then(() => flashCopied($('twofa-copy-secret'))).catch(() => {})
+  })
+
+  $('twofa-copy-backup')?.addEventListener('click', () => {
+    const codes = Array.from($('twofa-backup').querySelectorAll('code')).map((node) => node.textContent).join('\n')
+    navigator.clipboard?.writeText(codes).then(() => flashCopied($('twofa-copy-backup'))).catch(() => {})
+  })
+
+  $('twofa-confirm')?.addEventListener('click', async () => {
+    $('twofa-error').hidden = true
+    if (!$('twofa-saved').checked) return showTwofaError(t('twofa.errSaved'))
+    const code = $('twofa-code').value.trim()
+    if (!/^\d{6}$/.test(code)) return showTwofaError(t('twofa.errCode'))
+    try {
+      await api('/api/user/2fa/enable', { method: 'POST', body: JSON.stringify({ code }) })
+      await loadTwofa()
+      $('twofa-on').querySelector('.hint').textContent = t('twofa.on')
+    } catch (error) {
+      showTwofaError(errorText(error.message))
+    }
+  })
+
+  $('twofa-disable')?.addEventListener('click', async () => {
+    $('twofa-error').hidden = true
+    const code = $('twofa-manage-code').value.trim()
+    if (!code) return showTwofaError(t('twofa.errManage'))
+    try {
+      await api('/api/user/2fa/disable', { method: 'POST', body: JSON.stringify({ code }) })
+      $('twofa-manage-code').value = ''
+      await loadTwofa()
+    } catch (error) {
+      showTwofaError(errorText(error.message))
+    }
+  })
+
+  $('twofa-regen')?.addEventListener('click', async () => {
+    $('twofa-error').hidden = true
+    const code = $('twofa-manage-code').value.trim()
+    if (!code) return showTwofaError(t('twofa.errManage'))
+    try {
+      const data = await api('/api/user/2fa/backup_codes', { method: 'POST', body: JSON.stringify({ code }) })
+      $('twofa-manage-code').value = ''
+      renderBackupCodes(data.backup_codes ?? data ?? [])
+      $('twofa-setup').hidden = false
+      $('twofa-saved').checked = false
+      $('twofa-code').hidden = true
+      $('twofa-confirm').hidden = true
+      $('twofa-copy-backup').hidden = false
+      $('twofa-backup').scrollIntoView({ block: 'center' })
+    } catch (error) {
+      showTwofaError(errorText(error.message))
+    }
+  })
+}
+
+/** After a password login the gateway may ask for a second factor. */
+function startTwoFactorLogin(onSuccess) {
+  const form = $('twofa-form')
+  if (!form) return
+  $('auth-form').hidden = true
+  form.hidden = false
+  form.querySelector('input').focus()
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const box = $('twofa-login-error')
+    box.hidden = true
+    const code = $('twofa-login-code').value.trim()
+    if (!code) return
+    try {
+      const response = await fetch('/api/user/login/2fa', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      if (response.status === 429) {
+        box.textContent = t('errors.rateLimited')
+        box.hidden = false
+        return
+      }
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) {
+        box.textContent = errorText(payload.message)
+        box.hidden = false
+        return
+      }
+      rememberUser(payload.data || {})
+      await onSuccess()
+    } catch {
+      box.textContent = t('errors.network')
+      box.hidden = false
+    }
+  })
+}
+
 async function startAccount() {
   applyI18n()
   const form = $('password-form')
@@ -646,11 +782,13 @@ async function startAccount() {
       showFormError(t('errors.network'))
     }
   })
+  wireTwofa()
   await guard(async () => {
     await api('/api/user/self')
     $('auth').hidden = true
     $('app').hidden = false
     if ($('sign-out')) $('sign-out').hidden = false
+    await loadTwofa()
   })
 }
 
@@ -789,7 +927,7 @@ async function startLogin() {
       if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
-      if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
+      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { location.replace(finishAuth('/me/')) })
       rememberUser(payload.data || {})
       location.replace(finishAuth('/me/'))
     } catch {
