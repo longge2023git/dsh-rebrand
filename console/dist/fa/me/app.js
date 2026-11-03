@@ -491,20 +491,25 @@ function wireSendCode() {
 
 async function startRegister() {
   applyI18n()
-  await loadStatus()
   const form = $('auth-form')
-  const emailOn = state.emailVerification === true
-  if (emailOn) {
+  // Bind the submit handler synchronously: awaiting the status request first would
+  // let a fast click fall through to the native GET submit and put the password in
+  // the URL. The handler itself waits for the status before validating.
+  const statusReady = loadStatus()
+  statusReady.then(() => {
+    if (state.emailVerification !== true) return
     $('email-field').hidden = false
     $('code-field').hidden = false
     wireSendCode()
-  }
+  })
   // Deep link from a share card: /me/register?aff=CODE
   const invitedBy = new URLSearchParams(location.search).get('aff')
     || new URLSearchParams(location.search).get('code')
   if (invitedBy && form.aff) form.aff.value = invitedBy.trim().slice(0, 16)
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
+    await statusReady
+    const emailOn = state.emailVerification === true
     const username = form.username.value.trim()
     const password = form.password.value
     // Mirror model.User: `username max=20` (no minimum, no format rule), `password min=8,max=20`.
