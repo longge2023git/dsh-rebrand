@@ -26,6 +26,16 @@
 | S-03 | 待办 | 访问统计、ArvanCloud CDN、Windows 包 CDN | [site](site.md) |
 | D-04 | 待办 | Windows 包上传后的页面验收（exe + json 到位后按钮才出现） | [Windows 交接单](windows-handoff.md) |
 
+| C-04 | 待办 | 充值/兑换入口：`/top_up` 现在 302 到 `/me/keys`，用户点"充值"落在密钥页；需做兑换码页（`POST /api/user/topup`）或明确"联系管理员" | [console](console.md) |
+| C-05 | 待办 | 普通用户改密码：网关只有 admin 路由 `PUT /api/user/` 支持 `original_password`，需新增 self 端点 | [console](console.md) |
+| C-06 | 待办 | 忘记密码：依赖 SMTP（见 I-02），页面 + `/api/reset_password` + `/api/user/reset` | [smtp-plan](smtp-plan.md) |
+| C-07 | 待办 | 密钥编辑：配额/过期/IP 限制（`PUT /api/token/` 已支持，前端未接） | [console](console.md) |
+| C-08 | 待办 | 用量统计：按天/模型汇总（现在只有分页明细） | [console](console.md) |
+| C-09 | 待办 | 公告展示：`/api/status` 的 announcements 用户看不到 | [console](console.md) |
+| C-10 | 待办 | 价格页：`/api/pricing` 公开，可在迷你站展示模型价格 | [console](console.md) |
+| C-11 | 待办 | 2FA 设置与登录（`/api/user/2fa/*` 已存在） | [console](console.md) |
+| C-12 | 待办 | `/me/*` 加 noindex + 安全响应头 | [console](console.md) |
+
 ## F-01 摘要
 
 - 现状：NewAPI `/v1/files` 是 `RelayNotImplemented`；relay 返回 404；DSH 回退 inline。
