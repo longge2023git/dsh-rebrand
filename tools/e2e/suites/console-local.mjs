@@ -240,7 +240,51 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await context.close()
     }
 
-    // 9. 桌面登录：已登录直接完成 / 2FA 提示
+    // 9. 价格页 / 公告 / 密钥编辑
+    {
+      const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
+      await page.route('**/api/pricing', (route) => route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: [{ model_name: 'm1', model_ratio: 0.15, completion_ratio: 4, model_price: 0 }] }),
+      }))
+      await page.route('**/api/status', (route) => route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { quota_per_unit: 500000, announcements_enabled: true, announcements: [{ publishDate: '2026-11-03T00:00:00Z', content: 'notice' }] } }),
+      }))
+      await page.goto(`${base}/me/pricing`, { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(700)
+      checker.check('价格页渲染模型与价格', (await page.locator('#rows').innerText()).includes('$0.30'), (await page.locator('#rows').innerText()).replace(/\n/g, ' | '))
+
+      await page.goto(`${base}/me/`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(700)
+      checker.check('公告横幅可见', await page.locator('#announcements').isVisible())
+      await page.click('#ann-dismiss')
+      await page.waitForTimeout(300)
+      checker.check('公告可关闭', await page.locator('#announcements').isHidden())
+
+      await page.route('**/api/token/**', async (route) => {
+        const method = route.request().method()
+        if (method === 'PUT') {
+          calls.push('token-put:' + String(route.request().postData() ?? ''))
+          return route.fulfill({ contentType: 'application/json', body: '{"success":true}' })
+        }
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: { items: [{ id: 11, name: 'old', key: 'sk-abcdefghijklmnopqrstuvwxyz', status: 1, remain_quota: 0, unlimited_quota: true, expired_time: -1, allow_ips: '', used_quota: 0 }] } }) })
+      })
+      await page.goto(`${base}/me/keys`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(600)
+      await page.click('[data-edit]')
+      await page.waitForTimeout(300)
+      checker.check('编辑对话框预填名称', (await page.inputValue('#edit-form input[name="name"]')) === 'old')
+      await page.fill('#edit-form input[name="name"]', 'renamed')
+      await page.click('#edit-form button[type="submit"]')
+      await page.waitForTimeout(700)
+      checker.check('编辑提交 PUT 且带新名称', calls.some((c) => c.includes('token-put:') && c.includes('"name":"renamed"')), calls.join(' | '))
+      await context.close()
+    }
+
+    // 10. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

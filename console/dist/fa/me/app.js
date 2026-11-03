@@ -11,7 +11,7 @@ const LANG = ['fa', 'ru', 'en'].includes(requestLang)
 const D = DICT[LANG]
 const numberLocale = LANG === 'fa' ? 'fa-IR' : 'en-US'
 
-const state = { quotaPerUnit: 500000, page: 1, pageSize: 20, emailVerification: false, turnstile: false }
+const state = { quotaPerUnit: 500000, page: 1, pageSize: 20, emailVerification: false, turnstile: false, tokens: [] }
 
 const $ = (id) => document.getElementById(id)
 const num = (value) => new Intl.NumberFormat(numberLocale).format(Math.round(Number(value) || 0))
@@ -152,6 +152,7 @@ async function startUsage() {
     $('used').textContent = credit(me.used_quota)
     $('requests').textContent = num(me.request_count)
     renderInvite(me)
+    await loadAnnouncements()
     await loadLogs()
   })
 }
@@ -266,9 +267,75 @@ async function startKeys() {
   })
 }
 
+
+/** Open the edit dialog for one key, prefilled from the loaded list. */
+function openKeyEditor(id) {
+  const token = state.tokens.find((item) => String(item.id) === String(id))
+  if (!token) return
+  const dialog = $('edit-dialog')
+  const form = $('edit-form')
+  form.dataset.id = String(token.id)
+  form.name.value = token.name ?? ''
+  form.unlimited.checked = Boolean(token.unlimited_quota)
+  form.quota.value = token.unlimited_quota ? '' : (Number(token.remain_quota || 0) / state.quotaPerUnit).toFixed(2)
+  form.expiry.value = token.expired_time > 0 ? new Date(token.expired_time * 1000).toISOString().slice(0, 10) : ''
+  form.allowIps.value = token.allow_ips ?? ''
+  $('edit-error').hidden = true
+  dialog.showModal()
+}
+
+/** Persist the edited key through PUT /api/token/. */
+async function saveKeyEdit(event) {
+  event.preventDefault()
+  const form = $('edit-form')
+  const id = Number(form.dataset.id)
+  const token = state.tokens.find((item) => item.id === id)
+  if (!token) return
+  const unlimited = form.unlimited.checked
+  const quota = unlimited ? 0 : Math.round(Number(form.quota.value || 0) * state.quotaPerUnit)
+  if (!unlimited && (!Number.isFinite(quota) || quota < 0)) {
+    return showEditError(t('errors.generic'))
+  }
+  const expiry = form.expiry.value ? Math.floor(new Date(form.expiry.value + 'T00:00:00').getTime() / 1000) : -1
+  try {
+    await api('/api/token/', {
+      method: 'PUT',
+      body: JSON.stringify({
+        id,
+        name: form.name.value.trim() || token.name,
+        remain_quota: quota,
+        unlimited_quota: unlimited,
+        expired_time: expiry,
+        allow_ips: form.allowIps.value.trim(),
+        model_limits_enabled: false,
+        model_limits: '',
+        status: token.status,
+      }),
+    })
+    $('edit-dialog').close()
+    await loadKeys()
+  } catch (error) {
+    showEditError(error instanceof Unauthorized ? t('auth.needLoginKeys') : errorText(error.message))
+  }
+}
+
+/** Inline error inside the edit dialog. */
+function showEditError(message) {
+  const box = $('edit-error')
+  box.textContent = message
+  box.hidden = false
+}
+
+document.addEventListener('click', (event) => {
+  const edit = event.target.closest('[data-edit]')
+  if (edit) return openKeyEditor(edit.dataset.edit)
+  if (event.target.closest('#edit-cancel')) $('edit-dialog').close()
+})
+
 async function loadKeys() {
   const data = await api('/api/token/?p=1&size=100')
   const tokens = data.items || []
+  state.tokens = tokens
   const body = $('rows')
   if (tokens.length === 0) {
     body.innerHTML = `<tr><td colspan="5" class="empty">${t('common.empty')}</td></tr>`
@@ -283,6 +350,7 @@ async function loadKeys() {
       <td>${credit(token.used_quota)}</td>
       <td>${status}</td>
       <td class="actions">
+        <button type="button" data-edit="${token.id}">${t('keys.edit')}</button>
         <button type="button" data-copy="${token.key}">${t('common.copy')}</button>
         <button type="button" class="danger" data-delete="${token.id}">${t('common.remove')}</button>
       </td>
@@ -642,6 +710,66 @@ async function startReset() {
   }
 }
 
+
+/** Pricing page: ratio-based models rendered as USD per million tokens. */
+async function startPricing() {
+  applyI18n()
+  const body = $('rows')
+  try {
+    const response = await fetch('/api/pricing')
+    const payload = await response.json().catch(() => ({}))
+    const models = Array.isArray(payload?.data) ? payload.data : []
+    if (models.length === 0) {
+      body.innerHTML = `<tr><td colspan="3" class="empty">${t('pricing.empty')}</td></tr>`
+      return
+    }
+    // One ratio unit is $2 per million tokens on this deployment.
+    const unitPrice = 2
+    body.innerHTML = models.map((model) => {
+      const ratio = Number(model.model_ratio ?? 0)
+      const completion = Number(model.completion_ratio ?? 1)
+      const fixed = Number(model.model_price ?? 0)
+      if (fixed > 0) {
+        return `<tr><td dir="ltr">${model.model_name}</td><td colspan="2">$${fixed.toFixed(2)} ${t('pricing.perCall')}</td></tr>`
+      }
+      return `<tr>
+        <td dir="ltr">${model.model_name}</td>
+        <td>$${(ratio * unitPrice).toFixed(2)}</td>
+        <td>$${(ratio * completion * unitPrice).toFixed(2)}</td>
+      </tr>`
+    }).join('')
+  } catch {
+    body.innerHTML = `<tr><td colspan="3" class="empty">${t('errors.network')}</td></tr>`
+  }
+}
+
+/** Announcements banner: newest three, dismissible per browser. */
+async function loadAnnouncements() {
+  const host = $('announcements')
+  if (!host) return
+  try {
+    const status = await (await fetch('/api/status')).json()
+    const data = status?.data ?? {}
+    if (!data.announcements_enabled) return
+    const items = Array.isArray(data.announcements) ? data.announcements.slice(0, 3) : []
+    const dismissed = localStorage.getItem('ann-dismissed') ?? ''
+    const visible = items.filter((item) => `${item.publishDate ?? ''}|${String(item.content ?? '').slice(0, 30)}` !== dismissed)
+    if (visible.length === 0) return
+    const item = visible[0]
+    host.innerHTML = `<div class="card announce"><strong>${t('announce.title')}</strong>
+      <div class="announce-body">${String(item.content ?? '')}</div>
+      <div class="announce-foot"><span>${item.publishDate ?? ''}</span>
+      <button type="button" class="linkish" id="ann-dismiss">${t('announce.dismiss')}</button></div></div>`
+    host.hidden = false
+    $('ann-dismiss').onclick = () => {
+      localStorage.setItem('ann-dismissed', `${item.publishDate ?? ''}|${String(item.content ?? '').slice(0, 30)}`)
+      host.hidden = true
+    }
+  } catch {
+    // Announcements are optional; a failure must not break the page.
+  }
+}
+
 async function startLogin() {
   applyI18n()
   const form = $('auth-form')
@@ -799,6 +927,8 @@ if (createForm) {
     })
   })
 }
+
+if ($('edit-form')) $('edit-form').addEventListener('submit', saveKeyEdit)
 
 for (const [id, step] of [['prev', -1], ['next', 1]]) {
   const button = $(id)

@@ -114,6 +114,17 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
 
+## 价格页与公告
+
+| 项 | 说明 |
+|---|---|
+| `/me/pricing` | 公开接口 `GET /api/pricing`；按 ratio 换算成「美元 / 百万 token」（ratio × $2，输出再乘 completion_ratio）；固定价模型显示"每次请求" |
+| 公告 | 用量页读 `/api/status` 的 `announcements`（`publishDate` / `content`），只显示最新一条，关闭状态存 `localStorage['ann-dismissed']`；`announcements_enabled=false` 时不显示 |
+
+## 密钥编辑
+
+密钥列表每行有「编辑」按钮，打开 `<dialog>` 编辑名称、是否无限额度、额度（按美元输入，换算 quota）、过期日期、允许 IP；提交 `PUT /api/token/` 后刷新列表。
+
 ## 账号与安全（/me/account、/me/forgot、/me/reset）
 
 | 页面 | 功能 |

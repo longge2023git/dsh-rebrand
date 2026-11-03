@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-default-lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-FA</title>
+<link rel="icon" href="/me/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="pricing.title">
+<header>
+  <a class="brand" href="https://www.deepseekfa.com/"><img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA</a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" data-i18n="nav.keys">کلیدها</a>
+    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <a href="/me/pricing" aria-current="page" data-i18n="nav.pricing">تعرفه</a>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <h1 data-i18n="pricing.title">تعرفهٔ مدل‌ها</h1>
+  <p class="hint" data-i18n="pricing.hint">قیمت‌ها بر حسب دلار برای هر یک میلیون توکن است.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="pricing.colModel">مدل</th>
+          <th data-i18n="pricing.colInput">ورودی</th>
+          <th data-i18n="pricing.colOutput">خروجی</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="3" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>startPricing()</script>
+</body>
+</html>

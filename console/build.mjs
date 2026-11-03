@@ -81,7 +81,7 @@ function prerenderCopy(html, dict) {
 }
 
 const out = join(here, 'dist', brandId, 'me')
-const pages = ['index.html', 'keys.html', 'login.html', 'register.html', 'dsh.html', 'topup.html', 'account.html', 'forgot.html', 'reset.html']
+const pages = ['index.html', 'keys.html', 'login.html', 'register.html', 'dsh.html', 'topup.html', 'account.html', 'forgot.html', 'reset.html', 'pricing.html']
 const dict = await loadDict()
 
 await rm(join(here, 'dist', brandId), { recursive: true, force: true })
