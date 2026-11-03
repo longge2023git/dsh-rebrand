@@ -99,6 +99,19 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 用量页的邀请卡片在 `aff_quota >= quota_per_unit` 时出现「转移」按钮，调 `POST /api/user/aff_transfer {quota: aff_quota}` 全额转入余额；低于 1 个单位时服务端拒绝，按钮隐藏。
 
+## 桌面登录 E2E
+
+```bash
+E2E_PLAYWRIGHT=/path/to/playwright-core/index.mjs \
+  node tools/e2e-desktop-login.mjs --brand fa --user <用户名> --pass <密码>
+```
+
+浏览器与 curl 必须走**同一个代理出口**（`E2E_PROXY`，默认 `socks5://127.0.0.1:10808`）：网关的关键接口按 IP 限流 20 次/20 分钟，两个出口会互相消耗额度并误报失败。
+
+脚本依次断言：`auth_init` 返回 `/me/dsh`、页面语言与品牌、用用户名登录、`complete` 返回 `dsh://…code=`、`exchange` 签发 token。页面会在完成后跳 `dsh://`，脚本在 `fetch` 层截获响应体并挂住导航，避免读到空 body。
+
+`playwright-core` 不是仓库依赖，用 `E2E_PLAYWRIGHT` 指向本地安装位置。
+
 ## 用到的接口
 
 | 页面 | 接口 |
