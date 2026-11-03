@@ -38,7 +38,22 @@ RU 版把 `-Brand fa` 换成 `-Brand ru`；不传 `-BuildVersion` 时默认 `0.2
 
 两个品牌可以在一台 Windows 上连续构建（脚本会切分支）；但**每次换品牌都要重新 `pnpm install`**（`--frozen-lockfile`），不要复用同一份 node_modules 快照。
 
-**版本号规则**：`0.2.1-rc.2.<yyyyMMdd>.<序号>`，同一天第二次构建序号递增（`.2`），不得与已发布版本重复。
+**版本号规则**：`0.2.1-rc.2.<yyyyMMdd>.<序号>`，同一天第二次构建序号递增（`.2`），不得与已发布版本重复。**Windows 与 macOS 用同一个版本号**——当前两站已发布 macOS `0.2.1-rc.2.20261103.1`，Windows 首次构建也用这个号，便于用户对照。
+
+## 3.1 什么时候需要重打包
+
+只有**客户端代码**变了才需要：
+
+| 改动 | 要重打包吗 |
+|---|---|
+| `apps/desktop/config/brand.mjs`（域名、产品名、appId） | 要 |
+| `apps/desktop/src`、`packages/*`（客户端逻辑、UI） | 要 |
+| 网关逻辑：登录页 302、`/me/dsh`、完成接口、额度、邀请奖励 | **不要**，服务端改动对已发包同样生效 |
+| 官网、迷你控制台页面 | **不要** |
+
+截至 2026-11-03，`brand/deepseekfa` 上的客户端代码自交接单以来**零改动**（只有文档和打包脚本变化），所以服务端的改动不需要重新打 Windows 包。
+
+补充：客户端对 `auth_init.authorize_url`（`/dsh/authorize`）和 `auth_exchange.authorized_url`（`/dsh/authorized`）**两条路径都做硬校验**，换页面只能靠网关 302，见 [console.md](console.md#桌面登录的路径约束改之前必读)。
 
 ## 4. 产物
 
