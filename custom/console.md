@@ -99,6 +99,21 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 用量页的邀请卡片在 `aff_quota >= quota_per_unit` 时出现「转移」按钮，调 `POST /api/user/aff_transfer {quota: aff_quota}` 全额转入余额；低于 1 个单位时服务端拒绝，按钮隐藏。
 
+## 桌面登录的路径约束（改之前必读）
+
+客户端 `packages/credentials/deepseek-account-platform/src/protocol.ts` 的 `browserUrl()`
+会校验 URL 路径与传入常量完全一致，且**两个地址都写死**：
+
+| 地址 | 客户端要求路径 | 我们的做法 |
+|---|---|---|
+| `auth_init.authorize_url` | `/dsh/authorize` | 路径不变，网关 302 到 `/me/dsh?tx=…` |
+| `auth_exchange.authorized_url` | `/dsh/authorized` | 路径不变，该路径 302 到 `/me/` |
+
+路径不匹配会抛 `PlatformAuthError('protocol')`：前者表现为浏览器根本不打开，后者表现为
+「登录未完成」——即使 `auth_exchange` 已经 200、token 也已签发。
+
+所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
+
 ## 桌面登录 E2E
 
 ```bash
