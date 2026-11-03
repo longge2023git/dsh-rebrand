@@ -20,6 +20,11 @@ node tools/e2e/run.mjs --mode live --brand both
   - 默认 `socks5://127.0.0.1:10808`
   - `E2E_PROXY=direct` 走本机直连。**推荐 live 模式用 direct**：代理出口通常和机器上其它客户端（含桌面端）共用，网关按 IP 限流 20 次/20 分钟，共享出口会被一起消耗，表现为注册/登录 429。
 - 遇到 429 时套件会等 5 分钟重试两次；仍失败就报错而不是静默通过。
+- 网关的两个限流都可以用环境变量调（改完 `docker compose up -d` 生效，无需重建镜像）：
+  - `CRITICAL_RATE_LIMIT`（默认 20，20 分钟窗口）：注册/登录/登录事务
+  - `CRITICAL_RATE_LIMIT_ENABLE`（默认 true）
+  - 发验证码另有独立限制：**2 次 / 30 秒 / IP**（代码里写死，目前不可配）
+  - 2026-11-03 测试期间两站设为 `CRITICAL_RATE_LIMIT=2000`，测试完改回 20
 - 本地模式前先构建：`node console/build.mjs fa`（或 `ru`）。
 
 ## 覆盖范围
