@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="dsh.title">
+<header>
+  <a class="brand" href="https://www.deepseek-ru.org/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU
+  </a>
+  <nav>
+    <a href="https://www.deepseek-ru.org/" data-i18n="nav.home">Главная</a>
+    <a href="https://www.deepseek-ru.org/docs" data-i18n="nav.docs">Документация</a>
+    <span class="lang">
+      <a data-lang-link="ru" hreflang="ru">RU</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1 data-i18n="dsh.title">Вход в приложение</h1>
+  <p class="hint" id="dsh-state" data-i18n="dsh.connecting">Подключение к приложению…</p>
+
+  <form id="auth-form" class="stack" novalidate hidden>
+    <label><span data-i18n="auth.username">Имя пользователя</span>
+      <input type="text" name="username" autocomplete="username">
+    </label>
+    <label><span data-i18n="auth.password">Пароль</span>
+      <input type="password" name="password" autocomplete="current-password">
+    </label>
+    <p id="error" class="form-error" hidden></p>
+    <button class="button" type="submit" data-i18n="auth.signIn">Войти</button>
+  </form>
+
+  <p class="hint">
+    <span data-i18n="auth.noAccount">Нет аккаунта?</span>
+    <a id="register-link" href="/me/register" data-i18n="auth.registerLink">Зарегистрироваться</a>
+  </p>
+
+  <p id="done" hidden>
+    <a class="button" id="open-app" href="#"><span data-i18n="dsh.openApp">Открыть приложение</span></a>
+  </p>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>
+  startDsh()
+</script>
+</body>
+</html>

@@ -355,6 +355,77 @@ function rememberUser(data) {
   localStorage.setItem('user', JSON.stringify(data))
 }
 
+
+/** Desktop app sign-in: complete the DSH transaction from this console session. */
+async function startDsh() {
+  applyI18n()
+  const tx = new URLSearchParams(location.search).get('tx')
+  const stateLabel = $('dsh-state')
+  if (!tx) {
+    stateLabel.textContent = t('errors.dshTx')
+    return
+  }
+  const registerLink = $('register-link')
+  if (registerLink) registerLink.href = `/me/register?dsh=${encodeURIComponent(tx)}`
+
+  const complete = async () => {
+    const response = await fetch('/api/dsh/complete', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'New-Api-User': String(sessionUserId()) },
+      body: JSON.stringify({ tx }),
+    })
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const message = payload?.error?.message || t('errors.generic')
+      stateLabel.textContent = /两步验证|2FA|two-factor/i.test(message) ? t('errors.dsh2fa') : message
+      return
+    }
+    // The gateway answers with {code, data:{biz_data:{redirect}}}; the redirect is dsh://.
+    const redirect = payload?.data?.biz_data?.redirect
+    if (!redirect) {
+      stateLabel.textContent = t('errors.generic')
+      return
+    }
+    stateLabel.textContent = t('dsh.done')
+    const open = $('open-app')
+    open.href = redirect
+    $('done').hidden = false
+    location.href = redirect
+  }
+
+  if (sessionUserId() > 0) {
+    await complete()
+    return
+  }
+
+  stateLabel.textContent = t('dsh.loginFirst')
+  const form = $('auth-form')
+  form.hidden = false
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const username = form.username.value.trim()
+    const password = form.password.value
+    if (!username) return showFormError(t('errors.requiredUsername'))
+    if (!password) return showFormError(t('errors.requiredPassword'))
+    try {
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) return showFormError(errorText(payload.message))
+      if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
+      rememberUser(payload.data || {})
+      await complete()
+    } catch {
+      showFormError(t('errors.network'))
+    }
+  })
+}
+
 async function startLogin() {
   applyI18n()
   const form = $('auth-form')
@@ -473,7 +544,8 @@ async function startRegister() {
       const session = await login.json().catch(() => ({}))
       if (!session.success) return showFormError(t('errors.registerThenLogin'))
       rememberUser(session.data || {})
-      location.replace('/me/keys')
+      const pending = new URLSearchParams(location.search).get('dsh')
+      location.replace(pending ? `/me/dsh?tx=${encodeURIComponent(pending)}` : '/me/keys')
     } catch {
       showFormError(t('errors.network'))
     }

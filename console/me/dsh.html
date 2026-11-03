@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="{{lang}}" dir="{{dir}}" data-default-lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{brand}}</title>
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="dsh.title">
+<header>
+  <a class="brand" href="{{site}}/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">{{brand}}
+  </a>
+  <nav>
+    <a href="{{site}}/" data-i18n="nav.home">خانه</a>
+    <a href="{{site}}/docs" data-i18n="nav.docs">راهنما</a>
+    <span class="lang">
+      <a data-lang-link="{{lang}}" hreflang="{{lang}}">{{langLabel}}</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1 data-i18n="dsh.title">ورود به برنامه</h1>
+  <p class="hint" id="dsh-state" data-i18n="dsh.connecting">در حال اتصال…</p>
+
+  <form id="auth-form" class="stack" novalidate hidden>
+    <label><span data-i18n="auth.username">نام کاربری</span>
+      <input type="text" name="username" autocomplete="username">
+    </label>
+    <label><span data-i18n="auth.password">گذرواژه</span>
+      <input type="password" name="password" autocomplete="current-password">
+    </label>
+    <p id="error" class="form-error" hidden></p>
+    <button class="button" type="submit" data-i18n="auth.signIn">ورود</button>
+  </form>
+
+  <p class="hint">
+    <span data-i18n="auth.noAccount">حساب ندارید؟</span>
+    <a id="register-link" href="/me/register" data-i18n="auth.registerLink">ثبت‌نام کنید</a>
+  </p>
+
+  <p id="done" hidden>
+    <a class="button" id="open-app" href="#"><span data-i18n="dsh.openApp">باز کردن برنامه</span></a>
+  </p>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>
+  startDsh()
+</script>
+</body>
+</html>
