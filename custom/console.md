@@ -85,13 +85,13 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 | option | 值 | 折合 | 进入 |
 |---|---|---|---|
-| `QuotaForNewUser` | 250000 | $0.50 | 新用户余额 |
+| `QuotaForNewUser` | 50000 | $0.10 | 新用户余额（体验额度） |
 | `QuotaForInvitee` | 250000 | $0.50 | 被邀请人余额 |
 | `QuotaForInviter` | 500000 | $1.00 | 邀请人 `aff_quota` |
 
 计价口径：`/api/status` 的 `quota_per_unit=500000` 且 `quota_display_type=USD`，即 500000 quota = $1。
 
-由此产生的实际效果：**通过邀请注册的新用户拿到 $1.00**（$0.50 新用户 + $0.50 被邀请人）；不带邀请码注册拿 $0.50。如果只想让被邀请人拿 $0.50 总额，把 `QuotaForInvitee` 设为 0。
+由此产生的实际效果：**通过邀请注册的新用户拿到 $0.60**（$0.10 新用户 + $0.50 被邀请人）；不带邀请码注册拿 $0.10 体验额度；邀请人每邀请一人得 $1.00 邀请额度（满 $1 可转入余额）。
 
 改动方式：直接写 `options` 表（`key`/`value`），服务端每 60 秒从库同步一次（`SyncOptions(SYNC_FREQUENCY)`），**不用重启容器**。
 
