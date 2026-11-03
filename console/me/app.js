@@ -374,6 +374,8 @@ const AUTH_ERROR_PATTERNS = [
   [/verification code.*(error|invalid|expired)|验证码.*(错误|失效|过期)/i, 'errors.badCode'],
   [/email.*(already|taken|used|occupied)|邮箱.*(已被|已存在|占用)/i, 'errors.emailTaken'],
   [/(send|sending).*(mail|email).*fail|邮件发送失败/i, 'errors.sendFailed'],
+  [/邮箱地址未注册|email.*not registered/i, 'account.emailNotFound'],
+  [/重置链接非法或已过期|reset link.*(invalid|expired)/i, 'account.resetInvalid'],
 ]
 
 function errorText(message) {
@@ -538,6 +540,106 @@ async function loadTopup() {
       <td>${status}</td>
     </tr>`
   }).join('')
+}
+
+
+/** Account page: rotate the password of the signed-in account. */
+async function startAccount() {
+  applyI18n()
+  const form = $('password-form')
+  const statusReady = loadStatus()
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    await statusReady
+    const current = form.current.value
+    const password = form.password.value
+    const runes = (value) => Array.from(value).length
+    if (!current) return showFormError(t('errors.requiredPassword'))
+    if (runes(password) < 8 || runes(password) > 20) return showFormError(t('errors.passwordRange'))
+    if (password !== form.confirm.value) return showFormError(t('errors.mismatch'))
+    if (password === current) return showFormError(t('account.same'))
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'New-Api-User': String(sessionUserId()) },
+        body: JSON.stringify({ original_password: current, password }),
+      })
+      if (response.status === 429) return showFormError(t('errors.rateLimited'))
+      const payload = await response.json().catch(() => ({}))
+      if (!payload.success) {
+        const message = String(payload.message ?? '')
+        return showFormError(/原密码|current password|текущий пароль/i.test(message) ? t('account.wrongCurrent') : errorText(message))
+      }
+      form.reset()
+      $('saved').hidden = false
+      $('error').hidden = true
+    } catch {
+      showFormError(t('errors.network'))
+    }
+  })
+  await guard(async () => {
+    await api('/api/user/self')
+    $('auth').hidden = true
+    $('app').hidden = false
+    if ($('sign-out')) $('sign-out').hidden = false
+  })
+}
+
+/** Forgot-password page: ask the gateway to email a reset link. */
+function startForgot() {
+  applyI18n()
+  const form = $('forgot-form')
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    const email = form.email.value.trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError(t('errors.emailInvalid'))
+    try {
+      const response = await fetch(`/api/reset_password?email=${encodeURIComponent(email)}`)
+      const payload = await response.json().catch(() => ({}))
+      if (response.status === 429) return showFormError(t('errors.rateLimited'))
+      if (!payload.success) {
+        // The gateway cannot send mail until SMTP is configured.
+        return showFormError(/smtp|mail|邮件|发送/i.test(String(payload.message)) ? t('account.resetUnavailable') : errorText(payload.message))
+      }
+      $('error').hidden = true
+      $('sent').hidden = false
+      form.reset()
+    } catch {
+      showFormError(t('errors.network'))
+    }
+  })
+}
+
+/** Reset page: exchange the emailed token for a generated password. */
+async function startReset() {
+  applyI18n()
+  const params = new URLSearchParams(location.search)
+  const email = params.get('email') ?? ''
+  const token = params.get('token') ?? ''
+  const stateLabel = $('state')
+  if (!email || !token) {
+    stateLabel.textContent = t('account.resetInvalid')
+    return
+  }
+  try {
+    const response = await fetch('/api/user/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, token }),
+    })
+    const payload = await response.json().catch(() => ({}))
+    if (!payload.success) {
+      stateLabel.textContent = t('account.resetInvalid')
+      return
+    }
+    stateLabel.hidden = true
+    $('password').textContent = String(payload.data ?? '')
+    $('result').hidden = false
+    $('copy').onclick = () => flashCopied($('copy'), String(payload.data ?? ''))
+  } catch {
+    stateLabel.textContent = t('errors.network')
+  }
 }
 
 async function startLogin() {

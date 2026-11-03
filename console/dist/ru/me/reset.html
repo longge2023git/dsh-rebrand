@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="account.resetTitle">
+<header>
+  <a class="brand" href="https://www.deepseek-ru.org/"><img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU</a>
+  <nav>
+    <a href="/me/login" data-i18n="auth.loginLink">Войти</a>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1 data-i18n="account.resetTitle">Новый пароль</h1>
+  <p id="state" class="hint" data-i18n="common.loading">Загрузка…</p>
+
+  <div id="result" hidden>
+    <p class="hint" data-i18n="account.resetDone">Новый пароль создан. Сохраните его:</p>
+    <p class="field"><code id="password" dir="ltr"></code></p>
+    <p><button type="button" class="button secondary" id="copy" data-i18n="common.copy">Копировать</button></p>
+    <p><a class="button" href="/me/login" data-i18n="auth.signIn">Войти</a></p>
+  </div>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>startReset()</script>
+</body>
+</html>

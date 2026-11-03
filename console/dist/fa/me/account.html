@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-default-lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-FA</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page-title="account.title">
+<header>
+  <a class="brand" href="https://www.deepseekfa.com/"><img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA</a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" data-i18n="nav.keys">کلیدها</a>
+    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">خروج</button>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1 data-i18n="account.title">حساب کاربری</h1>
+
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginUsage">برای دیدن مصرف و کلیدها باید وارد شوید.</span>
+    <a class="button" href="/me/login?next=/me/account" data-i18n="auth.signIn">ورود</a>
+  </div>
+
+  <section id="app" hidden>
+    <h2 data-i18n="account.passwordTitle">تغییر گذرواژه</h2>
+    <form id="password-form" class="stack" novalidate>
+      <label><span data-i18n="account.current">گذرواژهٔ فعلی</span>
+        <div class="field">
+          <input type="password" name="current" autocomplete="current-password">
+          <button type="button" class="eye" data-eye aria-pressed="false" data-i18n-aria="auth.showPassword">
+            <svg class="eye-open" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <svg class="eye-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M3 3l18 18M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.8M6.2 6.9A16.6 16.6 0 0 0 2 12s3.6 6 10 6c1.4 0 2.7-.3 3.8-.8"/></svg>
+          </button>
+        </div>
+      </label>
+      <label><span data-i18n="account.new">گذرواژهٔ جدید</span>
+        <div class="field">
+          <input type="password" name="password" autocomplete="new-password">
+          <button type="button" class="eye" data-eye aria-pressed="false" data-i18n-aria="auth.showPassword">
+            <svg class="eye-open" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <svg class="eye-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M3 3l18 18M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.8M6.2 6.9A16.6 16.6 0 0 0 2 12s3.6 6 10 6c1.4 0 2.7-.3 3.8-.8"/></svg>
+          </button>
+        </div>
+      </label>
+      <label><span data-i18n="auth.confirm">تکرار گذرواژه</span>
+        <div class="field">
+          <input type="password" name="confirm" autocomplete="new-password">
+          <button type="button" class="eye" data-eye aria-pressed="false" data-i18n-aria="auth.showPassword">
+            <svg class="eye-open" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <svg class="eye-off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M3 3l18 18M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.8M6.2 6.9A16.6 16.6 0 0 0 2 12s3.6 6 10 6c1.4 0 2.7-.3 3.8-.8"/></svg>
+          </button>
+        </div>
+      </label>
+      <p class="hint compact" data-i18n="auth.passwordHint">نام کاربری تا ۲۰ نویسه، گذرواژه ۸ تا ۲۰ نویسه.</p>
+      <p id="error" class="form-error" hidden></p>
+      <button class="button" type="submit" data-i18n="account.change">ذخیرهٔ گذرواژه</button>
+    </form>
+    <p id="saved" class="hint ok" hidden data-i18n="account.saved">گذرواژه تغییر کرد.</p>
+
+    <h2 data-i18n="account.recoverTitle">فراموشی گذرواژه</h2>
+    <p class="hint"><a href="/me/forgot" data-i18n="account.forgot">بازیابی از طریق ایمیل</a></p>
+  </section>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script>startAccount()</script>
+</body>
+</html>

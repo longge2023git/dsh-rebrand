@@ -197,7 +197,50 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await context.close()
     }
 
-    // 8. 桌面登录：已登录直接完成 / 2FA 提示
+    // 8. 账号安全：改密码 / 忘记密码 / 重置
+    {
+      const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
+      await page.route('**/api/user/password', async (route) => {
+        calls.push('password:' + String(route.request().postData() ?? ''))
+        await route.fulfill({ contentType: 'application/json', body: '{"success":true}' })
+      })
+      await page.route('**/api/reset_password**', async (route) => {
+        calls.push('reset_send')
+        await route.fulfill({ contentType: 'application/json', body: '{"success":true}' })
+      })
+      await page.route('**/api/user/reset', async (route) => {
+        calls.push('reset:' + String(route.request().postData() ?? ''))
+        await route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":"Ab3dE5fG7hJ9"}' })
+      })
+      await page.goto(`${base}/me/account`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      checker.check('账号页三个密码框都有眼睛', (await page.locator('[data-eye]').count()) === 3)
+      await page.fill('input[name="current"]', 'OldPass123')
+      await page.fill('input[name="password"]', 'short')
+      await page.fill('input[name="confirm"]', 'short')
+      await page.click('#password-form button[type="submit"]')
+      await page.waitForTimeout(300)
+      checker.check('改密码本地拦截短密码', !calls.some((c) => c.startsWith('password:')))
+      await page.fill('input[name="password"]', 'NewPass123')
+      await page.fill('input[name="confirm"]', 'NewPass123')
+      await page.click('#password-form button[type="submit"]')
+      await page.waitForTimeout(700)
+      checker.check('改密码请求正确', calls.some((c) => c === 'password:{"original_password":"OldPass123","password":"NewPass123"}'), calls.join(' | '))
+      checker.check('改密码成功提示', await page.locator('#saved').isVisible())
+
+      await page.goto(`${base}/me/forgot`, { waitUntil: 'domcontentloaded' })
+      await page.fill('input[name="email"]', 'user@example.com')
+      await page.click('#forgot-form button[type="submit"]')
+      await page.waitForTimeout(700)
+      checker.check('忘记密码发送请求并提示', calls.includes('reset_send') && await page.locator('#sent').isVisible())
+
+      await page.goto(`${base}/me/reset?email=user%40example.com&token=TOK`, { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(700)
+      checker.check('重置页显示新密码', (await page.locator('#password').innerText()).trim() === 'Ab3dE5fG7hJ9', await page.locator('#password').innerText())
+      await context.close()
+    }
+
+    // 9. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

@@ -114,6 +114,16 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
 
+## 账号与安全（/me/account、/me/forgot、/me/reset）
+
+| 页面 | 功能 |
+|---|---|
+| `/me/account` | 改密码（当前/新/确认，三个眼睛），链接到忘记密码 |
+| `/me/forgot` | 输入邮箱 → `GET /api/reset_password`；SMTP 未配置时提示"联系支持" |
+| `/me/reset` | 邮件链接落地页：`POST /api/user/reset` 后用服务器生成的新密码展示 + 复制 |
+
+网关侧：`PUT /api/user/password`（自助改密，校验原密码与长度）；`SendPasswordResetEmail` 在 `DSH_MINI_LOGIN` 开启时把链接从 `/user/reset` 改为 `/me/reset`。
+
 ## 充值页（/me/topup）
 
 显示余额、兑换码（`POST /api/user/topup {key}`）与充值历史（`GET /api/user/topup/self`）；没有支付渠道，页面提示"联系支持"。入口在头部导航「شارژ / Пополнение / Add credit」，`/top_up` 也 302 到这里（`DSH_MINI_LOGIN=0` 时回 `/console/topup`）。
