@@ -41,6 +41,19 @@ TLS 握手也正常（`smtp.resend.com:465` → TLSv1.3，证书 `*.resend.com`�
 3. **迷你站注册页必须同步改造**，否则开验证后注册直接全挂（见下）
 4. 验证邮件正文是中文模板（`%s邮箱验证邮件`），伊朗/俄语用户看不懂——要本地化就得改 Go 代码
 
+## 当前进度（2026-11-03）
+
+| 域名 | 状态 | DNS 提供商 | 记录 |
+|---|---|---|---|
+| `mail.deepseek-ru.org` | **verified**（sending enabled） | Cloudflare（已用 API 写入 4 条） | DKIM / MX / SPF / CNAME 全部 verified |
+| `mail.deepseekfa.com` | not_started | ArvanCloud（**待添加**） | 缺 4 条 |
+
+两个域名在同一个 Resend 账号下，区域 eu-west-1。发信地址分别为 `no-reply@mail.deepseek-ru.org`、`no-reply@mail.deepseekfa.com`。
+
+DNS 记录（FA 待做）：`TXT resend._domainkey.mail`、`MX send.mail`（priority 10 → `feedback-smtp.eu-west-1.amazonses.com`）、`TXT send.mail`（`v=spf1 include:amazonses.com ~all`）、`CNAME rsend.mail`（`send.forge.rmta.net`，必须灰云）。Cloudflare 侧勿开代理，否则验证不过。
+
+凭据存放：`~/.deepseek-secrets/{resend.env,cloudflare.env,README.md}`（目录 700、文件 600，不进仓库）。
+
 ## 服务端行为（写死的事实）
 
 | 项 | 值 |
