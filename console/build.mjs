@@ -24,6 +24,7 @@ const BRANDS = {
     site: 'https://www.deepseekfa.com',
     api: 'https://deepseekfa.com',
     icon: join(here, '..', 'site', 'assets', 'fa', 'icon.svg'),
+    touchIcon: join(here, '..', 'site', 'assets', 'fa', 'icon-180.png'),
   },
   ru: {
     brand: 'DeepSeek-RU',
@@ -33,6 +34,7 @@ const BRANDS = {
     site: 'https://www.deepseek-ru.org',
     api: 'https://deepseek-ru.org',
     icon: join(here, '..', 'site', 'assets', 'ru', 'icon.svg'),
+    touchIcon: join(here, '..', 'site', 'assets', 'ru', 'icon-180.png'),
   },
 }
 
@@ -98,6 +100,7 @@ for (const asset of ['app.js', 'dict.js', 'styles.css']) {
   await cp(join(here, 'me', asset), join(out, asset))
 }
 await cp(brand.icon, join(out, 'icon.svg'))
+await cp(brand.touchIcon, join(out, 'icon-180.png'))
 
 // Fail the build when a page still carries another brand's name/domain or an
 // unresolved {{token}}. dict.js is shared on purpose and holds both brands, so it
