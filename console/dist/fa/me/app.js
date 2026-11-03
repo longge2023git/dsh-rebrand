@@ -49,6 +49,11 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((node) => {
     node.setAttribute('placeholder', t(node.dataset.i18nPlaceholder))
   })
+  // Cross-links between login/register keep the flow parameters (next, dsh, aff).
+  document.querySelectorAll('[data-carry]').forEach((node) => {
+    const base = node.dataset.carry || node.getAttribute('href').split('?')[0]
+    node.setAttribute('href', `${base}${location.search}`)
+  })
   document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
     const label = t(node.dataset.i18nAria)
     node.setAttribute('aria-label', label)
@@ -368,10 +373,14 @@ function showFormError(message) {
   box.hidden = false
 }
 
-/** Where to go after signing in: honour ?next= on the same origin only. */
-function nextUrl() {
-  const next = new URLSearchParams(location.search).get('next')
-  return next && next.startsWith('/') && !next.startsWith('//') ? next : '/me/'
+/** Where to go after authenticating: finish a desktop sign-in first, then ?next=, then the fallback. */
+function finishAuth(fallback) {
+  const params = new URLSearchParams(location.search)
+  const pending = params.get('dsh')
+  if (pending) return `/me/dsh?tx=${encodeURIComponent(pending)}`
+  const next = params.get('next')
+  if (next && next.startsWith('/') && !next.startsWith('//')) return next
+  return fallback
 }
 
 /** Remember the signed-in user so the console can set the New-Api-User header. */
@@ -470,7 +479,7 @@ async function startLogin() {
       if (!payload.success) return showFormError(errorText(payload.message))
       if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
       rememberUser(payload.data || {})
-      location.replace(nextUrl())
+      location.replace(finishAuth('/me/'))
     } catch {
       showFormError(t('errors.network'))
     }
@@ -573,8 +582,7 @@ async function startRegister() {
       const session = await login.json().catch(() => ({}))
       if (!session.success) return showFormError(t('errors.registerThenLogin'))
       rememberUser(session.data || {})
-      const pending = new URLSearchParams(location.search).get('dsh')
-      location.replace(pending ? `/me/dsh?tx=${encodeURIComponent(pending)}` : '/me/keys')
+      location.replace(finishAuth('/me/keys'))
     } catch {
       showFormError(t('errors.network'))
     }

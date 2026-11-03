@@ -117,6 +117,7 @@ node console/build.mjs ru    # -> console/dist/ru/me
 ## 页面细节
 
 - **favicon**：五个页面都声明 `/me/icon.svg` + `apple-touch-icon`；不声明时浏览器会回退请求 `/favicon.ico`（网关的 New API 图标）
+- **跨页链接必须保留查询串**：登录↔注册互跳链接用 `data-carry`（`applyI18n` 把当前 `location.search` 拼上），受保护页的登录按钮带 `next=<当前路径>`；登录/注册成功后的落点统一由 `finishAuth()` 决定：`dsh`（桌面授权）> `next`（同源路径）> 默认页。缺任何一环都会表现为「切个页面就丢了上下文」
 - **语言开关必须保留查询串**：`applyI18n` 生成 `?lang=` 链接时用 `URLSearchParams(location.search)` 复制其余参数；直接写 `?lang=en` 会丢掉 `tx`（桌面登录）、`dsh`（注册后回到授权）、`aff`（邀请码），表现为「切 EN 后变成另一个界面」或「注册完不给桌面授权」
 - **注册提交必须同步绑定**：`startRegister` 里 `addEventListener('submit')` 不能等在 `await loadStatus()` 之后，否则慢网下用户先点击会触发原生 GET 提交，密码出现在 URL、历史和 Referer 里；处理器内部再 `await statusReady`
 
