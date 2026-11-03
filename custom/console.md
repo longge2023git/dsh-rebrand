@@ -114,6 +114,16 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
 
+## 退出登录
+
+用量页与密钥页的头部在登录态显示「退出」（未登录隐藏）。点击后：
+
+1. `GET /api/user/logout`（无鉴权中间件，只需会话 cookie）清服务端会话
+2. 清 `localStorage` 的 `user` 与 `console-lang`
+3. 跳 `/me/login`
+
+请求失败也照样清本地并跳转，避免"点退出没反应"。
+
 ## 页面细节
 
 - **favicon**：五个页面都声明 `/me/icon.svg` + `apple-touch-icon`；不声明时浏览器会回退请求 `/favicon.ico`（网关的 New API 图标）

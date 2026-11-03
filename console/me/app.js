@@ -145,6 +145,7 @@ async function startUsage() {
     const me = await api('/api/user/self')
     $('auth').hidden = true
     $('app').hidden = false
+    if ($('sign-out')) $('sign-out').hidden = false
     const displayName = me.display_name && me.display_name !== me.username ? me.display_name : ''
     $('who').textContent = t('usage.greeting', { name: displayName || me.email || me.username || '—' })
     $('balance').textContent = credit(me.quota)
@@ -260,6 +261,7 @@ async function startKeys() {
     await api('/api/user/self')
     $('auth').hidden = true
     $('app').hidden = false
+    if ($('sign-out')) $('sign-out').hidden = false
     await loadKeys()
   })
 }
@@ -303,7 +305,23 @@ async function copyText(value) {
 
 
 /** Toggle a password field between masked and plain text. */
+/** Clear the gateway session and the local user cache, then return to sign-in. */
+async function signOut() {
+  try {
+    await fetch('/api/user/logout', { credentials: 'same-origin' })
+  } catch {
+    // Local sign-out still proceeds when the request fails.
+  }
+  localStorage.removeItem('user')
+  localStorage.removeItem('console-lang')
+  location.replace('/me/login')
+}
+
 document.addEventListener('click', (event) => {
+  if (event.target.closest('#sign-out')) {
+    void signOut()
+    return
+  }
   const button = event.target.closest('[data-eye]')
   if (!button) return
   const input = button.parentElement?.querySelector('input')
