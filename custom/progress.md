@@ -7,14 +7,14 @@
 
 | 成果 | 状态 | 位置 |
 |---|---|---|
-| 网关 `deepseekfa.com` | 运行中 | 87.107.108.14 `dsh-newapi` :3104，镜像 `20261102-fa-login` |
-| 网关 `deepseek-ru.org` | 运行中 | 104.248.155.54 `dsh-newapi-ru` :3105，镜像 `20261102-ru-i18n` |
+| 网关 `deepseekfa.com` | 运行中 | 87.107.108.14 `dsh-newapi` :3104，镜像 `20261103-mini-login4` |
+| 网关 `deepseek-ru.org` | 运行中 | 104.248.155.54 `dsh-newapi-ru` :3105，镜像 `20261103-mini-login4` |
 | 网关 `ds.openrouters.org` | 运行中（冻结） | 104.248.155.54 `dsh-newapi` :3104，镜像 `20261025a`；库已与 FA 分叉 |
 | 官网 `www.deepseekfa.com` / `www.deepseek-ru.org` | 上线 | `feat/site` 构建，rsync 部署 |
 | 迷你控制台 `deepseekfa.com/me/`、`deepseek-ru.org/me/` | 上线 | fa/ru/en 三语，含邀请、转账、密钥、计费明细 |
 | macOS 安装包（两品牌） | 已发布 `0.2.1-rc.2.20261103.1` | 下载页 + `/downloads/` |
 | Windows 安装包 | 交接单与脚本就绪，**等 Windows 机器构建** | [windows-handoff.md](windows-handoff.md) |
-| 邀请奖励 | 已开启 | 邀请人 $1.00 / 被邀请人 $0.50 / 新用户 $0.50 |
+| 邀请奖励 | 已开启 | 新用户 $0.10 / 被邀请人 +$0.50 / 邀请人 $1.00 |
 
 ## 里程碑
 
@@ -27,6 +27,8 @@
 | M-09 | 邀请码 + 奖励 + 转账 | 完成 | [console.md](console.md) |
 | M-10 | macOS 两品牌发布 | 完成 | `0.2.1-rc.2.20261103.1` |
 | M-11 | Windows 构建交接 | 就绪待产出 | [windows-handoff.md](windows-handoff.md) |
+| M-12 | 桌面端登录改用迷你页 | 完成（客户端无需升级） | [console.md](console.md#桌面登录的路径约束改之前必读) |
+| M-13 | apex 入口切换到迷你站 | 完成 | [site.md](site.md#apex-入口路由) |
 
 ## 关键决策
 

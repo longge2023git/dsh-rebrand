@@ -13,7 +13,7 @@
 | Electron userData | `~/Library/Application Support/DeepSeek-FA` |
 | 协议 scheme | 第一版保留 `dsh://` |
 | 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
-| 默认网关 | `https://ds.openrouters.org` |
+| 默认网关 | FA：`https://deepseekfa.com`；RU：`https://deepseek-ru.org` |
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
@@ -43,13 +43,13 @@
 ```yaml
 - id: deepseek-account
   config:
-    platformOrigin: https://ds.openrouters.org
-    inferenceOrigin: https://ds.openrouters.org
+    platformOrigin: https://deepseekfa.com
+    inferenceOrigin: https://deepseekfa.com
     usagePath: /console/log
     topUpPath: /console/topup
 - id: llm-deepseek-account
   config:
-    baseURL: https://ds.openrouters.org/v1
+    baseURL: https://deepseekfa.com/v1
 ```
 
 文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置。

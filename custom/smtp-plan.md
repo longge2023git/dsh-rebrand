@@ -43,6 +43,18 @@ TLS 握手也正常（`smtp.resend.com:465` → TLSv1.3，证书 `*.resend.com`�
 
 ## 当前进度（2026-11-03）
 
+**已落地**：
+
+| 项 | 状态 |
+|---|---|
+| RU 域名验证 | `mail.deepseek-ru.org` verified |
+| RU 网关 SMTP | `SMTPServer=smtp.resend.com`、`SMTPPort=465`、`SMTPSSLEnabled=true`、`SMTPAccount=resend`、`SMTPFrom=no-reply@mail.deepseek-ru.org`，已写入 options 并通过网关实测发信 |
+| 邮件文案多语言 | `controller/email_template.go` 提供 fa/ru/en/zh 四套主题与正文，语言由 `DSH_EMAIL_LANG` 决定；RU 实测收到俄语验证邮件 |
+| 迷你站验证码 UI | `feat/email-verification` 分支完成（按 `/api/status` 的 `email_verification` 自动显隐），未上线 |
+| `EmailVerificationEnabled` | **两站仍为 false**，注册流程未变 |
+
+**待办**：FA 的 4 条 ArvanCloud DNS；两站打开验证开关前先在 RU 跑一遍真实注册。
+
 | 域名 | 状态 | DNS 提供商 | 记录 |
 |---|---|---|---|
 | `mail.deepseek-ru.org` | **verified**（sending enabled） | Cloudflare（已用 API 写入 4 条） | DKIM / MX / SPF / CNAME 全部 verified |

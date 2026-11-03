@@ -18,8 +18,8 @@ SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
 
 | 站点 | 服务器 | 容器 | 镜像 | 端口 | 数据库 |
 |---|---|---|---|---|---|
-| `deepseekfa.com` | 87.107.108.14 | `dsh-newapi` | `dsh/new-api-deepseek:20261102-fa-login` | 3104 | `/opt/dsh-gateway/data/one-api.db` |
-| `deepseek-ru.org` | 104.248.155.54 | `dsh-newapi-ru` | `dsh/new-api-deepseek:20261102-ru-i18n` | 3105 | `/opt/dsh-gateway-ru/data/one-api.db` |
+| `deepseekfa.com` | 87.107.108.14 | `dsh-newapi` | `dsh/new-api-deepseek:20261103-mini-login4` | 3104 | `/opt/dsh-gateway/data/one-api.db` |
+| `deepseek-ru.org` | 104.248.155.54 | `dsh-newapi-ru` | `dsh/new-api-deepseek:20261103-mini-login4` | 3105 | `/opt/dsh-gateway-ru/data/one-api.db` |
 | `ds.openrouters.org` | 104.248.155.54 | `dsh-newapi` | `dsh/new-api-deepseek:20261025a` | 3104 | `/opt/dsh-gateway/data/one-api.db` |
 
 三套库**互不相通**（FA 与 ds.openrouters.org 从 2026-10-28 起分叉）。FA 的环境变量：
@@ -46,7 +46,7 @@ DSH_BRAND_NAME=DeepSeek-FA
 ```
 
 - 容器：`dsh-newapi`
-- 镜像：`dsh/new-api-deepseek:20261025a`
+- 镜像：`dsh/new-api-deepseek:20261025a`（ds.openrouters.org，冻结）；FA/RU 用 `20261103-mini-login4`
 - 端口：`127.0.0.1:3104 -> 3000`
 - 重启策略：`unless-stopped`
 - 数据：SQLite `/opt/dsh-gateway/data/one-api.db`
