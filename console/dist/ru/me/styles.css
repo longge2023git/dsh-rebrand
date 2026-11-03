@@ -195,3 +195,26 @@ main.narrow { max-width: 460px; }
 .inline { display: flex; gap: 8px; align-items: center; }
 .inline input { flex: 1; }
 .inline .button { white-space: nowrap; }
+
+/* Password fields carry a reveal button positioned inside the input */
+.field { position: relative; display: flex; align-items: center; }
+.field input { flex: 1; padding-inline-end: 40px; }
+.eye {
+  position: absolute;
+  inset-inline-end: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.eye:hover { color: var(--text); background: var(--line); }
+.eye svg { flex: 0 0 auto; width: 18px; height: 18px; }
+.eye .eye-off { display: none; }
+.eye[aria-pressed="true"] .eye-open { display: none; }
+.eye[aria-pressed="true"] .eye-off { display: inline; }

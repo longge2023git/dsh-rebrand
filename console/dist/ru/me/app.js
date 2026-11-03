@@ -49,6 +49,11 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((node) => {
     node.setAttribute('placeholder', t(node.dataset.i18nPlaceholder))
   })
+  document.querySelectorAll('[data-i18n-aria]').forEach((node) => {
+    const label = t(node.dataset.i18nAria)
+    node.setAttribute('aria-label', label)
+    node.setAttribute('title', label)
+  })
   document.querySelectorAll('[data-lang-link]').forEach((node) => {
     node.setAttribute('href', `?lang=${node.dataset.langLink}`)
     node.setAttribute('aria-current', String(node.dataset.langLink === LANG))
@@ -286,6 +291,21 @@ async function copyText(value) {
     area.remove()
   }
 }
+
+
+/** Toggle a password field between masked and plain text. */
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-eye]')
+  if (!button) return
+  const input = button.parentElement?.querySelector('input')
+  if (!input) return
+  const revealed = input.type === 'password'
+  input.type = revealed ? 'text' : 'password'
+  button.setAttribute('aria-pressed', String(revealed))
+  const label = t(revealed ? 'auth.hidePassword' : 'auth.showPassword')
+  button.setAttribute('aria-label', label)
+  button.setAttribute('title', label)
+})
 
 document.addEventListener('click', (event) => {
   const copy = event.target.closest('[data-copy]')
