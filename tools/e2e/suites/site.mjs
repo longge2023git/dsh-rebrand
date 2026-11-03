@@ -33,6 +33,18 @@ export async function runSite({ brand, checker }) {
     checker.check('下载页显示 SHA-256', Boolean(download.sha), download.sha?.slice(0, 12))
     checker.check('存在 Windows 下载位（清单驱动）', download.windowsSlot)
 
+    const cards = await page.$$eval('.dl-card', (els) => els
+      .filter((el) => el.getBoundingClientRect().height > 0)
+      .map((el) => ({ id: el.id || 'platform', title: el.querySelector('h3')?.textContent?.trim() ?? '' })))
+    const titles = cards.map((card) => card.title)
+    checker.check('下载卡片不重复', new Set(titles).size === titles.length, titles.join(' | '))
+    const soonVisible = await page.evaluate(() => {
+      const soon = document.getElementById('win-soon')
+      const card = document.getElementById('win-card')
+      return Boolean(soon && card && !card.hidden && soon.getBoundingClientRect().height > 0)
+    })
+    checker.check('Windows 卡片不与"即将推出"同时出现', !soonVisible)
+
     await page.click('.lang a')
     await page.waitForTimeout(1000)
     checker.check('语言切换生效', (await page.evaluate(() => document.documentElement.lang)) === 'en')

@@ -1,3 +1,6 @@
+/* `hidden` must win over component display rules (e.g. .dl-card{display:flex}). */
+[hidden] { display: none !important; }
+
 /* DeepSeek-style site: white canvas, near-black type, one blue accent, pill buttons.
    Logical properties keep the same sheet working for LTR (ru/en) and RTL (fa). */
 :root {

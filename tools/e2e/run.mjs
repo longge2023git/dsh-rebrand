@@ -22,6 +22,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((pairs, value, inde
 }, []))
 
 const mode = args.mode ?? 'local'
+const suite = args.suite ?? 'all'
 const brands = args.brand === 'both' ? ['fa', 'ru'] : [args.brand ?? 'fa']
 if (!['local', 'live'].includes(mode)) throw new Error('--mode local|live')
 for (const brand of brands) if (!BRANDS[brand]) throw new Error(`unknown brand ${brand}`)
@@ -47,9 +48,9 @@ for (const brandId of brands) {
       brand.app = `http://127.0.0.1:${port}`
     }
     if (mode === 'live') {
-      await runSite({ brand, checker })
-      await runConsoleLive({ brand, checker, users })
-      await runDesktop({ brand, checker, users })
+      if (suite === 'all' || suite === 'site') await runSite({ brand, checker })
+      if (suite === 'all' || suite === 'console') await runConsoleLive({ brand, checker, users })
+      if (suite === 'all' || suite === 'desktop') await runDesktop({ brand, checker, users })
     } else {
       await runConsoleLocal({ base: brand.app, brand, checker })
     }
