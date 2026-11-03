@@ -24,7 +24,7 @@ node tools/e2e/run.mjs --mode live --brand both
   - `CRITICAL_RATE_LIMIT`（默认 20，20 分钟窗口）：注册/登录/登录事务
   - `CRITICAL_RATE_LIMIT_ENABLE`（默认 true）
   - 发验证码另有独立限制：**2 次 / 30 秒 / IP**（代码里写死，目前不可配）
-  - 2026-11-03 测试期间两站设为 `CRITICAL_RATE_LIMIT=2000`，测试完改回 20
+  - 2026-11-03 测试期间两站临时设为 `CRITICAL_RATE_LIMIT=2000`，**当天已恢复默认 20**；再要放宽就临时加这行，测完删掉重启
 - 本地模式前先构建：`node console/build.mjs fa`（或 `ru`）。
 
 ## 覆盖范围
