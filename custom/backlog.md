@@ -26,7 +26,7 @@
 | S-03 | 待办 | 访问统计、ArvanCloud CDN、Windows 包 CDN | [site](site.md) |
 | D-04 | 待办 | Windows 包上传后的页面验收（exe + json 到位后按钮才出现） | [Windows 交接单](windows-handoff.md) |
 
-| C-04 | 待办 | 充值/兑换入口：`/top_up` 现在 302 到 `/me/keys`，用户点"充值"落在密钥页；需做兑换码页（`POST /api/user/topup`）或明确"联系管理员" | [console](console.md) |
+| C-04 | **已完成** | 充值页：`/me/topup` 兑换码 + 历史，`/top_up` 302 到此 | [console](console.md) |
 | C-05 | **已完成** | 普通用户改密码：新增 `PUT /api/user/password` + 迷你站 `/me/account` | [console](console.md) |
 | C-06 | 待办（RU 可用） | 忘记密码：页面与接口已做，RU 可发信；FA 需先补 ArvanCloud DNS | [smtp-plan](smtp-plan.md) |
 | C-07 | **已完成** | 密钥编辑：配额/过期/IP 限制（`PUT /api/token/` + 迷你站对话框） | [console](console.md) |
@@ -34,7 +34,7 @@
 | C-09 | **已完成** | 公告：用量页横幅（最新一条、可关闭） | [console](console.md) |
 | C-10 | **已完成** | 价格页：`/me/pricing`（ratio → $/百万 token） | [console](console.md) |
 | C-11 | 待办 | 2FA 设置与登录（`/api/user/2fa/*` 已存在） | [console](console.md) |
-| C-12 | 待办 | `/me/*` 加 noindex + 安全响应头 | [console](console.md) |
+| C-12 | **已完成** | `/me/*` 已加 `X-Robots-Tag: noindex`、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer` | [console](console.md) |
 
 ## F-01 摘要
 

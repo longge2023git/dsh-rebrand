@@ -114,6 +114,10 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 所以换页面只能靠网关重定向，不能改这两个返回值。回退开关 `DSH_MINI_LOGIN=0`。
 
+## 响应头
+
+`/me/` 的 nginx location 加了三条：`X-Robots-Tag: noindex, nofollow`（控制台不该被索引）、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`。CSP 暂未加——页面用内联脚本，直接上 CSP 会打断现有逻辑。
+
 ## 价格页与公告
 
 | 项 | 说明 |
