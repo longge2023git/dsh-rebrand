@@ -131,6 +131,17 @@ node console/build.mjs ru    # -> console/dist/ru/me
 - **语言开关必须保留查询串**：`applyI18n` 生成 `?lang=` 链接时用 `URLSearchParams(location.search)` 复制其余参数；直接写 `?lang=en` 会丢掉 `tx`（桌面登录）、`dsh`（注册后回到授权）、`aff`（邀请码），表现为「切 EN 后变成另一个界面」或「注册完不给桌面授权」
 - **注册提交必须同步绑定**：`startRegister` 里 `addEventListener('submit')` 不能等在 `await loadStatus()` 之后，否则慢网下用户先点击会触发原生 GET 提交，密码出现在 URL、历史和 Referer 里；处理器内部再 `await statusReady`
 
+## E2E 回归套件
+
+`tools/e2e/`（本地 UI 22 项 + 线上 31 项/品牌），改完迷你站或网关登录代码后跑一遍：
+
+```bash
+node tools/e2e/run.mjs --mode local --brand fa      # 不联网、不建数据
+E2E_PROXY=direct node tools/e2e/run.mjs --mode live --brand both   # 真网关，自动清理临时账号
+```
+
+细节见 [tools/e2e/README.md](../tools/e2e/README.md)。限流提示（429）现在会显示「尝试过于频繁」而不是通用错误。
+
 ## 桌面登录 E2E
 
 ```bash

@@ -466,6 +466,7 @@ async function startDsh() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
+      if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
       if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
@@ -493,6 +494,7 @@ async function startLogin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
+      if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
       if (payload.data?.require_2fa) return showFormError(t('errors.twoFactor'))
@@ -588,6 +590,7 @@ async function startRegister() {
           ...(form.aff && form.aff.value.trim() ? { aff_code: form.aff.value.trim() } : {}),
         }),
       })
+      if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
 
