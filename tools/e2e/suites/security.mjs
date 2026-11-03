@@ -1,5 +1,5 @@
 /** Account security: password rotation and the recovery entry points. */
-import { launchBrowser, login, register, uniq } from '../lib.mjs'
+import { createUserViaDb, launchBrowser, login, uniq } from '../lib.mjs'
 
 const OLD = 'E2eOldPass123'
 const NEW = 'E2eNewPass456'
@@ -11,8 +11,9 @@ export async function runSecurity({ brand, checker, users }) {
   const page = await context.newPage()
   page.setDefaultTimeout(45000)
   try {
-    await register(page, brand.app, user, OLD)
+    createUserViaDb(brand.id, user, OLD)
     users.push(user)
+    await login(page, brand.app, user, OLD)
     await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
 
     // 1. 改密码

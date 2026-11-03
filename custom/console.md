@@ -118,6 +118,16 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 `/me/` 的 nginx location 加了三条：`X-Robots-Tag: noindex, nofollow`（控制台不该被索引）、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`。CSP 暂未加——页面用内联脚本，直接上 CSP 会打断现有逻辑。
 
+## 注册方式（邮箱优先）
+
+`EmailVerificationEnabled=true`（2026-11-03 起两站均开启）后：
+
+| 项 | 行为 |
+|---|---|
+| 注册表单 | 显示邮箱 + 验证码；用户名隐藏，由邮箱本地部分 + 4 位随机后缀派生（≤20 字符） |
+| 登录 | 标签「ایمیل یا نام کاربری」；服务端 `username = ? OR email = ?`，两种都能登 |
+| 关闭验证时 | 自动回退为用户名注册（同一份代码，按 `/api/status` 切换） |
+
 ## 价格页与公告
 
 | 项 | 说明 |

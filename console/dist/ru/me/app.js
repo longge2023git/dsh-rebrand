@@ -834,6 +834,14 @@ function wireSendCode() {
   })
 }
 
+
+/** Registrations sign in by email; the stored username must fit `max=20`. */
+function deriveUsername(email) {
+  const local = String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12) || 'user'
+  const suffix = Math.random().toString(36).slice(2, 6)
+  return `${local}_${suffix}`.slice(0, 20)
+}
+
 async function startRegister() {
   applyI18n()
   const form = $('auth-form')
@@ -842,10 +850,12 @@ async function startRegister() {
   // the URL. The handler itself waits for the status before validating.
   const statusReady = loadStatus()
   statusReady.then(() => {
-    if (state.emailVerification !== true) return
-    $('email-field').hidden = false
-    $('code-field').hidden = false
-    wireSendCode()
+    const emailOn = state.emailVerification === true
+    $('email-field').hidden = !emailOn
+    $('code-field').hidden = !emailOn
+    // Username stays only as a fallback when email verification is off.
+    $('username-field').hidden = emailOn
+    if (emailOn) wireSendCode()
   })
   // Deep link from a share card: /me/register?aff=CODE
   const invitedBy = new URLSearchParams(location.search).get('aff')
@@ -855,20 +865,24 @@ async function startRegister() {
     event.preventDefault()
     await statusReady
     const emailOn = state.emailVerification === true
-    const username = form.username.value.trim()
     const password = form.password.value
     // Mirror model.User: `username max=20` (no minimum, no format rule), `password min=8,max=20`.
     const runes = (value) => Array.from(value).length
-    if (!username) return showFormError(t('errors.requiredUsername'))
-    if (runes(username) > 20) return showFormError(t('errors.usernameTooLong'))
     if (runes(password) < 8 || runes(password) > 20) return showFormError(t('errors.passwordRange'))
     if (password !== form.confirm.value) return showFormError(t('errors.mismatch'))
     const email = emailOn ? form.email.value.trim() : ''
     const code = emailOn ? form.code.value.trim() : ''
+    let username = ''
     if (emailOn) {
       if (!email) return showFormError(t('errors.emailRequired'))
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showFormError(t('errors.emailInvalid'))
       if (!/^\d{6}$/.test(code)) return showFormError(t('errors.codeRequired'))
+      // The gateway still stores a username; derive a stable one from the address.
+      username = deriveUsername(email)
+    } else {
+      username = form.username.value.trim()
+      if (!username) return showFormError(t('errors.requiredUsername'))
+      if (runes(username) > 20) return showFormError(t('errors.usernameTooLong'))
     }
     try {
       const response = await fetch('/api/user/register', {

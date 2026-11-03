@@ -16,7 +16,7 @@
 | D-02 | **已完成** | macOS unsigned 包（FA + RU，`0.2.1-rc.2.20261103.1`） | [site](site.md) |
 | D-03 | **阻塞**（等 Windows 机器构建） | FA / RU Windows unsigned 包；交接单、脚本、上传目录、两只公钥已就绪 | [Windows 交接单](windows-handoff.md) |
 | S-01 | **已完成** | 网关域名切换到 https://deepseekfa.com（旧 `deepseek-fa.org` 方案作废） | [迁移清单](deepseek-fa-domain-migration.md) |
-| I-02 | 待办 | SMTP：开通服务商 + DNS（SPF/DKIM/DMARC）+ 迷你站注册页加邮箱验证码（先做完再加验证开关） | [SMTP 方案](smtp-plan.md) |
+| I-02 | **已完成** | SMTP：两个域名 verified、两站 SMTP 已配、邮箱验证已开启 | [SMTP 方案](smtp-plan.md) |
 | I-01 | 待办 | **服务端消息波斯语翻译**：`i18n/locales` 新增 `fa.yaml`（215 键）+ `LangFa`/localizer/`SupportedLanguages`。未做前 fa 页面的报错文案回落英文 | [i18n](console.md) |
 | C-01 | **已完成** | 迷你波斯语控制台（用量 + 单笔计费明细 + 密钥增删复制） | [console](console.md) |
 | C-02 | 待办（RU 版本已完成） | 控制台补：2FA 登录表单（当前提示改用主控制台）、旧设备密钥清理入口 | [console](console.md) |
@@ -28,7 +28,7 @@
 
 | C-04 | **已完成** | 充值页：`/me/topup` 兑换码 + 历史，`/top_up` 302 到此 | [console](console.md) |
 | C-05 | **已完成** | 普通用户改密码：新增 `PUT /api/user/password` + 迷你站 `/me/account` | [console](console.md) |
-| C-06 | 待办（RU 可用） | 忘记密码：页面与接口已做，RU 可发信；FA 需先补 ArvanCloud DNS | [smtp-plan](smtp-plan.md) |
+| C-06 | **已完成** | 忘记密码：两站 SMTP 均可用，页面与接口已上线 | [smtp-plan](smtp-plan.md) |
 | C-07 | **已完成** | 密钥编辑：配额/过期/IP 限制（`PUT /api/token/` + 迷你站对话框） | [console](console.md) |
 | C-08 | 待办 | 用量统计：按天/模型汇总（现在只有分页明细） | [console](console.md) |
 | C-09 | **已完成** | 公告：用量页横幅（最新一条、可关闭） | [console](console.md) |

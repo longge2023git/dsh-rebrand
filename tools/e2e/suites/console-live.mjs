@@ -1,5 +1,5 @@
 /** Live mini console flows: register, keys, usage, invite rewards, transfer, sign out. */
-import { launchBrowser, login, readUsage, register, uniq } from '../lib.mjs'
+import { launchBrowser, createUserViaDb, login, readUsage, uniq } from '../lib.mjs'
 
 const PASSWORD = 'E2ePass12345'
 
@@ -11,12 +11,13 @@ export async function runConsoleLive({ brand, checker, users }) {
   const inviter = uniq(brand.lang + 'i')
   const invitee = uniq(brand.lang + 'e')
   try {
-    // 1. 新用户注册 → 体验额度（这个账号同时充当邀请人）
-    await register(page, brand.app, inviter, PASSWORD)
+    // 1. 测试账号（邮箱验证开启后无法用 API 注册，直接建 fixture）
+    createUserViaDb(brand.id, inviter, PASSWORD)
     users.push(inviter)
+    await login(page, brand.app, inviter, PASSWORD)
     await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
     const usage = await readUsage(page, brand.app)
-    checker.check('新用户余额 $0.10', usage.balance === '0.10', usage.balance)
+    checker.check('fixture 余额 $0.10', usage.balance === '0.10', usage.balance)
     checker.check('邀请卡片可见且有 4 位邀请码', /^[A-Za-z0-9]{4}$/.test(usage.code), usage.code)
     checker.check('无邀请时无转账按钮', !usage.transfer)
 
@@ -47,30 +48,19 @@ export async function runConsoleLive({ brand, checker, users }) {
     await login(page, brand.app, inviter, PASSWORD)
     checker.check('用户名重新登录成功', !page.url().includes('/me/login'), page.url())
 
-    // 4. 邀请链路（邀请人 = 上面的 inviter）
-    const inviterUsage = await readUsage(page, brand.app)
-    await page.evaluate(() => localStorage.clear())
-    await page.goto(`${brand.app}/me/register?aff=${encodeURIComponent(inviterUsage.code)}`, { waitUntil: 'domcontentloaded' })
-    await page.fill('input[name="username"]', invitee)
-    await page.fill('input[name="password"]', PASSWORD)
-    await page.fill('input[name="confirm"]', PASSWORD)
-    await page.click('#auth-form button[type="submit"]')
-    await page.waitForURL('**/me/keys', { timeout: 30000 })
-    users.push(invitee)
-    const inviteeUsage = await readUsage(page, brand.app)
-    checker.check('被邀请人余额 $0.60', inviteeUsage.balance === '0.60', inviteeUsage.balance)
+    // 4. 邀请链路：注册需要邮箱验证码，无法自动化（已在开启验证前人工验证过）
+    checker.skip('邀请奖励链路', '注册需邮箱验证码，自动化不可覆盖')
 
-    // 5. 邀请人收账与转账
-    await page.evaluate(() => localStorage.clear())
-    await login(page, brand.app, inviter, PASSWORD)
-    const afterInvite = await readUsage(page, brand.app)
-    checker.check('邀请人计数 1、额度 $1.00、可转账', afterInvite.credit === '1.00' && afterInvite.transfer, JSON.stringify(afterInvite))
-    if (afterInvite.transfer) {
-      await page.click('#aff-transfer')
-      await page.waitForTimeout(2500)
-      const afterTransfer = await readUsage(page, brand.app)
-      checker.check('转账后余额 $1.10、额度归零', afterTransfer.balance === '1.10' && afterTransfer.credit === '0.00', JSON.stringify(afterTransfer))
-    }
+    // 5. 注册闸门：不带验证码必须被拒，发码接口可用
+    const gate = await fetch(brand.app + '/api/user/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: uniq('g'), password: PASSWORD }),
+    }).then((r) => r.json()).catch(() => ({}))
+    checker.check('注册必须带验证码', gate?.success === false, JSON.stringify(gate).slice(0, 90))
+    // 用本站发信域的地址做探针：Resend 会拒收 example.com 这类测试域。
+    const probe = `e2e@mail.${new URL(brand.app).hostname.replace(/^www\./, '')}`
+    const send = await fetch(`${brand.app}/api/verification?email=${encodeURIComponent(probe)}`).then((r) => r.json()).catch(() => ({}))
+    checker.check('发码接口可用', send?.success === true, JSON.stringify(send).slice(0, 90))
   } finally {
     await browser.close()
   }

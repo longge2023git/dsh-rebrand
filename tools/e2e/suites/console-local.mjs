@@ -61,7 +61,11 @@ export async function runConsoleLocal({ base, brand, checker }) {
       checker.check('注册页有用户名/密码/确认/邀请码字段', (await page.locator('input[name="username"]').count()) === 1
         && (await page.locator('input[name="confirm"]').count()) === 1
         && (await page.locator('input[name="aff"]').count()) === 1)
-      checker.check('验证关闭时隐藏邮箱字段', await page.evaluate(() => document.getElementById('email-field').hidden))
+      checker.check('验证关闭时显示用户名、隐藏邮箱', await page.evaluate(() => {
+        const email = document.getElementById('email-field')
+        const user = document.getElementById('username-field')
+        return email.hidden && !user.hidden
+      }))
       checker.check('两个密码框各有一个小眼睛', (await page.locator('[data-eye]').count()) === 2)
       await page.fill('input[name="password"]', 'Secret123')
       await page.locator('[data-eye]').first().click()
@@ -110,8 +114,11 @@ export async function runConsoleLocal({ base, brand, checker }) {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_ON })
       await page.goto(`${base}/me/register`, { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(700)
-      checker.check('验证开启时显示邮箱字段', !(await page.evaluate(() => document.getElementById('email-field').hidden)))
-      await page.fill('input[name="username"]', 'okname')
+      checker.check('验证开启时显示邮箱、隐藏用户名', await page.evaluate(() => {
+        const email = document.getElementById('email-field')
+        const user = document.getElementById('username-field')
+        return !email.hidden && user.hidden
+      }))
       await page.fill('input[name="password"]', 'Password123')
       await page.fill('input[name="confirm"]', 'Password123')
       await page.click('#auth-form button[type="submit"]')
@@ -125,7 +132,7 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await page.click('#auth-form button[type="submit"]')
       await page.waitForTimeout(700)
       const payload = calls.find((c) => c.startsWith('register:')) || ''
-      checker.check('提交载荷带 email + verification_code', payload.includes('"email":"user@example.com"') && payload.includes('"verification_code":"123456"'), payload.slice(0, 120))
+      checker.check('提交载荷带 email + verification_code + 派生用户名', payload.includes('"email":"user@example.com"') && payload.includes('"verification_code":"123456"') && /"username":"[a-z0-9]+_[a-z0-9]{4}"/.test(payload), payload.slice(0, 140))
       await context.close()
     }
 

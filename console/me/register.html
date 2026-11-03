@@ -27,7 +27,7 @@
 <main class="narrow">
   <h1 data-i18n="auth.signUpTitle">ساخت حساب</h1>
   <form id="auth-form" class="stack" novalidate>
-    <label><span data-i18n="auth.username">نام کاربری</span>
+    <label id="username-field" hidden><span data-i18n="auth.username">نام کاربری</span>
       <input type="text" name="username" autocomplete="username">
     </label>
     <label><span data-i18n="auth.password">گذرواژه</span>
@@ -48,7 +48,7 @@
         </button>
       </div>
     </label>
-    <label id="email-field" hidden><span data-i18n="auth.email">ایمیل</span>
+    <label id="email-field"><span data-i18n="auth.email">ایمیل</span>
       <input type="email" name="email" autocomplete="email" dir="ltr">
     </label>
     <label id="code-field" hidden><span data-i18n="auth.code">کد تأیید</span>

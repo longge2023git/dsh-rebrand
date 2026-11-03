@@ -27,7 +27,7 @@
 <main class="narrow">
   <h1 data-i18n="auth.signUpTitle">Создание аккаунта</h1>
   <form id="auth-form" class="stack" novalidate>
-    <label><span data-i18n="auth.username">Имя пользователя</span>
+    <label id="username-field" hidden><span data-i18n="auth.username">Имя пользователя</span>
       <input type="text" name="username" autocomplete="username">
     </label>
     <label><span data-i18n="auth.password">Пароль</span>
@@ -48,7 +48,7 @@
         </button>
       </div>
     </label>
-    <label id="email-field" hidden><span data-i18n="auth.email">Эл. почта</span>
+    <label id="email-field"><span data-i18n="auth.email">Эл. почта</span>
       <input type="email" name="email" autocomplete="email" dir="ltr">
     </label>
     <label id="code-field" hidden><span data-i18n="auth.code">Код подтверждения</span>
@@ -61,7 +61,7 @@
     <label><span data-i18n="invite.field">Код приглашения (необязательно)</span>
       <input type="text" name="aff" autocomplete="off" maxlength="16" dir="ltr">
     </label>
-    <p class="hint compact" data-i18n="auth.passwordHint">Имя пользователя до 20 символов, пароль 8–20 символов.</p>
+    <p class="hint compact" data-i18n="auth.passwordHint">Пароль 8–20 символов; имя пользователя создаётся из почты.</p>
     <p id="error" class="form-error" hidden></p>
     <button class="button" type="submit" data-i18n="auth.signUp">Создать аккаунт</button>
   </form>

@@ -1,13 +1,13 @@
 /** Desktop sign-in chain: auth_init → mini page login → complete → exchange. */
 import { createHash, randomBytes } from 'node:crypto'
-import { launchBrowser, apiJson, registerViaApi, uniq } from '../lib.mjs'
+import { apiJson, createUserViaDb, launchBrowser, uniq } from '../lib.mjs'
 
 const PASSWORD = 'E2ePass12345'
 
 export async function runDesktop({ brand, checker, users }) {
   const user = uniq(brand.lang + 'd')
-  const registered = await registerViaApi(brand.app, user, PASSWORD)
-  checker.check('准备账号', registered?.success === true, registered?.message || '')
+  createUserViaDb(brand.id, user, PASSWORD)
+  checker.check('准备账号', true, user)
   users.push(user)
 
   const verifier = randomBytes(32).toString('base64url')

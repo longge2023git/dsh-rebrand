@@ -9,8 +9,8 @@ import { chromium } from './playwright.mjs'
 import { execFileSync } from 'node:child_process'
 
 export const BRANDS = {
-  fa: { site: 'https://www.deepseekfa.com', app: 'https://deepseekfa.com', lang: 'fa', dir: 'rtl', product: 'DeepSeek-FA', locale: 'fa-IR', sshEnv: 'E2E_SSH_FA' },
-  ru: { site: 'https://www.deepseek-ru.org', app: 'https://deepseek-ru.org', lang: 'ru', dir: 'ltr', product: 'DeepSeek-RU', locale: 'ru-RU', sshEnv: 'E2E_SSH_RU' },
+  fa: { id: 'fa', site: 'https://www.deepseekfa.com', app: 'https://deepseekfa.com', lang: 'fa', dir: 'rtl', product: 'DeepSeek-FA', locale: 'fa-IR', sshEnv: 'E2E_SSH_FA' },
+  ru: { id: 'ru', site: 'https://www.deepseek-ru.org', app: 'https://deepseek-ru.org', lang: 'ru', dir: 'ltr', product: 'DeepSeek-RU', locale: 'ru-RU', sshEnv: 'E2E_SSH_RU' },
 }
 
 /**
@@ -31,6 +31,11 @@ export class Checker {
     this.results.push({ name, ok, detail })
     console.log(`${ok ? 'PASS' : 'FAIL'}  [${this.tag}] ${name}${detail ? '  — ' + detail : ''}`)
     return ok
+  }
+
+  /** Record an intentional skip: logged, not counted as a pass or failure. */
+  skip(name, reason = '') {
+    console.log(`SKIP  [${this.tag}] ${name}${reason ? '  — ' + reason : ''}`)
   }
 
   get failed() {
@@ -59,6 +64,25 @@ export function apiJson(base, path, body) {
   const args = ['-sS', '--max-time', '30', ...(PROXY ? ['-x', PROXY] : []), '-X', 'POST', base + path,
     '-H', 'Content-Type: application/json', '-d', JSON.stringify(body ?? {})]
   return JSON.parse(execFileSync('curl', args, { encoding: 'utf8' }) || '{}')
+}
+
+/** Create a test account directly in SQLite (email verification blocks API registration). */
+export function createUserViaDb(brand, username, password, email = '') {
+  const ssh = process.env[BRANDS[brand].sshEnv]
+  if (!ssh) throw new Error(`需要设置 ${BRANDS[brand].sshEnv} 才能创建测试账号`)
+  const dbPath = brand === 'fa' ? '/opt/dsh-gateway/data/one-api.db' : '/opt/dsh-gateway-ru/data/one-api.db'
+  const sql = 'insert into users (username, password, display_name, email, role, status, quota, used_quota, request_count, "group", aff_code, aff_count, aff_quota, aff_history, inviter_id) values (?,?,?,?,1,1,50000,0,0,?,?,0,0,0,0)'
+  const script = [
+    'import sqlite3, bcrypt, random, string',
+    `hash = bcrypt.hashpw(${JSON.stringify(password)}.encode(), bcrypt.gensalt()).decode()`,
+    'aff = "".join(random.choices(string.ascii_letters + string.digits, k=4))',
+    `c = sqlite3.connect(${JSON.stringify(dbPath)})`,
+    `sql = ${JSON.stringify(sql)}`,
+    `c.execute(sql, (${JSON.stringify(username)}, hash, ${JSON.stringify(username)}, ${JSON.stringify(email)}, "default", aff))`,
+    'c.commit()',
+    `print("[fixture] created", ${JSON.stringify(username)})`,
+  ].join('\n')
+  execFileSync('bash', ['-c', `${ssh} python3 -`], { input: script, encoding: 'utf8' })
 }
 
 /** Register through the API with the same 429 backoff as the UI path. */
