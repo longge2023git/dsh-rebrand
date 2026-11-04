@@ -16,7 +16,9 @@ export default {
     lead: 'Чат, файлы и автоматизация в одном приложении.',
     intro:
       'Работайте с моделями DeepSeek прямо с рабочего стола: отправляйте файлы и изображения, создавайте ключи API для своих инструментов.',
-    ctaDownload: 'Скачать для macOS',
+    ctaDownload: 'Скачать приложение',
+    ctaDownloadMac: 'Скачать для macOS',
+    ctaDownloadWin: 'Скачать для Windows',
     ctaRegister: 'Создать аккаунт',
     featuresTitle: 'Что умеет',
     features: [
@@ -41,7 +43,7 @@ export default {
     ],
   },
   download: {
-    lead: 'Сборки без подписи Apple — при первом запуске разрешите приложение в настройках безопасности.',
+    lead: 'Сборки без подписи: при первом запуске разрешите приложение в настройках безопасности (macOS) или в SmartScreen (Windows).',
     buttonWin: 'Скачать для Windows',
     button: 'Скачать для macOS',
     versionLabel: 'Версия',
@@ -51,8 +53,8 @@ export default {
     soon: 'Скоро',
     installTitle: 'Установка',
     installSteps: [
-      'Откройте файл dmg и перетащите {{brand}} в папку Applications.',
-      'Если macOS блокирует запуск: System Settings → Privacy & Security → Open Anyway, либо щёлкните правой кнопкой и выберите Open.',
+      'macOS: откройте dmg и перетащите {{brand}} в папку Applications. Windows: запустите exe.',
+      'Если система блокирует запуск: macOS — System Settings → Privacy & Security → Open Anyway; Windows — «Подробнее» → «Выполнить в любом случае».',
       'После входа аккаунт и модели подключатся автоматически.',
     ],
     consoleHint: 'Аккаунт и ключи API управляются в',

@@ -135,7 +135,8 @@ export const homeBody = (brand, copy, version) => {
     <p class="lead">${copy.home.lead}</p>
     <p class="intro">${copy.home.intro}</p>
     <div class="actions">
-      <a class="button" href="${pathOf(brand, copy.lang, 'download')}">${copy.home.ctaDownload}</a>
+      <a class="button" href="${pathOf(brand, copy.lang, 'download')}" data-download-cta
+         data-mac="${copy.home.ctaDownloadMac}" data-win="${copy.home.ctaDownloadWin}">${copy.home.ctaDownload}</a>
       <a class="button secondary" href="${brand.auth.register}">${copy.home.ctaRegister}</a>
     </div>
   </section>
@@ -152,7 +153,18 @@ export const homeBody = (brand, copy, version) => {
     <div class="steps">
       ${steps}
     </div>
-  </section>`
+  </section>
+
+  <script>
+    // Show the visitor's platform on the primary button; the page itself lists both.
+    (function () {
+      var cta = document.querySelector('[data-download-cta]')
+      if (!cta) return
+      var ua = navigator.userAgent
+      if (/Windows/i.test(ua)) cta.textContent = cta.dataset.win
+      else if (/Macintosh|Mac OS X/i.test(ua)) cta.textContent = cta.dataset.mac
+    })()
+  </script>`
 }
 
 /**

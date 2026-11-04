@@ -15,6 +15,10 @@
 
 站点静态资源走 `/site-assets/`（不是 `/assets/`），因为网关的旧 SPA 占用 `/assets/` 给管理控制台用。
 
+## 首页下载按钮
+
+首页主按钮按访客平台显示：macOS → 「下载 macOS」、Windows → 「下载 Windows」、其他/未知 → 中性文案（「下载应用」）。实现是 `data-download-cta` 加十几个字符的内联判断（`render.mjs` 的 homeBody），不依赖 UA 库；下载页本身始终列出两个平台卡片。安装说明同时覆盖 macOS（Gatekeeper）与 Windows（SmartScreen）。
+
 ## 结构
 
 ```text

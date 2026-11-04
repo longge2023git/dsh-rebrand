@@ -15,7 +15,9 @@ export default {
     lead: 'Chat, files, and automation in one desktop app.',
     intro:
       'Work with DeepSeek models straight from your desktop: send files and images, and create API keys for your own tools.',
-    ctaDownload: 'Download for macOS',
+    ctaDownload: 'Download the app',
+    ctaDownloadMac: 'Download for macOS',
+    ctaDownloadWin: 'Download for Windows',
     ctaRegister: 'Create account',
     featuresTitle: 'What it does',
     features: [
@@ -50,8 +52,8 @@ export default {
     soon: 'Coming soon',
     installTitle: 'Install',
     installSteps: [
-      'Open the dmg and drag {{brand}} into Applications.',
-      'If macOS blocks the launch: System Settings → Privacy & Security → Open Anyway, or right-click the app and choose Open.',
+      'macOS: open the dmg and drag {{brand}} into Applications. Windows: run the exe.',
+      'If the system blocks it: macOS — System Settings → Privacy & Security → Open Anyway; Windows — More info → Run anyway.',
       'After signing in, your account and models connect automatically.',
     ],
     consoleHint: 'Account and API keys are managed in the',

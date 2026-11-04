@@ -144,6 +144,7 @@ export async function runTwofa({ brand, checker, users }) {
           const response = await original(...call)
           if (!String(call[0] ?? '').includes('/api/dsh/complete')) return response
           window.__completeBody = await response.clone().text()
+          window.__completeStatus = response.status
           return new Promise(() => {})
         }
       })
@@ -157,9 +158,10 @@ export async function runTwofa({ brand, checker, users }) {
       await page.click('#twofa-form button[type="submit"]')
       await page.waitForFunction(() => Boolean(window.__completeBody), null, { timeout: 25000 }).catch(() => {})
       completeBody = await page.evaluate(() => window.__completeBody || '').catch(() => '')
+      const completeStatus = await page.evaluate(() => window.__completeStatus || 0).catch(() => 0)
       const redirect = JSON.parse(completeBody || '{}')?.data?.biz_data?.redirect ?? ''
       const code = redirect ? new URL(redirect).searchParams.get('code') : ''
-      checker.check('2FA 账号完成桌面授权', Boolean(code), completeBody.slice(0, 80))
+      checker.check('2FA 账号完成桌面授权', Boolean(code), code ? 'code 已签发' : `HTTP ${completeStatus || '无响应'} ${completeBody.slice(0, 60)}`)
       const exchange = apiJson(brand.app, '/auth-api/v0/dsh/auth_exchange', { code, code_verifier: verifier, redirect_uri: redirectUri, device_model: 'darwin-arm64' })
       checker.check('2FA 账号 exchange 签发 token', Boolean(exchange?.data?.biz_data?.token))
       await context.close()

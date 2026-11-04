@@ -16,7 +16,9 @@ export default {
     lead: 'چت، فایل و خودکارسازی در یک برنامه دسکتاپ.',
     intro:
       'با {{brand}} مستقیم از دسکتاپ خود با مدل‌های DeepSeek کار کنید؛ فایل و تصویر بفرستید و برای ابزارهای شخصی خود کلید API بسازید.',
-    ctaDownload: 'دانلود برای macOS',
+    ctaDownload: 'دانلود برنامه',
+    ctaDownloadMac: 'دانلود برای macOS',
+    ctaDownloadWin: 'دانلود برای Windows',
     ctaRegister: 'ساخت حساب',
     featuresTitle: 'چه کاری انجام می‌دهد',
     features: [
@@ -51,8 +53,8 @@ export default {
     soon: 'به‌زودی',
     installTitle: 'راهنمای نصب',
     installSteps: [
-      'فایل dmg را باز کنید و {{brand}} را به پوشهٔ Applications بکشید.',
-      'اگر macOS اجرا را مسدود کرد: System Settings → Privacy & Security → Open Anyway را بزنید، یا روی برنامه راست‌کلیک کرده و Open را انتخاب کنید.',
+      'macOS: فایل dmg را باز کنید و {{brand}} را به Applications بکشید. Windows: فایل exe را اجرا کنید.',
+      'اگر سیستم اجرا را مسدود کرد: macOS — System Settings → Privacy & Security → Open Anyway؛ Windows — More info → Run anyway.',
       'پس از ورود، مدل‌ها و حساب شما به‌صورت خودکار متصل می‌شوند.',
     ],
     consoleHint: 'حساب و کلید API از طریق',

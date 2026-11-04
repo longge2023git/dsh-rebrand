@@ -64,6 +64,28 @@ export async function runSite({ brand, checker }) {
 
     // Leaving the SPA can abort the next navigation; reset to a blank page first.
     await page.goto('about:blank')
+    // 首页主按钮按访客平台显示；Linux/未知回落到中性文案
+    {
+      const winUa = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+      const winContext = await page.context().browser().newContext({ userAgent: winUa, locale: brand.locale })
+      const winPage = await winContext.newPage()
+      await winPage.goto(`${brand.site}/`, { waitUntil: 'domcontentloaded' })
+      await winPage.waitForTimeout(300)
+      const winLabel = (await winPage.locator('[data-download-cta]').innerText()).trim()
+      checker.check('首页 CTA 识别 Windows', /Windows/i.test(winLabel), winLabel)
+      await winContext.close()
+
+      const linuxUa = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+      const linuxContext = await page.context().browser().newContext({ userAgent: linuxUa, locale: brand.locale })
+      const linuxPage = await linuxContext.newPage()
+      await linuxPage.goto(`${brand.site}/`, { waitUntil: 'domcontentloaded' })
+      await linuxPage.waitForTimeout(300)
+      const linuxLabel = (await linuxPage.locator('[data-download-cta]').innerText()).trim()
+      checker.check('未知平台回落到中性文案', !/macOS|Windows/i.test(linuxLabel) && linuxLabel.length > 0, linuxLabel)
+      await linuxContext.close()
+    }
+
+    await page.goto('about:blank')
     const topUp = await page.goto(`${brand.app}/top_up`, { waitUntil: 'domcontentloaded' })
     checker.check('充值入口跳到迷你站充值页', page.url().includes('/me/topup'), page.url())
     checker.check('充值页可访问', topUp?.status() === 200, `status=${topUp?.status()}`)
