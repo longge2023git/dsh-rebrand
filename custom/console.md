@@ -135,6 +135,7 @@ node console/build.mjs ru    # -> console/dist/ru/me
 | 登录 | 密码通过后若 `require_2fa`，表单切换为动态码步骤（`/api/user/login/2fa`），支持 TOTP 或备份码 |
 | 桌面登录 | `/me/dsh` 同样处理；网关在 `/api/user/login/2fa` 成功时给会话打 `twofa_user_id` 标记，`/api/dsh/complete` 见到该标记才放行（旧逻辑对所有 2FA 账号一律 409） |
 | 管理 | 关闭与重新生成都接受 TOTP 或备份码；重生成有独立提示，不再复用启用面板 |
+| 兜底 | 启用 2FA 的账号只能走「密码 + 动态码」建会话；passkey / OAuth 回调会被网关拒绝（`setupLogin` 内统一拦截） |
 | 备份码数量 | **4 个**（服务端 `BackupCodeCount = 4`） |
 
 E2E 用自实现的 TOTP 自动算码，不需要手机；`twofa` 套件第一项断言 RFC 6238 向量（`t=59s → 287082`）。
@@ -176,6 +177,10 @@ E2E 用自实现的 TOTP 自动算码，不需要手机；`twofa` 套件第一�
 ## 密钥编辑
 
 密钥列表每行有「编辑」按钮，打开 `<dialog>` 编辑名称、是否无限额度、额度（按美元输入，换算 quota）、过期日期、允许 IP；提交 `PUT /api/token/` 后刷新列表。
+
+## 会话失效
+
+用户表新增 `session_version`：登录时写进会话，每次请求比对（30 秒缓存）。**改密码会让其他设备上的会话立即失效**，改密的那台设备自身会被更新到新版本、保持登录。管理员重置密码与邮件重置同样会递增版本。
 
 ## 账号与安全（/me/account、/me/forgot、/me/reset）
 

@@ -16,6 +16,13 @@ export async function runSecurity({ brand, checker, users }) {
     await login(page, brand.app, user, OLD)
     await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
 
+    // 0. 另一个浏览器先登录同一账号（用于验证改密后旧会话失效）
+    const oldContext = await browser.newContext({ locale: brand.locale })
+    const oldPage = await oldContext.newPage()
+    oldPage.setDefaultTimeout(45000)
+    await login(oldPage, brand.app, user, OLD)
+    await oldPage.waitForSelector('#app:not([hidden])', { timeout: 20000 })
+
     // 1. 改密码
     await page.goto(`${brand.app}/me/account`, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
@@ -25,6 +32,20 @@ export async function runSecurity({ brand, checker, users }) {
     await page.click('#password-form button[type="submit"]')
     await page.waitForTimeout(2000)
     checker.check('修改密码成功', await page.locator('#saved').isVisible())
+
+    const oldSessionStatus = await oldPage.evaluate(async () => {
+      const uid = JSON.parse(localStorage.getItem('user') || '{}').id
+      const response = await fetch('/api/user/self', { headers: { 'New-Api-User': String(uid) } })
+      return response.status
+    })
+    checker.check('改密后旧会话失效', oldSessionStatus === 401, `old session self=${oldSessionStatus}`)
+    const ownSessionStatus = await page.evaluate(async () => {
+      const uid = JSON.parse(localStorage.getItem('user') || '{}').id
+      const response = await fetch('/api/user/self', { headers: { 'New-Api-User': String(uid) } })
+      return response.status
+    })
+    checker.check('改密设备自身会话保留', ownSessionStatus === 200, `self=${ownSessionStatus}`)
+    await oldContext.close()
 
     // 2. 旧密码不能再登录
     await page.evaluate(() => localStorage.clear())
