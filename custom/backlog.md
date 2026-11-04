@@ -38,6 +38,9 @@
 
 | M-15 | 待办 | **2FA 手工验收**（自动化覆盖不到，需真人 + 手机）：① 用 Google Authenticator / Aegis 手动录入 `/me/account` 的密钥，确认真实 App 的码能登录；② 同浏览器两个 2FA 账号并行登录，确认不串号（应提示「会话已失效」）；③ 4 个备份码逐个用尽后只剩动态码；④ 连续错码 5 次触发 5 分钟锁定，期满恢复；⑤ 手机+备份码都丢失时的管理员恢复流程（`delete from two_fas`）；⑥ ±30s 时钟偏差 | [console](console.md) |
 
+| M-16 | 待办 | 改密码后旧会话不失效（cookie session 无版本号）：如需"改密即踢出其他设备"，要引入 session 版本或服务端会话表 | [console](console.md) |
+| M-17 | 待办 | 若将来启用 OAuth / passkey 登录，必须在这些路径也强制 2FA（当前全部关闭，仅密码登录路径会要求动态码） | [console](console.md) |
+
 ## F-01 摘要
 
 - 现状：NewAPI `/v1/files` 是 `RelayNotImplemented`；relay 返回 404；DSH 回退 inline。
