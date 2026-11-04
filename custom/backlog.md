@@ -34,7 +34,9 @@
 | C-09 | **已完成** | 公告：用量页横幅（最新一条、可关闭） | [console](console.md) |
 | C-10 | **已完成** | 价格页：`/me/pricing`（ratio → $/百万 token） | [console](console.md) |
 | C-11 | **已完成** | 2FA：启用（密钥 + 4 备份码）、登录动态码步骤、关闭/重生成 | [console](console.md) |
-| C-12 | **已完成** | `/me/*` 已加 `X-Robots-Tag: noindex`、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer` | [console](console.md) |
+| C-12 | **已完成** | `/me/*` 安全头：noindex / DENY / no-referrer / **CSP（script-src 'self'，页面无内联脚本）** | [console](console.md) |
+
+| M-15 | 待办 | **2FA 手工验收**（自动化覆盖不到，需真人 + 手机）：① 用 Google Authenticator / Aegis 手动录入 `/me/account` 的密钥，确认真实 App 的码能登录；② 同浏览器两个 2FA 账号并行登录，确认不串号（应提示「会话已失效」）；③ 4 个备份码逐个用尽后只剩动态码；④ 连续错码 5 次触发 5 分钟锁定，期满恢复；⑤ 手机+备份码都丢失时的管理员恢复流程（`delete from two_fas`）；⑥ ±30s 时钟偏差 | [console](console.md) |
 
 ## F-01 摘要
 

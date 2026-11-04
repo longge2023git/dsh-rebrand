@@ -193,7 +193,7 @@ function detailHtml(item) {
     ['detail.requestId', item.request_id || '—'],
   ]
   return `<div class="detail-grid">${rows.map(([label, value]) =>
-    `<div><span>${t(label)}</span><strong dir="auto">${value}</strong></div>`).join('')}</div>`
+    `<div><span>${t(label)}</span><strong dir="auto">${esc(value)}</strong></div>`).join('')}</div>`
 }
 
 
@@ -240,7 +240,7 @@ async function loadLogs() {
   } else {
     body.innerHTML = rows.map((item, index) => `<tr>
       <td>${stamp(item.created_at)}</td>
-      <td dir="ltr">${item.model_name || '—'}</td>
+      <td dir="ltr">${esc(item.model_name || '—')}</td>
       <td>${num(item.prompt_tokens)}</td>
       <td>${num(item.completion_tokens)}</td>
       <td>${cost(item.quota)}</td>
@@ -366,7 +366,7 @@ async function loadStats() {
       return
     }
     body.innerHTML = entries.map(([key, entry]) => `<tr>
-      <td dir="${target === 'stats-models' ? 'ltr' : 'auto'}">${labelOf(key)}</td>
+      <td dir="${target === 'stats-models' ? 'ltr' : 'auto'}">${esc(labelOf(key))}</td>
       <td>${entry.count}</td>
       <td>${entry.tokens.toLocaleString('en-US')}</td>
       <td>${credit(entry.quota)}</td>
@@ -395,7 +395,7 @@ function renderStale() {
   panel.hidden = stale.length === 0
   if (stale.length === 0) return
   $('stale-hint').textContent = t('keys.staleHint').replace('{n}', String(stale.length))
-  $('stale-list').innerHTML = stale.map((token) => `<li><code dir="ltr">${token.name || '—'}</code></li>`).join('')
+  $('stale-list').innerHTML = stale.map((token) => `<li><code dir="ltr">${esc(token.name || '—')}</code></li>`).join('')
 }
 
 /** Delete every stale key after the operator confirms. */
@@ -423,7 +423,7 @@ async function loadKeys() {
     const masked = `sk-${String(token.key).slice(0, 6)}…${String(token.key).slice(-4)}`
     const status = token.status === 1 ? t('keys.active') : t('keys.inactive')
     return `<tr>
-      <td>${token.name || '—'}</td>
+      <td>${esc(token.name || '—')}</td>
       <td dir="ltr"><code>${masked}</code></td>
       <td>${credit(token.used_quota)}</td>
       <td>${status}</td>
@@ -435,6 +435,16 @@ async function loadKeys() {
       </td>
     </tr>`
   }).join('')
+}
+
+/** Escape a value before interpolating it into an HTML template. */
+function esc(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
 }
 
 async function copyText(value) {
@@ -704,7 +714,7 @@ async function loadTopup() {
 /** Render the one-time backup codes list. */
 function renderBackupCodes(codes) {
   const list = $('twofa-backup')
-  list.innerHTML = codes.map((code) => `<li><code dir="ltr">${code}</code></li>`).join('')
+  list.innerHTML = codes.map((code) => `<li><code dir="ltr">${esc(code)}</code></li>`).join('')
 }
 
 /** Show a 2FA management error. */
@@ -981,10 +991,10 @@ async function startPricing() {
       const completion = Number(model.completion_ratio ?? 1)
       const fixed = Number(model.model_price ?? 0)
       if (fixed > 0) {
-        return `<tr><td dir="ltr">${model.model_name}</td><td colspan="2">$${fixed.toFixed(2)} ${t('pricing.perCall')}</td></tr>`
+        return `<tr><td dir="ltr">${esc(model.model_name)}</td><td colspan="2">$${fixed.toFixed(2)} ${t('pricing.perCall')}</td></tr>`
       }
       return `<tr>
-        <td dir="ltr">${model.model_name}</td>
+        <td dir="ltr">${esc(model.model_name)}</td>
         <td>$${(ratio * unitPrice).toFixed(2)}</td>
         <td>$${(ratio * completion * unitPrice).toFixed(2)}</td>
       </tr>`
@@ -1007,10 +1017,27 @@ async function loadAnnouncements() {
     const visible = items.filter((item) => `${item.publishDate ?? ''}|${String(item.content ?? '').slice(0, 30)}` !== dismissed)
     if (visible.length === 0) return
     const item = visible[0]
-    host.innerHTML = `<div class="card announce"><strong>${t('announce.title')}</strong>
-      <div class="announce-body">${String(item.content ?? '')}</div>
-      <div class="announce-foot"><span>${item.publishDate ?? ''}</span>
-      <button type="button" class="linkish" id="ann-dismiss">${t('announce.dismiss')}</button></div></div>`
+    // Announcements are plain text: never inject admin-authored HTML into a page
+    // that holds session credentials.
+    const card = document.createElement('div')
+    card.className = 'card announce'
+    const title = document.createElement('strong')
+    title.textContent = t('announce.title')
+    const content = document.createElement('div')
+    content.className = 'announce-body'
+    content.textContent = String(item.content ?? '')
+    const foot = document.createElement('div')
+    foot.className = 'announce-foot'
+    const date = document.createElement('span')
+    date.textContent = String(item.publishDate ?? '')
+    const dismiss = document.createElement('button')
+    dismiss.type = 'button'
+    dismiss.className = 'linkish'
+    dismiss.id = 'ann-dismiss'
+    dismiss.textContent = t('announce.dismiss')
+    foot.append(date, dismiss)
+    card.append(title, content, foot)
+    host.replaceChildren(card)
     host.hidden = false
     $('ann-dismiss').onclick = () => {
       localStorage.setItem('ann-dismissed', `${item.publishDate ?? ''}|${String(item.content ?? '').slice(0, 30)}`)

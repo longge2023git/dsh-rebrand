@@ -116,7 +116,16 @@ node console/build.mjs ru    # -> console/dist/ru/me
 
 ## 响应头
 
-`/me/` 的 nginx location 加了三条：`X-Robots-Tag: noindex, nofollow`（控制台不该被索引）、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`。CSP 暂未加——页面用内联脚本，直接上 CSP 会打断现有逻辑。
+`/me/` 的 nginx location 加了四个头：
+
+| 头 | 值 |
+|---|---|
+| `X-Robots-Tag` | `noindex, nofollow` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `no-referrer` |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'` |
+
+为满足 `script-src 'self'`，页面不再有内联脚本：每页 `<body data-page="...">`，由外部 `boot.js` 分发到 `startXxx()`。E2E 的 local 套件会断言十个页面都不含内联脚本。
 
 ## 两步验证（2FA，可选）
 
@@ -162,7 +171,7 @@ E2E 用自实现的 TOTP 自动算码，不需要手机；`twofa` 套件第一�
 | 项 | 说明 |
 |---|---|
 | `/me/pricing` | 公开接口 `GET /api/pricing`；按 ratio 换算成「美元 / 百万 token」（ratio × $2，输出再乘 completion_ratio）；固定价模型显示"每次请求" |
-| 公告 | 用量页读 `/api/status` 的 `announcements`（`publishDate` / `content`），只显示最新一条，关闭状态存 `localStorage['ann-dismissed']`；`announcements_enabled=false` 时不显示 |
+| 公告 | 用量页读 `/api/status` 的 `announcements`（`publishDate` / `content`），只显示最新一条，关闭状态存 `localStorage['ann-dismissed']`；`announcements_enabled=false` 时不显示。**按纯文本渲染**（`textContent`，保留换行），不解析 HTML——避免管理员输入的 HTML 在持有会话的页面里执行 |
 
 ## 密钥编辑
 

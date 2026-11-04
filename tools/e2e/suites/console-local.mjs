@@ -388,7 +388,15 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await context.close()
     }
 
-    // 13. 桌面登录：已登录直接完成 / 2FA 提示
+    // 14. CSP 前置条件：页面不得有内联脚本，且由 data-page 启动
+    for (const name of ['index', 'keys', 'login', 'register', 'account', 'topup', 'pricing', 'dsh', 'forgot', 'reset']) {
+      const html = await (await fetch(`${base}/me/${name}.html`)).text()
+      const inline = /<script>(?![\s\S]*?src=)/.test(html)
+      const hasBoot = html.includes('src="/me/boot.js"') && /data-page="[a-z]+"/.test(html)
+      checker.check(`${name}.html 无内联脚本且用 boot.js`, !inline && hasBoot)
+    }
+
+    // 15. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

@@ -96,7 +96,7 @@ for (const page of pages) {
   await writeFile(join(out, page), prerenderCopy(html, dict[brand.lang]))
 }
 
-for (const asset of ['app.js', 'dict.js', 'styles.css']) {
+for (const asset of ['app.js', 'dict.js', 'boot.js', 'styles.css']) {
   await cp(join(here, 'me', asset), join(out, asset))
 }
 await cp(brand.icon, join(out, 'icon.svg'))
