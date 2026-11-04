@@ -24,7 +24,7 @@
 | C-03 | 待办 | 邀请奖励数值可调 + 被邀请人总额确认（当前被邀请注册共得 $1.00 = 0.50 新用户 + 0.50 被邀请） | [console](console.md) |
 | S-02 | 待办 | 法务页（服务条款 / 隐私政策）、更新日志、FAQ | [site](site.md) |
 | S-03 | 待办 | 访问统计、ArvanCloud CDN、Windows 包 CDN | [site](site.md) |
-| D-04 | 待办 | Windows 包上传后的页面验收（exe + json 到位后按钮才出现） | [Windows 交接单](windows-handoff.md) |
+| D-04 | **待办（包丢失需重建）** | FA 的 Windows 安装包与清单在 2026-11-04 被误删，需在 Windows 机器上重新构建并上传 `deepseek-fa-win-x64-unsigned.exe` + `.json` | [Windows 交接单](windows-handoff.md) |
 
 | C-04 | **已完成** | 充值页：`/me/topup` 兑换码 + 历史，`/top_up` 302 到此 | [console](console.md) |
 | C-05 | **已完成** | 普通用户改密码：新增 `PUT /api/user/password` + 迷你站 `/me/account` | [console](console.md) |

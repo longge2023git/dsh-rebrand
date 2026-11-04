@@ -2,7 +2,7 @@
 export default {
   id: 'ru',
   name: 'DeepSeek-RU',
-  domain: 'www.deepseek-ru.org',
+  domain: 'deepseek-ru.org',
   appUrl: 'https://deepseek-ru.org',
   accent: '#2f6fed',
   defaultLocale: 'ru',

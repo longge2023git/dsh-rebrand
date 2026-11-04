@@ -2,7 +2,7 @@
 export default {
   id: 'fa',
   name: 'DeepSeek-FA',
-  domain: 'www.deepseekfa.com',
+  domain: 'deepseekfa.com',
   appUrl: 'https://deepseekfa.com',
   accent: '#3b82f6',
   defaultLocale: 'fa',

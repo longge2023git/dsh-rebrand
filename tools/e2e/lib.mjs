@@ -10,8 +10,8 @@ import { execFileSync } from 'node:child_process'
 import crypto from 'node:crypto'
 
 export const BRANDS = {
-  fa: { id: 'fa', site: 'https://www.deepseekfa.com', app: 'https://deepseekfa.com', lang: 'fa', dir: 'rtl', product: 'DeepSeek-FA', locale: 'fa-IR', sshEnv: 'E2E_SSH_FA' },
-  ru: { id: 'ru', site: 'https://www.deepseek-ru.org', app: 'https://deepseek-ru.org', lang: 'ru', dir: 'ltr', product: 'DeepSeek-RU', locale: 'ru-RU', sshEnv: 'E2E_SSH_RU' },
+  fa: { id: 'fa', site: 'https://deepseekfa.com', app: 'https://deepseekfa.com', lang: 'fa', dir: 'rtl', product: 'DeepSeek-FA', locale: 'fa-IR', sshEnv: 'E2E_SSH_FA' },
+  ru: { id: 'ru', site: 'https://deepseek-ru.org', app: 'https://deepseek-ru.org', lang: 'ru', dir: 'ltr', product: 'DeepSeek-RU', locale: 'ru-RU', sshEnv: 'E2E_SSH_RU' },
 }
 
 /**

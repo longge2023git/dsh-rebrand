@@ -4,14 +4,16 @@
 
 ## 域名分工
 
-`apex` 永远是网关（登录页、`/api`、`/v1`、控制台），官网放 `www`。把官网放到 apex 会顶掉登录页，并且改 `baseURL` 会让登录 token 的 issuer 变化，所有用户强制重登。
+2026-11-04 起改为**单域名**：裸域同时承载官网、迷你站和网关，`www` 301 到裸域。客户端 baseURL 仍是裸域，token issuer 不变，无需重登。
 
 | 域名 | 内容 |
 |---|---|
-| `www.deepseekfa.com` | 静态官网（fa RTL / en），导航的「ورود / ثبت‌نام」指向迷你站 `/me/login`、`/me/register` |
-| `deepseekfa.com` | 网关 |
-| `www.deepseek-ru.org` | 静态官网（ru / en） |
-| `deepseek-ru.org` | 网关 |
+| `deepseekfa.com` | 官网 `/`、`/docs`、`/download`、`/en/*`；迷你站 `/me/*`；网关 `/v1`、`/api`、`/dsh`、`/auth-api`、`/console` |
+| `www.deepseekfa.com` | 301 → 裸域 |
+| `deepseek-ru.org` | 同上（ru / en 官网 + 迷你站 + 网关） |
+| `www.deepseek-ru.org` | 301 → 裸域 |
+
+站点静态资源走 `/site-assets/`（不是 `/assets/`），因为网关的旧 SPA 占用 `/assets/` 给管理控制台用。
 
 ## 结构
 
@@ -53,7 +55,9 @@ rsync -az --delete -e "ssh -i ~/.ssh/id_ed25519_hub_104_248_155_54" \
   site/dist/ru/ root@104.248.155.54:/var/www/ru-site/
 ```
 
-nginx：FA 是 `/etc/nginx/sites-available/www.deepseekfa.com.conf`（apex 的 `deepseekfa.conf` 只保留主域）；RU 是 `/etc/nginx/conf.d/deepseek-ru.conf` 的 `www` server 块。两者都用 `try_files $uri $uri.html $uri/index.html` 支持 `/download` 这种无扩展名路径。
+nginx：FA 是 `/etc/nginx/sites-enabled/deepseekfa.conf`（`www.deepseekfa.com.conf` 只做 301）；RU 是 `/etc/nginx/conf.d/deepseek-ru.conf`。两者都用 `try_files $uri $uri.html $uri/index.html` 支持 `/download` 这种无扩展名路径。
+
+**发布要点**：安装包放在 `/opt/dsh-gateway/downloads`（FA）与 `/opt/dsh-gateway-ru/downloads`（RU），已移出站点根目录。发布站点用 `rsync --delete` 时**必须**带 `--exclude downloads`（历史上漏过一次，把 FA 的安装包删了）。
 
 ## apex 入口路由
 
@@ -61,9 +65,10 @@ apex 不再直接暴露 New API 的 SPA：
 
 | 路径 | 行为 |
 |---|---|
-| `/` | 302 → `/me/`（迷你控制台首页） |
+| `/` | 官网首页（静态） |
 | `/login` | 302 → `/me/login` |
 | `/register` | 302 → `/me/register` |
+| `/top_up` | 302 → `/me/topup` |
 | `/console`、`/console/log`、… | **保留**，管理员与 2FA 用户仍需要 |
 | `/api/*`、`/v1/*`、`/dsh/*` | 原样代理到网关 |
 

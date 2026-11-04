@@ -1,7 +1,7 @@
 /** Page rendering for the static brand sites. No runtime dependencies. */
 
 /** Brand mark copied from the shipped desktop app icon. */
-const logo = (version) => `<img class="logo" src="/assets/icon.svg?v=${version}" alt="" width="30" height="30">`
+const logo = (version) => `<img class="logo" src="/site-assets/icon.svg?v=${version}" alt="" width="30" height="30">`
 
 /**
  * Replace `{{brand}}` tokens in a copy value.
@@ -80,15 +80,15 @@ export function layout({ brand, copy, locale, page, body, version }) {
 <meta property="og:description" content="${copy.meta.description}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${brand.name}">
-<meta property="og:image" content="https://${brand.domain}/assets/og.png">
+<meta property="og:image" content="https://${brand.domain}/site-assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://${brand.domain}/assets/og.png">
+<meta name="twitter:image" content="https://${brand.domain}/site-assets/og.png">
 <link rel="stylesheet" href="/styles.css?v=${version}">
-<link rel="icon" href="/assets/icon.svg?v=${version}" type="image/svg+xml">
-<link rel="icon" href="/assets/icon-32.png" sizes="32x32">
-<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<link rel="icon" href="/site-assets/icon.svg?v=${version}" type="image/svg+xml">
+<link rel="icon" href="/site-assets/icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/site-assets/icon-180.png">
 <link rel="canonical" href="https://${brand.domain}${here}">
 </head>
 <body>
@@ -130,7 +130,7 @@ export const homeBody = (brand, copy, version) => {
     .join('\n      ')
 
   return `<section class="hero">
-    <img class="hero-logo" src="/assets/icon.svg?v=${version}" alt="" width="84" height="84">
+    <img class="hero-logo" src="/site-assets/icon.svg?v=${version}" alt="" width="84" height="84">
     <h1>${brand.name}</h1>
     <p class="lead">${copy.home.lead}</p>
     <p class="intro">${copy.home.intro}</p>

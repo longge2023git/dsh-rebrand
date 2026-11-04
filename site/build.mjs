@@ -57,7 +57,7 @@ for (const brand of selected) {
   const brandOut = join(outRoot, brand.id)
   await mkdir(brandOut, { recursive: true })
   await writeFile(join(brandOut, 'styles.css'), styles)
-  await cp(join(here, 'assets', brand.id), join(brandOut, 'assets'), { recursive: true })
+  await cp(join(here, 'assets', brand.id), join(brandOut, 'site-assets'), { recursive: true })
   await writeFile(join(brandOut, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: https://${brand.domain}/sitemap.xml\n`)
 
   const urls = []
