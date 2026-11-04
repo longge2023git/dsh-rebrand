@@ -44,6 +44,40 @@
       <div class="card"><span class="label" data-i18n="usage.requests">تعداد درخواست</span><strong id="requests">—</strong></div>
     </div>
 
+    <section id="stats">
+      <h2 data-i18n="stats.title">آمار مصرف</h2>
+      <p class="hint">
+        <label class="row"><span data-i18n="stats.period">بازه</span>
+          <select id="stats-period">
+            <option value="7" data-i18n="stats.days7">۷ روز</option>
+            <option value="30" data-i18n="stats.days30">۳۰ روز</option>
+          </select>
+        </label>
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colDay">روز</th>
+            <th data-i18n="stats.colRequests">درخواست</th>
+            <th data-i18n="stats.colTokens">توکن</th>
+            <th data-i18n="stats.colCost">هزینه</th>
+          </tr></thead>
+          <tbody id="stats-days"><tr><td colspan="4" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colModel">مدل</th>
+            <th data-i18n="stats.colRequests">درخواست</th>
+            <th data-i18n="stats.colTokens">توکن</th>
+            <th data-i18n="stats.colCost">هزینه</th>
+          </tr></thead>
+          <tbody id="stats-models"><tr><td colspan="4" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="invite" hidden>
       <h2 data-i18n="invite.title">دعوت دوستان</h2>
       <div class="cards">

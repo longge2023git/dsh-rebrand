@@ -16,7 +16,7 @@
   <nav>
     <a href="/me/" aria-current="page" data-i18n="nav.usage">Расход</a>
     <a href="/me/keys" data-i18n="nav.keys">Ключи</a>
-    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <a href="/me/topup" data-i18n="nav.topup">Пополнение</a>
     <a href="https://www.deepseek-ru.org/download" data-i18n="nav.download">Скачать</a>
     <a href="/me/account" data-i18n="account.title">Аккаунт</a>
     <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">Выйти</button>
@@ -43,6 +43,40 @@
       <div class="card"><span class="label" data-i18n="usage.used">Израсходовано</span><strong id="used">—</strong></div>
       <div class="card"><span class="label" data-i18n="usage.requests">Запросов</span><strong id="requests">—</strong></div>
     </div>
+
+    <section id="stats">
+      <h2 data-i18n="stats.title">Статистика использования</h2>
+      <p class="hint">
+        <label class="row"><span data-i18n="stats.period">Период</span>
+          <select id="stats-period">
+            <option value="7" data-i18n="stats.days7">7 дней</option>
+            <option value="30" data-i18n="stats.days30">30 дней</option>
+          </select>
+        </label>
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colDay">День</th>
+            <th data-i18n="stats.colRequests">Запросы</th>
+            <th data-i18n="stats.colTokens">Токены</th>
+            <th data-i18n="stats.colCost">Стоимость</th>
+          </tr></thead>
+          <tbody id="stats-days"><tr><td colspan="4" class="empty" data-i18n="common.loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colModel">Модель</th>
+            <th data-i18n="stats.colRequests">Запросы</th>
+            <th data-i18n="stats.colTokens">Токены</th>
+            <th data-i18n="stats.colCost">Стоимость</th>
+          </tr></thead>
+          <tbody id="stats-models"><tr><td colspan="4" class="empty" data-i18n="common.loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
 
     <section id="invite" hidden>
       <h2 data-i18n="invite.title">Приглашение друзей</h2>

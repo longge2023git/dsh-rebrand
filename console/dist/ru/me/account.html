@@ -14,7 +14,7 @@
   <nav>
     <a href="/me/" data-i18n="nav.usage">Расход</a>
     <a href="/me/keys" data-i18n="nav.keys">Ключи</a>
-    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <a href="/me/topup" data-i18n="nav.topup">Пополнение</a>
     <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">Выйти</button>
     <span class="lang">
       <a data-lang-link="ru" hreflang="ru">RU</a>
@@ -77,18 +77,21 @@
     </div>
 
     <div id="twofa-setup" hidden>
-      <p class="hint" data-i18n="twofa.secretHint">Добавьте этот ключ в приложение-аутентификатор вручную:</p>
-      <p class="field"><code id="twofa-secret" dir="ltr"></code>
-        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">Копировать</button>
-      </p>
+      <div id="twofa-secret-block">
+        <p class="hint" data-i18n="twofa.secretHint">Добавьте этот ключ в приложение-аутентификатор вручную:</p>
+        <p class="field"><code id="twofa-secret" dir="ltr"></code>
+          <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">Копировать</button>
+        </p>
+      </div>
       <p class="hint" data-i18n="twofa.backupHint">Резервные коды показываются один раз — сохраните их сейчас:</p>
       <ul id="twofa-backup" class="codes"></ul>
       <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">Скопировать все резервные коды</button></p>
-      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">Я сохранил резервные коды</span></label>
-      <label><span data-i18n="twofa.code">6-значный код</span>
+      <label class="row" id="twofa-saved-row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">Я сохранил резервные коды</span></label>
+      <label id="twofa-code-row"><span data-i18n="twofa.code">6-значный код</span>
         <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
       </label>
       <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">Подтвердить и включить</button>
+      <p class="hint" id="twofa-regen-note" hidden data-i18n="twofa.regenNote">Созданы новые резервные коды, старые больше не действуют — сохраните их.</p>
     </div>
 
     <div id="twofa-on" hidden>

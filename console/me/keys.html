@@ -51,14 +51,22 @@
             <th data-i18n="keys.colKey">کلید</th>
             <th data-i18n="keys.colUsed">مصرف</th>
             <th data-i18n="keys.colStatus">وضعیت</th>
+            <th data-i18n="keys.colLastUsed">آخرین استفاده</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="5" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
+          <tr><td colspan="6" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
         </tbody>
       </table>
     </div>
+
+    <section id="stale" hidden>
+      <h2 data-i18n="keys.staleTitle">کلیدهای قدیمی</h2>
+      <p class="hint" id="stale-hint"></p>
+      <ul id="stale-list" class="codes"></ul>
+      <button class="button secondary" type="button" id="stale-clean" data-i18n="keys.staleClean">پاک‌سازی</button>
+    </section>
 
     <p class="hint">
       <span data-i18n="keys.baseUrlHint">کلید را در agent یا برنامهٔ خود همراه آدرس پایه قرار دهید:</span>

@@ -242,6 +242,9 @@ export async function runConsoleLocal({ base, brand, checker }) {
       checker.check('忘记密码发送请求并提示', calls.includes('reset_send') && await page.locator('#sent').isVisible())
 
       await page.goto(`${base}/me/reset?email=user%40example.com&token=TOK`, { waitUntil: 'domcontentloaded' })
+      await page.waitForTimeout(400)
+      checker.check('重置页不自动消耗 token', !calls.some((c) => c.startsWith('reset:')))
+      await page.click('#reset-confirm')
       await page.waitForTimeout(700)
       checker.check('重置页显示新密码', (await page.locator('#password').innerText()).trim() === 'Ab3dE5fG7hJ9', await page.locator('#password').innerText())
       await context.close()
@@ -323,7 +326,7 @@ export async function runConsoleLocal({ base, brand, checker }) {
       checker.check('启用请求正确', calls.some((c) => c === '2fa-enable:{"code":"123456"}'), calls.join(' | '))
       checker.check('启用后显示已启用', await page.locator('#twofa-on').isVisible())
 
-      await page.route('**/api/user/login', (route) => route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":{"require_2fa":true}}' }))
+      await page.route('**/api/user/login', (route) => route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":{"require_2fa":true,"twofa_token":"NONCE1"}}' }))
       await page.route('**/api/user/login/2fa', async (route) => {
         calls.push('login-2fa:' + String(route.request().postData() ?? ''))
         await route.fulfill({ contentType: 'application/json', body: '{"success":true,"data":{"id":7,"username":"u"}}' })
@@ -335,16 +338,57 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await page.fill('input[name="password"]', 'Password123')
       await page.click('#auth-form button[type="submit"]')
       await page.waitForSelector('#twofa-form:not([hidden])', { timeout: 10000 })
-      checker.check('密码后进入动态码步骤', true)
+      checker.check('密码后进入动态码步骤', await page.locator('#twofa-login-code').isVisible())
       await page.fill('#twofa-login-code', '654321')
       await page.click('#twofa-form button[type="submit"]')
       await page.waitForTimeout(1200)
-      checker.check('动态码提交正确', calls.some((c) => c === 'login-2fa:{"code":"654321"}'), calls.join(' | '))
-      checker.check('2FA 登录后进入控制台', page.url().includes('/me/'), page.url())
+      checker.check('动态码与 nonce 正确提交', calls.some((c) => c === 'login-2fa:{"code":"654321","token":"NONCE1"}'), calls.join(' | '))
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      checker.check('2FA 登录后进入控制台', await page.locator('#app').isVisible(), page.url())
       await context.close()
     }
 
-    // 11. 桌面登录：已登录直接完成 / 2FA 提示
+    // 12. 用量统计与旧密钥清理
+    {
+      const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
+      const DAY = 86400
+      const now = Math.floor(Date.now() / 1000)
+      const day1 = Math.floor((now - DAY) / DAY) * DAY
+      await page.route('**/api/data/self**', (route) => route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: [
+          { model_name: 'm-flash', created_at: day1, count: 10, token_used: 1200, quota: 12000 },
+          { model_name: 'm-pro', created_at: day1, count: 2, token_used: 800, quota: 8000 },
+        ] }),
+      }))
+      await page.goto(`${base}/me/`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(800)
+      checker.check('统计按天聚合', (await page.locator('#stats-days tr').count()) === 1)
+      const models = await page.locator('#stats-models').innerText()
+      checker.check('统计按模型聚合', models.includes('m-flash') && models.includes('m-pro'), models.replace(/\n/g, ' | '))
+
+      let tokens = [{ id: 21, name: 'old-key', key: 'sk-oldkey', status: 1, remain_quota: 0, unlimited_quota: true, created_time: now - 40 * DAY, accessed_time: 0, used_quota: 0 }]
+      await page.route('**/api/token/**', async (route) => {
+        if (route.request().method() === 'DELETE') {
+          calls.push('token-delete:' + route.request().url().split('/').pop())
+          tokens = []
+          return route.fulfill({ contentType: 'application/json', body: '{"success":true}' })
+        }
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: { items: tokens } }) })
+      })
+      page.on('dialog', (dialog) => dialog.accept())
+      await page.goto(`${base}/me/keys`, { waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
+      await page.waitForTimeout(700)
+      checker.check('旧密钥面板显示', await page.locator('#stale').isVisible())
+      await page.click('#stale-clean')
+      await page.waitForTimeout(1000)
+      checker.check('旧密钥清理调用 DELETE', calls.some((c) => c === 'token-delete:21'), calls.join(' | '))
+      await context.close()
+    }
+
+    // 13. 桌面登录：已登录直接完成 / 2FA 提示
     {
       const { page, context, calls } = await withPage(browser, { locale: brand.locale, status: STATUS_OFF, signedIn: true })
       await page.goto(`${base}/me/dsh?tx=TX1`, { waitUntil: 'domcontentloaded' })

@@ -77,18 +77,21 @@
     </div>
 
     <div id="twofa-setup" hidden>
-      <p class="hint" data-i18n="twofa.secretHint">این کلید را به‌صورت دستی در برنامهٔ احرازگر اضافه کنید:</p>
-      <p class="field"><code id="twofa-secret" dir="ltr"></code>
-        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
-      </p>
+      <div id="twofa-secret-block">
+        <p class="hint" data-i18n="twofa.secretHint">این کلید را به‌صورت دستی در برنامهٔ احرازگر اضافه کنید:</p>
+        <p class="field"><code id="twofa-secret" dir="ltr"></code>
+          <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
+        </p>
+      </div>
       <p class="hint" data-i18n="twofa.backupHint">کدهای پشتیبان فقط یک بار نمایش داده می‌شوند؛ همین حالا ذخیره کنید:</p>
       <ul id="twofa-backup" class="codes"></ul>
       <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">کپی همهٔ کدهای پشتیبان</button></p>
-      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">کدهای پشتیبان را ذخیره کردم</span></label>
-      <label><span data-i18n="twofa.code">کد ۶ رقمی</span>
+      <label class="row" id="twofa-saved-row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">کدهای پشتیبان را ذخیره کردم</span></label>
+      <label id="twofa-code-row"><span data-i18n="twofa.code">کد ۶ رقمی</span>
         <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
       </label>
       <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">تأیید و فعال‌سازی</button>
+      <p class="hint" id="twofa-regen-note" hidden data-i18n="twofa.regenNote">کدهای پشتیبان تازه ساخته شد و کدهای قبلی باطل شدند؛ همین حالا ذخیره کنید.</p>
     </div>
 
     <div id="twofa-on" hidden>

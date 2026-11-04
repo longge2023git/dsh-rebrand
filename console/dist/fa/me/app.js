@@ -153,7 +153,9 @@ async function startUsage() {
     $('requests').textContent = num(me.request_count)
     renderInvite(me)
     await loadAnnouncements()
+    await loadStats()
     await loadLogs()
+    $('stats-period')?.addEventListener('change', () => loadStats())
   })
 }
 
@@ -332,13 +334,89 @@ document.addEventListener('click', (event) => {
   if (event.target.closest('#edit-cancel')) $('edit-dialog').close()
 })
 
+
+/** Aggregated usage by day and by model over the selected window. */
+async function loadStats() {
+  const select = $('stats-period')
+  if (!select) return
+  const days = Number(select.value || 7)
+  const end = Math.floor(Date.now() / 1000)
+  const start = end - days * 86400
+  const rows = await api(`/api/data/self?start_timestamp=${start}&end_timestamp=${end}`).catch(() => [])
+  const list = Array.isArray(rows) ? rows : []
+  const byDay = new Map()
+  const byModel = new Map()
+  for (const row of list) {
+    const day = new Date(row.created_at * 1000).toISOString().slice(0, 10)
+    const model = row.model_name || '—'
+    const dayEntry = byDay.get(day) ?? { count: 0, tokens: 0, quota: 0 }
+    const modelEntry = byModel.get(model) ?? { count: 0, tokens: 0, quota: 0 }
+    for (const entry of [dayEntry, modelEntry]) {
+      entry.count += Number(row.count || 0)
+      entry.tokens += Number(row.token_used || 0)
+      entry.quota += Number(row.quota || 0)
+    }
+    byDay.set(day, dayEntry)
+    byModel.set(model, modelEntry)
+  }
+  const render = (target, entries, labelOf) => {
+    const body = $(target)
+    if (entries.length === 0) {
+      body.innerHTML = `<tr><td colspan="4" class="empty">${t('stats.empty')}</td></tr>`
+      return
+    }
+    body.innerHTML = entries.map(([key, entry]) => `<tr>
+      <td dir="${target === 'stats-models' ? 'ltr' : 'auto'}">${labelOf(key)}</td>
+      <td>${entry.count}</td>
+      <td>${entry.tokens.toLocaleString('en-US')}</td>
+      <td>${credit(entry.quota)}</td>
+    </tr>`).join('')
+  }
+  render('stats-days', [...byDay.entries()].sort((a, b) => b[0].localeCompare(a[0])), (key) => key)
+  render('stats-models', [...byModel.entries()].sort((a, b) => b[1].quota - a[1].quota), (key) => key)
+}
+
+/** Keys untouched for a while: never used and older than 7 days, or idle for 30+ days. */
+function staleKeys() {
+  const now = Math.floor(Date.now() / 1000)
+  return state.tokens.filter((token) => {
+    const created = Number(token.created_time || 0)
+    const used = Number(token.accessed_time || 0)
+    if (used === 0) return created > 0 && now - created > 7 * 86400
+    return now - used > 30 * 86400
+  })
+}
+
+/** Render the cleanup panel for stale keys. */
+function renderStale() {
+  const panel = $('stale')
+  if (!panel) return
+  const stale = staleKeys()
+  panel.hidden = stale.length === 0
+  if (stale.length === 0) return
+  $('stale-hint').textContent = t('keys.staleHint').replace('{n}', String(stale.length))
+  $('stale-list').innerHTML = stale.map((token) => `<li><code dir="ltr">${token.name || '—'}</code></li>`).join('')
+}
+
+/** Delete every stale key after the operator confirms. */
+async function cleanStale() {
+  const stale = staleKeys()
+  if (stale.length === 0) return
+  if (!window.confirm(t('keys.staleConfirm').replace('{n}', String(stale.length)))) return
+  for (const token of stale) {
+    await api(`/api/token/${token.id}`, { method: 'DELETE' }).catch(() => {})
+  }
+  await loadKeys()
+}
+
 async function loadKeys() {
   const data = await api('/api/token/?p=1&size=100')
   const tokens = data.items || []
   state.tokens = tokens
+  renderStale()
   const body = $('rows')
   if (tokens.length === 0) {
-    body.innerHTML = `<tr><td colspan="5" class="empty">${t('common.empty')}</td></tr>`
+    body.innerHTML = `<tr><td colspan="6" class="empty">${t('common.empty')}</td></tr>`
     return
   }
   body.innerHTML = tokens.map((token) => {
@@ -349,6 +427,7 @@ async function loadKeys() {
       <td dir="ltr"><code>${masked}</code></td>
       <td>${credit(token.used_quota)}</td>
       <td>${status}</td>
+      <td>${token.accessed_time > 0 ? stamp(token.accessed_time) : t('keys.never')}</td>
       <td class="actions">
         <button type="button" data-edit="${token.id}">${t('keys.edit')}</button>
         <button type="button" data-copy="${token.key}">${t('common.copy')}</button>
@@ -497,6 +576,15 @@ async function startDsh() {
       body: JSON.stringify({ tx }),
     })
     const payload = await response.json().catch(() => ({}))
+    if (response.status === 401) {
+      localStorage.removeItem('user')
+      const form = $('auth-form')
+      if (form) {
+        form.hidden = false
+        stateLabel.textContent = t('dsh.loginFirst')
+        return
+      }
+    }
     if (!response.ok) {
       const message = payload?.error?.message || t('errors.generic')
       stateLabel.textContent = /两步验证|2FA|two-factor/i.test(message) ? t('errors.dsh2fa') : message
@@ -539,7 +627,7 @@ async function startDsh() {
       if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
-      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { await complete() })
+      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { await complete() }, payload.data.twofa_token)
       rememberUser(payload.data || {})
       await complete()
     } catch {
@@ -628,7 +716,14 @@ function showTwofaError(message) {
 
 /** Load whether 2FA is enabled for this account. */
 async function loadTwofa() {
-  const status = await api('/api/user/2fa/status').catch(() => null)
+  let status = null
+  try {
+    status = await api('/api/user/2fa/status')
+  } catch (error) {
+    if (error instanceof Unauthorized) return
+    showTwofaError(t('errors.network'))
+    return
+  }
   const enabled = Boolean(status?.enabled)
   $('twofa-off').hidden = enabled
   $('twofa-on').hidden = !enabled
@@ -645,6 +740,11 @@ function wireTwofa() {
       renderBackupCodes(data.backup_codes ?? [])
       $('twofa-saved').checked = false
       $('twofa-code').value = ''
+      $('twofa-secret-block').hidden = false
+      $('twofa-saved-row').hidden = false
+      $('twofa-code-row').hidden = false
+      $('twofa-confirm').hidden = false
+      $('twofa-regen-note').hidden = true
       $('twofa-off').hidden = true
       $('twofa-setup').hidden = false
     } catch (error) {
@@ -653,12 +753,12 @@ function wireTwofa() {
   })
 
   $('twofa-copy-secret')?.addEventListener('click', () => {
-    navigator.clipboard?.writeText($('twofa-secret').textContent ?? '').then(() => flashCopied($('twofa-copy-secret'))).catch(() => {})
+    flashCopied($('twofa-copy-secret'), $('twofa-secret').textContent ?? '')
   })
 
   $('twofa-copy-backup')?.addEventListener('click', () => {
     const codes = Array.from($('twofa-backup').querySelectorAll('code')).map((node) => node.textContent).join('\n')
-    navigator.clipboard?.writeText(codes).then(() => flashCopied($('twofa-copy-backup'))).catch(() => {})
+    flashCopied($('twofa-copy-backup'), codes)
   })
 
   $('twofa-confirm')?.addEventListener('click', async () => {
@@ -668,6 +768,8 @@ function wireTwofa() {
     if (!/^\d{6}$/.test(code)) return showTwofaError(t('twofa.errCode'))
     try {
       await api('/api/user/2fa/enable', { method: 'POST', body: JSON.stringify({ code }) })
+      $('twofa-secret').textContent = ''
+      $('twofa-backup').innerHTML = ''
       await loadTwofa()
       $('twofa-on').querySelector('.hint').textContent = t('twofa.on')
     } catch (error) {
@@ -696,11 +798,12 @@ function wireTwofa() {
       const data = await api('/api/user/2fa/backup_codes', { method: 'POST', body: JSON.stringify({ code }) })
       $('twofa-manage-code').value = ''
       renderBackupCodes(data.backup_codes ?? data ?? [])
-      $('twofa-setup').hidden = false
-      $('twofa-saved').checked = false
-      $('twofa-code').hidden = true
+      $('twofa-secret-block').hidden = true
+      $('twofa-saved-row').hidden = true
+      $('twofa-code-row').hidden = true
       $('twofa-confirm').hidden = true
-      $('twofa-copy-backup').hidden = false
+      $('twofa-regen-note').hidden = false
+      $('twofa-setup').hidden = false
       $('twofa-backup').scrollIntoView({ block: 'center' })
     } catch (error) {
       showTwofaError(errorText(error.message))
@@ -709,12 +812,13 @@ function wireTwofa() {
 }
 
 /** After a password login the gateway may ask for a second factor. */
-function startTwoFactorLogin(onSuccess) {
+function startTwoFactorLogin(onSuccess, pendingToken) {
   const form = $('twofa-form')
   if (!form) return
   $('auth-form').hidden = true
   form.hidden = false
   form.querySelector('input').focus()
+  $('twofa-back')?.addEventListener('click', () => location.reload())
   form.addEventListener('submit', async (event) => {
     event.preventDefault()
     const box = $('twofa-login-error')
@@ -726,7 +830,7 @@ function startTwoFactorLogin(onSuccess) {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, token: pendingToken || '' }),
       })
       if (response.status === 429) {
         box.textContent = t('errors.rateLimited')
@@ -828,6 +932,15 @@ async function startReset() {
     stateLabel.textContent = t('account.resetInvalid')
     return
   }
+  stateLabel.textContent = t('account.resetHint')
+  $('reset-confirm')?.addEventListener('click', () => submitReset(email, token))
+  $('confirm').hidden = false
+}
+
+/** Exchange the emailed token for a generated password. */
+async function submitReset(email, token) {
+  $('confirm').hidden = true
+  const stateLabel = $('state')
   try {
     const response = await fetch('/api/user/reset', {
       method: 'POST',
@@ -927,7 +1040,7 @@ async function startLogin() {
       if (response.status === 429) return showFormError(t('errors.rateLimited'))
       const payload = await response.json().catch(() => ({}))
       if (!payload.success) return showFormError(errorText(payload.message))
-      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { location.replace(finishAuth('/me/')) })
+      if (payload.data?.require_2fa) return startTwoFactorLogin(async () => { location.replace(finishAuth('/me/')) }, payload.data.twofa_token)
       rememberUser(payload.data || {})
       location.replace(finishAuth('/me/'))
     } catch {
@@ -1082,6 +1195,7 @@ if (createForm) {
 }
 
 if ($('edit-form')) $('edit-form').addEventListener('submit', saveKeyEdit)
+if ($('stale-clean')) $('stale-clean').addEventListener('click', cleanStale)
 
 for (const [id, step] of [['prev', -1], ['next', 1]]) {
   const button = $(id)

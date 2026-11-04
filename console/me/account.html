@@ -77,18 +77,21 @@
     </div>
 
     <div id="twofa-setup" hidden>
-      <p class="hint" data-i18n="twofa.secretHint">在认证器 App 里手动添加这个密钥：</p>
-      <p class="field"><code id="twofa-secret" dir="ltr"></code>
-        <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
-      </p>
+      <div id="twofa-secret-block">
+        <p class="hint" data-i18n="twofa.secretHint">在认证器 App 里手动添加这个密钥：</p>
+        <p class="field"><code id="twofa-secret" dir="ltr"></code>
+          <button type="button" class="linkish" id="twofa-copy-secret" data-i18n="common.copy">کپی</button>
+        </p>
+      </div>
       <p class="hint" data-i18n="twofa.backupHint">备份码只显示一次，请立即保存（手机丢失时用它登录）：</p>
       <ul id="twofa-backup" class="codes"></ul>
       <p><button type="button" class="button secondary" id="twofa-copy-backup" data-i18n="twofa.copyBackup">复制全部备份码</button></p>
-      <label class="row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">我已保存备份码</span></label>
-      <label><span data-i18n="twofa.code">6 位验证码</span>
+      <label class="row" id="twofa-saved-row"><input type="checkbox" id="twofa-saved"> <span data-i18n="twofa.saved">我已保存备份码</span></label>
+      <label id="twofa-code-row"><span data-i18n="twofa.code">6 位验证码</span>
         <input id="twofa-code" type="text" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code">
       </label>
       <button class="button" type="button" id="twofa-confirm" data-i18n="twofa.confirm">确认启用</button>
+      <p class="hint" id="twofa-regen-note" hidden data-i18n="twofa.regenNote">新的备份码已生成，旧的已失效；请立即保存。</p>
     </div>
 
     <div id="twofa-on" hidden>

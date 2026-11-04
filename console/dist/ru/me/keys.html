@@ -16,7 +16,7 @@
   <nav>
     <a href="/me/" data-i18n="nav.usage">Расход</a>
     <a href="/me/keys" aria-current="page" data-i18n="nav.keys">Ключи</a>
-    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <a href="/me/topup" data-i18n="nav.topup">Пополнение</a>
     <a href="https://www.deepseek-ru.org/download" data-i18n="nav.download">Скачать</a>
     <a href="/me/account" data-i18n="account.title">Аккаунт</a>
     <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">Выйти</button>
@@ -51,14 +51,22 @@
             <th data-i18n="keys.colKey">Ключ</th>
             <th data-i18n="keys.colUsed">Расход</th>
             <th data-i18n="keys.colStatus">Статус</th>
+            <th data-i18n="keys.colLastUsed">Последнее использование</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="rows">
-          <tr><td colspan="5" class="empty" data-i18n="common.loading">Загрузка…</td></tr>
+          <tr><td colspan="6" class="empty" data-i18n="common.loading">Загрузка…</td></tr>
         </tbody>
       </table>
     </div>
+
+    <section id="stale" hidden>
+      <h2 data-i18n="keys.staleTitle">Старые ключи</h2>
+      <p class="hint" id="stale-hint"></p>
+      <ul id="stale-list" class="codes"></ul>
+      <button class="button secondary" type="button" id="stale-clean" data-i18n="keys.staleClean">Удалить старые ключи</button>
+    </section>
 
     <p class="hint">
       <span data-i18n="keys.baseUrlHint">Используйте ключ в агенте или приложении вместе с базовым адресом {base}.</span>

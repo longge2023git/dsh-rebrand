@@ -1,5 +1,5 @@
 /** Live mini console flows: register, keys, usage, invite rewards, transfer, sign out. */
-import { launchBrowser, createUserViaDb, login, readUsage, uniq } from '../lib.mjs'
+import { launchBrowser, createUserViaDb, login, markTokenStale, readUsage, uniq } from '../lib.mjs'
 
 const PASSWORD = 'E2ePass12345'
 
@@ -34,9 +34,25 @@ export async function runConsoleLive({ brand, checker, users }) {
     await page.click('#edit-form button[type="submit"]')
     await page.waitForTimeout(2000)
     checker.check('编辑密钥改名', (await page.locator('#rows').innerText()).includes('renamed-key'), (await page.locator('#rows').innerText()).replace(/\n/g, ' ').slice(0, 60))
-    await page.locator('[data-delete]').first().click()
-    await page.waitForTimeout(2000)
-    checker.check('删除密钥', (await page.locator('#rows').innerText()).trim().length > 0)
+    // 旧密钥清理：把这个 key 改成"40 天前创建且从未使用"
+    const tokenId = await page.evaluate(async () => {
+      const uid = JSON.parse(localStorage.getItem('user') || '{}').id
+      const data = await (await fetch('/api/token/?p=1&size=100', { headers: { 'New-Api-User': String(uid) } })).json()
+      return data?.data?.items?.[0]?.id ?? 0
+    })
+    if (tokenId > 0) {
+      markTokenStale(brand.id, tokenId)
+      await page.reload({ waitUntil: 'domcontentloaded' })
+      await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
+      await page.waitForTimeout(800)
+      checker.check('旧密钥被识别', await page.locator('#stale').isVisible(), `token ${tokenId}`)
+      page.once('dialog', (dialog) => dialog.accept())
+      await page.click('#stale-clean')
+      await page.waitForTimeout(2500)
+      checker.check('旧密钥已清理', await page.locator('#stale').isHidden())
+    } else {
+      checker.check('旧密钥被识别', false, '找不到 token id')
+    }
 
     // 3. 退出 → 受保护页要登录 → 重新登录
     await page.click('#sign-out')

@@ -19,7 +19,7 @@
 | I-02 | **已完成** | SMTP：两个域名 verified、两站 SMTP 已配、邮箱验证已开启 | [SMTP 方案](smtp-plan.md) |
 | I-01 | 待办 | **服务端消息波斯语翻译**：`i18n/locales` 新增 `fa.yaml`（215 键）+ `LangFa`/localizer/`SupportedLanguages`。未做前 fa 页面的报错文案回落英文 | [i18n](console.md) |
 | C-01 | **已完成** | 迷你波斯语控制台（用量 + 单笔计费明细 + 密钥增删复制） | [console](console.md) |
-| C-02 | 待办（RU 版本已完成） | 控制台补：2FA 登录表单（当前提示改用主控制台）、旧设备密钥清理入口 | [console](console.md) |
+| C-02 | **已完成** | 2FA 登录表单 + 桌面授权放行；旧密钥清理入口 | [console](console.md) |
 
 | C-03 | 待办 | 邀请奖励数值可调 + 被邀请人总额确认（当前被邀请注册共得 $1.00 = 0.50 新用户 + 0.50 被邀请） | [console](console.md) |
 | S-02 | 待办 | 法务页（服务条款 / 隐私政策）、更新日志、FAQ | [site](site.md) |
@@ -30,7 +30,7 @@
 | C-05 | **已完成** | 普通用户改密码：新增 `PUT /api/user/password` + 迷你站 `/me/account` | [console](console.md) |
 | C-06 | **已完成** | 忘记密码：两站 SMTP 均可用，页面与接口已上线 | [smtp-plan](smtp-plan.md) |
 | C-07 | **已完成** | 密钥编辑：配额/过期/IP 限制（`PUT /api/token/` + 迷你站对话框） | [console](console.md) |
-| C-08 | 待办 | 用量统计：按天/模型汇总（现在只有分页明细） | [console](console.md) |
+| C-08 | **已完成** | 用量统计：`/api/data/self` 按天/模型汇总，7/30 天切换 | [console](console.md) |
 | C-09 | **已完成** | 公告：用量页横幅（最新一条、可关闭） | [console](console.md) |
 | C-10 | **已完成** | 价格页：`/me/pricing`（ratio → $/百万 token） | [console](console.md) |
 | C-11 | **已完成** | 2FA：启用（密钥 + 4 备份码）、登录动态码步骤、关闭/重生成 | [console](console.md) |

@@ -64,7 +64,15 @@ export function launchBrowser() {
 export function apiJson(base, path, body) {
   const args = ['-sS', '--max-time', '30', ...(PROXY ? ['-x', PROXY] : []), '-X', 'POST', base + path,
     '-H', 'Content-Type: application/json', '-d', JSON.stringify(body ?? {})]
-  return JSON.parse(execFileSync('curl', args, { encoding: 'utf8' }) || '{}')
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return JSON.parse(execFileSync('curl', args, { encoding: 'utf8' }) || '{}')
+    } catch (error) {
+      if (attempt === 3) throw error
+      execFileSync('sleep', ['2'])
+    }
+  }
+  return {}
 }
 
 /** Decode a base32 secret (RFC 4648, no padding) into a key buffer. */
@@ -100,10 +108,19 @@ export function totpCode(secret, at = Date.now()) {
   return String(value % 1000000).padStart(6, '0')
 }
 
-/** Current code, plus neighbours for clock drift at a 30-second boundary. */
-export function totpCandidates(secret) {
-  const now = Date.now()
-  return [totpCode(secret, now), totpCode(secret, now + 30000), totpCode(secret, now - 30000)]
+/** Backdate a token so the stale-key cleanup has something to find. */
+export function markTokenStale(brand, tokenId, days = 40) {
+  const ssh = process.env[BRANDS[brand].sshEnv]
+  if (!ssh) throw new Error(`需要设置 ${BRANDS[brand].sshEnv}`)
+  const dbPath = brand === 'fa' ? '/opt/dsh-gateway/data/one-api.db' : '/opt/dsh-gateway-ru/data/one-api.db'
+  const script = [
+    'import sqlite3, time, sys',
+    `c = sqlite3.connect(${JSON.stringify(dbPath)})`,
+    `c.execute("update tokens set created_time=?, accessed_time=0 where id=?", (int(time.time()) - ${days} * 86400, ${Number(tokenId)}))`,
+    'c.commit()',
+    `print("[fixture] token ${Number(tokenId)} backdated ${days} days")`,
+  ].join('\n')
+  execFileSync('bash', ['-c', `${ssh} python3 -`], { input: script, encoding: 'utf8' })
 }
 
 /** Create a test account directly in SQLite (email verification blocks API registration). */
@@ -155,8 +172,9 @@ export function cleanupUsers(brand, usernames, dbPath) {
     `c = sqlite3.connect(${JSON.stringify(dbPath)})`,
     "ids = [row[0] for row in c.execute('select id, username from users') if row[1] in names]",
     'for uid in ids:',
-    "    for table in ('tokens', 'logs', 'two_fas', 'two_fa_backup_codes'): c.execute(f'delete from {table} where user_id=?', (uid,))",
+    "    for table in ('tokens', 'logs', 'two_fas', 'two_fa_backup_codes', 'checkins', 'top_ups', 'dsh_auth_transactions', 'passkey_credentials', 'user_oauth_bindings'): c.execute(f'delete from {table} where user_id=?', (uid,))",
     "    c.execute('delete from users where id=?', (uid,))",
+    "c.execute('delete from dsh_auth_transactions where user_id not in (select id from users)')",
     'c.commit()',
     "print('[cleanup] deleted', len(ids), 'users')",
   ].join('\n')
