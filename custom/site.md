@@ -13,6 +13,8 @@
 | `deepseek-ru.org` | 同上（ru / en 官网 + 迷你站 + 网关） |
 | `www.deepseek-ru.org` | 301 → 裸域 |
 
+**路径统一**：`www` 的任何路径（含查询串）301 到裸域同名路径；`http` 也 301 到 https。页面内部链接（官网、迷你站头部、下载页、robots/sitemap、邮件链接）全部使用裸域，不再产生 www 跳转。
+
 站点静态资源走 `/site-assets/`（不是 `/assets/`），因为网关的旧 SPA 占用 `/assets/` 给管理控制台用。
 
 ## 首页下载按钮

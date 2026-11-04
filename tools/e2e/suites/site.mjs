@@ -56,6 +56,8 @@ export async function runSite({ brand, checker }) {
     const rootTitle = await page.title()
     checker.check('根路径是官网而非旧 SPA', !/New API/i.test(rootTitle), rootTitle.slice(0, 40))
     checker.check('根路径 200', root?.status() === 200, `status=${root?.status()}`)
+    const wwwLinks = await page.$$eval('a[href]', (links) => links.map((a) => a.href).filter((href) => href.includes('//www.')))
+    checker.check('首页没有指向 www 的链接', wwwLinks.length === 0, wwwLinks.slice(0, 2).join(','))
     const www = brand.site.replace('https://', 'https://www.')
     const wwwResponse = await page.goto(`${www}/docs`, { waitUntil: 'domcontentloaded' }).catch(() => null)
     checker.check('www 301 到裸域', page.url().startsWith(brand.site) && !page.url().includes('//www.'), page.url())
