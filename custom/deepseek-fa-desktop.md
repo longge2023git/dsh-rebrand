@@ -45,8 +45,8 @@
   config:
     platformOrigin: https://deepseekfa.com
     inferenceOrigin: https://deepseekfa.com
-    usagePath: /console/log
-    topUpPath: /console/topup
+    usagePath: /me/
+    topUpPath: /me/topup
 - id: llm-deepseek-account
   config:
     baseURL: https://deepseekfa.com/v1
@@ -77,7 +77,7 @@ pnpm --dir apps/desktop run package:mac:arm64:unsigned \
 
 ```text
 apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
-  deepseek-fa-0.2.1-rc.2.20261103.1-mac-arm64-unsigned.dmg
+  deepseek-fa-0.2.1-rc.2.20261105.1-mac-arm64-unsigned.dmg
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
