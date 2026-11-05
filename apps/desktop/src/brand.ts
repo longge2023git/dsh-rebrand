@@ -10,8 +10,8 @@ export const DESKTOP_PROFILE_PATCH = `- id: deepseek-account
   config:
     platformOrigin: https://deepseek-ru.org
     inferenceOrigin: https://deepseek-ru.org
-    usagePath: /console/log
-    topUpPath: /console/topup
+    usagePath: /me/
+    topUpPath: /me/topup
     desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
 
 - id: llm-deepseek-account
