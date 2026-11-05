@@ -1,7 +1,7 @@
 # Build the DeepSeek desktop installer for Windows x64 on a Windows machine.
 #
 #   pwsh -File scripts/windows/build-desktop.ps1 -Brand fa
-#   pwsh -File scripts/windows/build-desktop.ps1 -Brand ru -BuildVersion 0.2.1-rc.2.20261105.1
+#   pwsh -File scripts/windows/build-desktop.ps1 -Brand ru -BuildVersion 0.2.1-rc.2.20261105.2
 #
 # The script only produces an unsigned test installer: no code-signing certificate,
 # no update-policy file, no .env.windows. It fails fast when the checkout is dirty,
@@ -104,9 +104,9 @@ Write-Host ("   清单:   " + $manifestPath)
 Write-Host ''
 Write-Host '下一步：在干净的 Windows 上安装验收（custom/windows-handoff.md 第 5 节），然后上传两个文件：'
 if ($Brand -eq 'fa') {
-    Write-Host ("  scp `"$stable`" root@87.107.108.14:/var/www/fa-site/downloads/$slug.exe.part")
-    Write-Host ("  scp `"$manifestPath`" root@87.107.108.14:/var/www/fa-site/downloads/$slug.json")
-    Write-Host ("  ssh root@87.107.108.14 `"mv /var/www/fa-site/downloads/$slug.exe.part /var/www/fa-site/downloads/$slug.exe`"")
+    Write-Host ("  scp `"$stable`" root@87.107.108.14:/opt/dsh-gateway/downloads/$slug.exe.part")
+    Write-Host ("  scp `"$manifestPath`" root@87.107.108.14:/opt/dsh-gateway/downloads/$slug.json")
+    Write-Host ("  ssh root@87.107.108.14 `"mv /opt/dsh-gateway/downloads/$slug.exe.part /opt/dsh-gateway/downloads/$slug.exe`"")
 } else {
     Write-Host ("  scp `"$stable`" root@104.248.155.54:/opt/dsh-gateway-ru/downloads/$slug.exe.part")
     Write-Host ("  scp `"$manifestPath`" root@104.248.155.54:/opt/dsh-gateway-ru/downloads/$slug.json")
