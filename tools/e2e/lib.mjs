@@ -108,6 +108,28 @@ export function totpCode(secret, at = Date.now()) {
   return String(value % 1000000).padStart(6, '0')
 }
 
+/** Create a fixture account plus an account token (the desktop app's embedded pages use one). */
+export function createEmbeddedFixture(brand, username, password) {
+  const ssh = process.env[BRANDS[brand].sshEnv]
+  if (!ssh) throw new Error(`需要设置 ${BRANDS[brand].sshEnv}`)
+  const dbPath = brand === 'fa' ? '/opt/dsh-gateway/data/one-api.db' : '/opt/dsh-gateway-ru/data/one-api.db'
+  const script = `
+import sqlite3, bcrypt, random, string, time
+c = sqlite3.connect(${JSON.stringify(dbPath)})
+name = ${JSON.stringify(username)}
+key = ''.join(random.choices(string.ascii_letters + string.digits, k=48))
+h = bcrypt.hashpw(${JSON.stringify(password)}.encode(), bcrypt.gensalt()).decode()
+c.execute('delete from tokens where user_id in (select id from users where username=?)', (name,))
+c.execute('delete from users where username=?', (name,))
+cur = c.execute('insert into users (username,password,display_name,role,status,quota,used_quota,request_count,"group",aff_code,aff_count,aff_quota,aff_history,inviter_id) values (?,?,?,1,1,50000,0,0,"default","EMB1",0,0,0,0)', (name, h, name))
+uid = cur.lastrowid
+c.execute('insert into tokens (user_id,key,status,name,created_time,accessed_time,expired_time,remain_quota,unlimited_quota,used_quota,"group") values (?,?,1,"e2e-embedded",?,0,-1,0,1,0,"default")', (uid, key, int(time.time())))
+c.commit()
+print(key)
+`
+  return execFileSync('bash', ['-c', `${ssh} python3 -`], { input: script, encoding: 'utf8' }).trim()
+}
+
 /** Backdate a token so the stale-key cleanup has something to find. */
 export function markTokenStale(brand, tokenId, days = 40) {
   const ssh = process.env[BRANDS[brand].sshEnv]

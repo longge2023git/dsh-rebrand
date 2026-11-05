@@ -1,5 +1,5 @@
 /** Live mini console flows: register, keys, usage, invite rewards, transfer, sign out. */
-import { launchBrowser, createUserViaDb, login, markTokenStale, readUsage, uniq } from '../lib.mjs'
+import { launchBrowser, createEmbeddedFixture, createUserViaDb, login, markTokenStale, readUsage, uniq } from '../lib.mjs'
 
 const PASSWORD = 'E2ePass12345'
 
@@ -66,6 +66,25 @@ export async function runConsoleLive({ brand, checker, users }) {
 
     // 4. 邀请链路：注册需要邮箱验证码，无法自动化（已在开启验证前人工验证过）
     checker.skip('邀请奖励链路', '注册需邮箱验证码，自动化不可覆盖')
+
+    // 4.1 桌面内嵌页：只有账号令牌、没有浏览器会话时也要能打开
+    {
+      const embedUser = uniq(brand.lang + 'e')
+      users.push(embedUser)
+      const token = createEmbeddedFixture(brand.id, embedUser, PASSWORD)
+      const embedContext = await browser.newContext({ locale: brand.locale })
+      const embedPage = await embedContext.newPage()
+      await embedPage.addInitScript((value) => { window.dsh = { getAuthToken: () => value } }, token)
+      await embedPage.goto(`${brand.app}/me/topup`, { waitUntil: 'domcontentloaded' })
+      await embedPage.waitForSelector('#app:not([hidden])', { timeout: 20000 }).catch(() => {})
+      const embedded = await embedPage.evaluate(() => ({
+        app: !document.getElementById('app')?.hidden,
+        auth: !document.getElementById('auth')?.hidden,
+        balance: document.getElementById('balance')?.textContent?.trim() ?? '',
+      }))
+      checker.check('内嵌页用账号令牌自动登录', embedded.app && !embedded.auth && embedded.balance === '0.10', JSON.stringify(embedded))
+      await embedContext.close()
+    }
 
     // 5. 注册闸门：不带验证码必须被拒，发码接口可用
     const gate = await fetch(brand.app + '/api/user/register', {

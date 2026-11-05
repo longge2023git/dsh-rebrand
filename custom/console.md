@@ -178,6 +178,18 @@ E2E 用自实现的 TOTP 自动算码，不需要手机；`twofa` 套件第一�
 
 密钥列表每行有「编辑」按钮，打开 `<dialog>` 编辑名称、是否无限额度、额度（按美元输入，换算 quota）、过期日期、允许 IP；提交 `PUT /api/token/` 后刷新列表。
 
+## 桌面内嵌页的登录
+
+桌面客户端的「用量 / 充值」在应用内嵌视图里打开（`DesktopPlatformView`），它**没有浏览器 cookie**，只在页面里提供 `window.dsh.getAuthToken()`（账号令牌）。迷你站加载时若本地没有登录态，会用这个令牌调：
+
+```
+POST /api/user/platform-session   Authorization: Bearer <账号令牌>
+```
+
+网关用 `GetTokenByKey` 找到令牌所属用户，校验令牌与账号状态后 `setupLogin` 建立会话并返回用户信息。页面拿到后写入 localStorage 继续。每个页面只尝试一次；启用 2FA 的账号仍会要求正常登录。
+
+内嵌视图加载的是 `account.origin` 上的 `/usage`、`/top_up`（应用内写死），nginx 把这两个路径分别 302 到 `/me/`、`/me/topup`。
+
 ## 会话失效
 
 用户表新增 `session_version`：登录时写进会话，每次请求比对（30 秒缓存）。**改密码会让其他设备上的会话立即失效**，改密的那台设备自身会被更新到新版本、保持登录。管理员重置密码与邮件重置同样会递增版本。

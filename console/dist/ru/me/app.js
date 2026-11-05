@@ -87,7 +87,41 @@ function sessionUserId() {
 }
 
 /** Call one gateway endpoint and unwrap its envelope. */
+/** Set once per page load so a signed-out embedded page is not silently re-signed-in. */
+let platformSessionTried = false
+
+/**
+ * The desktop app renders these pages inside an embedded view without browser
+ * cookies. It exposes the account token instead; exchange it for a console session.
+ */
+async function bootstrapPlatformSession() {
+  if (platformSessionTried) return false
+  platformSessionTried = true
+  let token = ''
+  try {
+    token = String(window.dsh?.getAuthToken?.() ?? '')
+  } catch {
+    token = ''
+  }
+  if (!token) return false
+  try {
+    const response = await fetch('/api/user/platform-session', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) return false
+    const payload = await response.json().catch(() => ({}))
+    if (payload?.success !== true || !payload?.data) return false
+    rememberUser(payload.data)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function api(path, options = {}) {
+  if (sessionUserId() === 0) await bootstrapPlatformSession()
   const userId = sessionUserId()
   if (userId === 0) throw new Unauthorized(path)
   const response = await fetch(path, {
