@@ -35,6 +35,8 @@ import { readDeviceInfo } from './device-info.ts'
 import { desktopUpdateReadyConfirmation, formatDesktopMessage, resolveDesktopLocale, resolveDesktopStartupLocale } from './locale.ts'
 import { claimDesktopSingleInstance } from './single-instance.ts'
 import { desktopUpdateChannel } from './update-channel.ts'
+import { startUpdateNotice, type ReleaseNotice } from './update-notice.ts'
+import { PLATFORM_ORIGIN } from './brand.ts'
 import { DesktopUpdateCoordinator } from './update-coordinator.ts'
 import { DesktopCommandManager } from './command-management.ts'
 import { serveWebDocument, authenticateWebHost, forwardWebRequest } from './web-document.ts'
@@ -1342,6 +1344,43 @@ async function main(): Promise<void> {
     void mandatoryPolicy.check('launch').then((state) => {
       if (app.isPackaged && state.error === 'authentication-required' && !isQuitting()) queuePolicyAuthentication()
     }).catch((error: unknown) => { console.error(error) })
+  }
+  // Unsigned builds cannot self-update; tell the user when a newer release is published.
+  if (app.isPackaged) {
+    let skippedReleaseVersion: string | undefined
+    const noticePath = join(app.getPath('userData'), 'release-notice.json')
+    async function readSkippedRelease(): Promise<void> {
+      try {
+        const stored: unknown = JSON.parse(await readFile(noticePath, 'utf8'))
+        if (typeof stored === 'object' && stored !== null && typeof (stored as { skipped?: unknown }).skipped === 'string') {
+          skippedReleaseVersion = (stored as { skipped: string }).skipped
+        }
+      } catch { /* first launch or unreadable state: no dismissal yet */ }
+    }
+    async function showReleaseNotice(notice: ReleaseNotice): Promise<void> {
+      const result = await dialog.showMessageBox({
+        type: 'info',
+        title: locale.messages.releaseNoticeTitle,
+        message: formatDesktopMessage(locale.messages.releaseNoticeMessage, { version: notice.latest, current: app.getVersion() }),
+        detail: locale.messages.updateCurrentDetail.replace('{version}', app.getVersion()),
+        buttons: [locale.messages.releaseNoticeDownload, locale.messages.releaseNoticeLater],
+        defaultId: 0,
+        cancelId: 1,
+      })
+      if (result.response === 0) {
+        void shell.openExternal(notice.downloadUrl).catch(() => undefined)
+        return
+      }
+      skippedReleaseVersion = notice.latest
+      await writeFile(noticePath, JSON.stringify({ skipped: notice.latest })).catch(() => undefined)
+    }
+    void startUpdateNotice({
+      endpoint: `${PLATFORM_ORIGIN}/version.json`,
+      currentVersion: app.getVersion(),
+      skippedVersion: () => skippedReleaseVersion,
+      show: (notice: ReleaseNotice) => { void showReleaseNotice(notice) },
+    })
+    void readSkippedRelease()
   }
   automaticCheck()
   await reconcileBackend().catch(() => undefined)
