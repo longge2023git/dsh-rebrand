@@ -237,9 +237,14 @@ export async function runConsoleLocal({ base, brand, checker }) {
 
       await page.goto(`${base}/me/forgot`, { waitUntil: 'domcontentloaded' })
       await page.fill('input[name="email"]', 'user@example.com')
-      await page.click('#forgot-form button[type="submit"]')
+      const sendsBefore = calls.filter((c) => c === 'reset_send').length
+      await Promise.all([
+        page.click('#forgot-form button[type="submit"]'),
+        page.click('#forgot-form button[type="submit"]').catch(() => {}),
+      ])
       await page.waitForTimeout(700)
       checker.check('忘记密码发送请求并提示', calls.includes('reset_send') && await page.locator('#sent').isVisible())
+      checker.check('双击只发一次请求', calls.filter((c) => c === 'reset_send').length === sendsBefore + 1, String(calls.filter((c) => c === 'reset_send').length - sendsBefore))
 
       await page.goto(`${base}/me/reset?email=user%40example.com&token=TOK`, { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(400)

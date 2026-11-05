@@ -89,6 +89,20 @@ function sessionUserId() {
   }
 }
 
+
+/**
+ * Drop repeat submits from a double click. The button stays enabled so a failed
+ * request can be retried; only submissions inside the same 300ms window are ignored.
+ */
+const busyForms = new WeakSet()
+document.addEventListener('submit', (event) => {
+  const form = event.target
+  if (!(form instanceof HTMLFormElement)) return
+  if (busyForms.has(form)) { event.preventDefault(); event.stopImmediatePropagation(); return }
+  busyForms.add(form)
+  setTimeout(() => busyForms.delete(form), 300)
+}, true)
+
 /** Call one gateway endpoint and unwrap its envelope. */
 /** Set once per page load so a signed-out embedded page is not silently re-signed-in. */
 let platformSessionTried = false
