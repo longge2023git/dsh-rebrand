@@ -4,7 +4,7 @@ var DICT = {
   fa: {
     dir: 'rtl',
     brand: 'DeepSeek-FA',
-    nav: { usage: 'مصرف', keys: 'کلیدها', topup: 'شارژ', pricing: 'تعرفه', download: 'دانلود برنامه', home: 'خانه', docs: 'راهنما', login: 'ورود', register: 'ثبت‌نام' },
+    nav: { usage: 'مصرف', keys: 'کلیدها', topup: 'شارژ', pricing: 'تعرفه', accountTitle: 'حساب و تنظیمات', download: 'دانلود برنامه', home: 'خانه', docs: 'راهنما', login: 'ورود', register: 'ثبت‌نام' },
     common: {
       loading: 'در حال بارگذاری…',
       empty: 'موردی ثبت نشده است.',
@@ -208,7 +208,7 @@ var DICT = {
   ru: {
     dir: 'ltr',
     brand: 'DeepSeek-RU',
-    nav: { usage: 'Расход', keys: 'Ключи', topup: 'Пополнение', pricing: 'Тарифы', download: 'Скачать', home: 'Главная', docs: 'Документация', login: 'Войти', register: 'Регистрация' },
+    nav: { usage: 'Расход', keys: 'Ключи', topup: 'Пополнение', pricing: 'Тарифы', accountTitle: 'Аккаунт и настройки', download: 'Скачать', home: 'Главная', docs: 'Документация', login: 'Войти', register: 'Регистрация' },
     common: {
       loading: 'Загрузка…',
       empty: 'Пока пусто.',
@@ -412,7 +412,7 @@ var DICT = {
   en: {
     dir: 'ltr',
     brand: 'DeepSeek-FA',
-    nav: { usage: 'Usage', keys: 'API keys', topup: 'Add credit', pricing: 'Pricing', download: 'Download', home: 'Home', docs: 'Docs', login: 'Sign in', register: 'Sign up' },
+    nav: { usage: 'Usage', keys: 'API keys', topup: 'Add credit', pricing: 'Pricing', accountTitle: 'Account and settings', download: 'Download', home: 'Home', docs: 'Docs', login: 'Sign in', register: 'Sign up' },
     common: {
       loading: 'Loading…',
       empty: 'Nothing here yet.',

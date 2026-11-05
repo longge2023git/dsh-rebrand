@@ -395,6 +395,9 @@ export async function runConsoleLocal({ base, brand, checker }) {
       const hasBoot = html.includes('src="/me/boot.js"') && /data-page="[a-z]+"/.test(html)
       checker.check(`${name}.html 无内联脚本且用 boot.js`, !inline && hasBoot)
       checker.check(`${name}.html 不指向 www`, !/https:\/\/www\./.test(html))
+      if (['index', 'keys', 'topup', 'pricing'].includes(name)) {
+        checker.check(`${name}.html 有账号入口`, html.includes('href="/me/account"'), name)
+      }
     }
 
     // 15. 桌面登录：已登录直接完成 / 2FA 提示
