@@ -17,7 +17,7 @@ export async function runConsoleLive({ brand, checker, users }) {
     await login(page, brand.app, inviter, PASSWORD)
     await page.waitForSelector('#app:not([hidden])', { timeout: 20000 })
     const usage = await readUsage(page, brand.app)
-    checker.check('fixture 余额 $0.10', usage.balance === '0.10', usage.balance)
+    checker.check('fixture 余额 $0.10', usage.balance === '$0.10', usage.balance)
     checker.check('邀请卡片可见且有 4 位邀请码', /^[A-Za-z0-9]{4}$/.test(usage.code), usage.code)
     checker.check('无邀请时无转账按钮', !usage.transfer)
 
@@ -82,7 +82,7 @@ export async function runConsoleLive({ brand, checker, users }) {
         auth: !document.getElementById('auth')?.hidden,
         balance: document.getElementById('balance')?.textContent?.trim() ?? '',
       }))
-      checker.check('内嵌页用账号令牌自动登录', embedded.app && !embedded.auth && embedded.balance === '0.10', JSON.stringify(embedded))
+      checker.check('内嵌页用账号令牌自动登录', embedded.app && !embedded.auth && embedded.balance === '$0.10', JSON.stringify(embedded))
       await embedContext.close()
     }
 

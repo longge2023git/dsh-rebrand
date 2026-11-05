@@ -30,6 +30,16 @@
     <label id="username-field" hidden><span data-i18n="auth.username">نام کاربری</span>
       <input type="text" name="username" autocomplete="username">
     </label>
+    <label id="email-field"><span data-i18n="auth.email">ایمیل</span>
+      <input type="email" name="email" autocomplete="email" dir="ltr">
+    </label>
+    <label id="code-field" hidden><span data-i18n="auth.code">کد تأیید</span>
+      <div class="inline">
+        <input type="text" name="code" inputmode="text" maxlength="6" autocomplete="one-time-code" dir="ltr">
+        <button type="button" id="send-code" class="button secondary" data-i18n="auth.sendCode">ارسال کد</button>
+      </div>
+    </label>
+
     <label><span data-i18n="auth.password">گذرواژه</span>
       <div class="field">
         <input type="password" name="password" autocomplete="new-password">
@@ -48,20 +58,10 @@
         </button>
       </div>
     </label>
-    <label id="email-field"><span data-i18n="auth.email">ایمیل</span>
-      <input type="email" name="email" autocomplete="email" dir="ltr">
-    </label>
-    <label id="code-field" hidden><span data-i18n="auth.code">کد تأیید</span>
-      <div class="inline">
-        <input type="text" name="code" inputmode="text" maxlength="6" autocomplete="one-time-code" dir="ltr">
-        <button type="button" id="send-code" class="button secondary" data-i18n="auth.sendCode">ارسال کد</button>
-      </div>
-    </label>
-
     <label><span data-i18n="invite.field">کد دعوت (اختیاری)</span>
       <input type="text" name="aff" autocomplete="off" maxlength="16" dir="ltr">
     </label>
-    <p class="hint compact" data-i18n="auth.passwordHint">نام کاربری تا ۲۰ نویسه، گذرواژه ۸ تا ۲۰ نویسه.</p>
+    <p class="hint compact" data-i18n="auth.passwordHint">گذرواژه ۸ تا ۲۰ نویسه است؛ نام کاربری از ایمیل ساخته می‌شود.</p>
     <p id="error" class="form-error" hidden></p>
     <button class="button" type="submit" data-i18n="auth.signUp">ساخت حساب</button>
   </form>

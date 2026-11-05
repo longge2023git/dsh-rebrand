@@ -194,7 +194,7 @@ export async function runConsoleLocal({ base, brand, checker }) {
       await page.goto(`${base}/me/topup`, { waitUntil: 'domcontentloaded' })
       await page.waitForSelector('#app:not([hidden])', { timeout: 15000 })
       await page.waitForTimeout(600)
-      checker.check('充值页显示余额', (await page.locator('#balance').innerText()).trim() === '0.10', await page.locator('#balance').innerText())
+      checker.check('充值页显示余额', (await page.locator('#balance').innerText()).trim() === '$0.10', await page.locator('#balance').innerText())
       checker.check('充值页显示历史记录', (await page.locator('#rows tr').count()) === 1)
       await page.fill('#code', 'RDM-1')
       await page.click('#redeem button[type="submit"]')

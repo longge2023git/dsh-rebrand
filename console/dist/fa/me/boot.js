@@ -16,5 +16,10 @@
     pricing: startPricing,
   }
   const start = starters[document.body.dataset.page]
-  if (typeof start === 'function') start()
+  // The desktop app's embedded view has no cookies; trade the exposed account token
+  // for a session before the page reads anything.
+  const ready = typeof bootstrapPlatformSession === 'function' && sessionUserId() === 0
+    ? bootstrapPlatformSession().catch(() => false)
+    : Promise.resolve(false)
+  void ready.then(() => { if (typeof start === 'function') start() })
 })()

@@ -30,6 +30,16 @@
     <label id="username-field" hidden><span data-i18n="auth.username">Имя пользователя</span>
       <input type="text" name="username" autocomplete="username">
     </label>
+    <label id="email-field"><span data-i18n="auth.email">Эл. почта</span>
+      <input type="email" name="email" autocomplete="email" dir="ltr">
+    </label>
+    <label id="code-field" hidden><span data-i18n="auth.code">Код подтверждения</span>
+      <div class="inline">
+        <input type="text" name="code" inputmode="text" maxlength="6" autocomplete="one-time-code" dir="ltr">
+        <button type="button" id="send-code" class="button secondary" data-i18n="auth.sendCode">Отправить код</button>
+      </div>
+    </label>
+
     <label><span data-i18n="auth.password">Пароль</span>
       <div class="field">
         <input type="password" name="password" autocomplete="new-password">
@@ -48,16 +58,6 @@
         </button>
       </div>
     </label>
-    <label id="email-field"><span data-i18n="auth.email">Эл. почта</span>
-      <input type="email" name="email" autocomplete="email" dir="ltr">
-    </label>
-    <label id="code-field" hidden><span data-i18n="auth.code">Код подтверждения</span>
-      <div class="inline">
-        <input type="text" name="code" inputmode="text" maxlength="6" autocomplete="one-time-code" dir="ltr">
-        <button type="button" id="send-code" class="button secondary" data-i18n="auth.sendCode">Отправить код</button>
-      </div>
-    </label>
-
     <label><span data-i18n="invite.field">Код приглашения (необязательно)</span>
       <input type="text" name="aff" autocomplete="off" maxlength="16" dir="ltr">
     </label>

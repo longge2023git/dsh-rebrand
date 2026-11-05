@@ -25,6 +25,9 @@ function t(path, vars = {}) {
 }
 
 const credit = (quota) => (Number(quota || 0) / state.quotaPerUnit).toFixed(2)
+
+/** Money for display: the account is denominated in USD. */
+const money = (quota) => `$${credit(quota)}`
 /** Per-call costs are often far below 0.01 credits, so keep more decimals there. */
 const cost = (quota) => {
   const value = Number(quota || 0) / state.quotaPerUnit
@@ -182,8 +185,8 @@ async function startUsage() {
     if ($('sign-out')) $('sign-out').hidden = false
     const displayName = me.display_name && me.display_name !== me.username ? me.display_name : ''
     $('who').textContent = t('usage.greeting', { name: displayName || me.email || me.username || '—' })
-    $('balance').textContent = credit(me.quota)
-    $('used').textContent = credit(me.used_quota)
+    $('balance').textContent = money(me.quota)
+    $('used').textContent = money(me.used_quota)
     $('requests').textContent = num(me.request_count)
     renderInvite(me)
     await loadAnnouncements()
@@ -238,7 +241,7 @@ function renderInvite(me) {
   const link = `${location.origin}/me/register?aff=${encodeURIComponent(me.aff_code)}`
   $('aff-code').textContent = me.aff_code
   $('aff-count').textContent = num(me.aff_count || 0)
-  $('aff-quota').textContent = credit(me.aff_quota || 0)
+  $('aff-quota').textContent = money(me.aff_quota || 0)
   $('aff-link').textContent = link
   section.hidden = false
   $('aff-copy').onclick = () => flashCopied($('aff-copy'), me.aff_code)
@@ -252,7 +255,7 @@ function renderInvite(me) {
   transfer.onclick = () => guard(async () => {
     await api('/api/user/aff_transfer', { method: 'POST', body: JSON.stringify({ quota: Number(me.aff_quota) }) })
     const fresh = await api('/api/user/self')
-    $('balance').textContent = credit(fresh.quota)
+    $('balance').textContent = money(fresh.quota)
     renderInvite(fresh)
   })
 }
@@ -295,7 +298,15 @@ async function startKeys() {
   applyI18n()
   await loadStatus()
   await guard(async () => {
-    await api('/api/user/self')
+    const me = await api('/api/user/self')
+    if ($('identity')) {
+      $('identity').innerHTML = ''
+      const name = document.createElement('strong')
+      name.textContent = me.display_name && me.display_name !== me.username ? me.display_name : me.username
+      const rest = document.createElement('span')
+      rest.textContent = me.email ? ` · ${me.email}` : ''
+      $('identity').append(name, rest)
+    }
     $('auth').hidden = true
     $('app').hidden = false
     if ($('sign-out')) $('sign-out').hidden = false
@@ -403,7 +414,7 @@ async function loadStats() {
       <td dir="${target === 'stats-models' ? 'ltr' : 'auto'}">${esc(labelOf(key))}</td>
       <td>${entry.count}</td>
       <td>${entry.tokens.toLocaleString('en-US')}</td>
-      <td>${credit(entry.quota)}</td>
+      <td>${money(entry.quota)}</td>
     </tr>`).join('')
   }
   render('stats-days', [...byDay.entries()].sort((a, b) => b[0].localeCompare(a[0])), (key) => key)
@@ -707,7 +718,7 @@ async function startTopup() {
     $('auth').hidden = true
     $('app').hidden = false
     if ($('sign-out')) $('sign-out').hidden = false
-    $('balance').textContent = credit(me.quota)
+    $('balance').textContent = money(me.quota)
     await loadTopup()
   })
 }
@@ -932,7 +943,15 @@ async function startAccount() {
   })
   wireTwofa()
   await guard(async () => {
-    await api('/api/user/self')
+    const me = await api('/api/user/self')
+    if ($('identity')) {
+      $('identity').innerHTML = ''
+      const name = document.createElement('strong')
+      name.textContent = me.display_name && me.display_name !== me.username ? me.display_name : me.username
+      const rest = document.createElement('span')
+      rest.textContent = me.email ? ` · ${me.email}` : ''
+      $('identity').append(name, rest)
+    }
     $('auth').hidden = true
     $('app').hidden = false
     if ($('sign-out')) $('sign-out').hidden = false

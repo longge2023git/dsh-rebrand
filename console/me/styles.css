@@ -119,6 +119,10 @@ button.danger:hover { border-color: var(--danger); }
   font-weight: 600;
 }
 .button:hover { opacity: 0.92; color: var(--accent-text); }
+.button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+.button.secondary:hover { background: var(--surface); color: var(--text); }
+.button.danger, button.danger { background: transparent; color: var(--danger, #b42318); border: 1px solid var(--line); }
+.button.danger:hover, button.danger:hover { background: transparent; color: var(--danger, #b42318); opacity: 1; }
 
 .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block-start: 14px; color: var(--muted); font-size: 13px; }
 
@@ -240,3 +244,19 @@ dialog .actions { display: flex; gap: 8px; }
 .codes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; padding: 0; margin: 8px 0 14px; list-style: none; }
 .codes code { display: block; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; text-align: center; }
 .codes li { margin: 0; }
+
+/* RTL: keep the primary action on the leading side of input rows. */
+[dir="rtl"] .create .button { order: -1; }
+
+/* Compact shortcut row used on the usage page. */
+.shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 4px 18px; }
+.shortcuts .button { padding: 7px 14px; font-size: 13px; }
+
+/* Identity line above account forms. */
+.identity { color: var(--muted); font-size: 13px; margin-block: -6px 18px; }
+.identity strong { color: var(--text); font-weight: 600; }
+
+/* Section cards group related controls instead of leaving them floating. */
+.panel { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin-block-end: 18px; background: var(--surface); }
+.panel h2 { margin-block: 0 12px; }
+td.empty { padding: 18px; }
