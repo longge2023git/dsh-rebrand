@@ -77,7 +77,7 @@ pnpm --dir apps/desktop run package:mac:arm64:unsigned \
 
 ```text
 apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
-  deepseek-fa-0.2.1-rc.2.20261105.1-mac-arm64-unsigned.dmg
+  deepseek-fa-0.2.1-rc.2.20261105.2-mac-arm64-unsigned.dmg
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
@@ -144,3 +144,17 @@ apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/
 - 第一版保留 `dsh://`，与官方 Harness 同时安装时深链归属可能冲突；
 - 正式品牌发布前还需确认 Logo/版权、签名证书、更新策略；
 - `~/.deepseek-fa` 与官方 `~/.dsh` 是两套数据，不迁移历史会话。
+
+## 版本提醒（unsigned 包）
+
+macOS 的自动更新依赖签名（Squirrel.Mac 校验签名），Windows 的 electron-updater 需要 NSIS 安装包；我们目前都是 unsigned + portable，所以**不做自动安装**，改为「提醒 + 手动下载」：
+
+| 环节 | 实现 |
+|---|---|
+| 版本源 | 站点构建产出 `/version.json`：`{ latest, downloadUrl }` |
+| 客户端 | `apps/desktop/src/update-notice.ts`：启动 5 秒后检查，之后每 6 小时；用 semver 比较当前版本 |
+| 提示 | 对话框「新版本 X，当前 Y」→ 「去下载」（打开 `downloadUrl`）/「暂不提醒」（记在 `userData/release-notice.json`，同一版本不再弹） |
+| 失败 | 网络错误或 404 静默，不打扰用户 |
+| 生效 | **需要用户升级到带该模块的版本**；旧版本客户端不会提示 |
+
+升级到真正的自动更新（签名就绪后）：macOS 打 zip + `latest-mac.yml`，Windows 改 NSIS + `latest.yml`，把 `app-update.yml` 写进 `Resources` 并把 feed 指到我们的域名；当前模块可保留作为兜底提醒。

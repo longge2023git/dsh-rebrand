@@ -88,6 +88,18 @@ export async function runSite({ brand, checker }) {
     }
 
     await page.goto('about:blank')
+    // 客户端轮询的版本文件：必须是合法 JSON，且指向 https 下载页
+    {
+      const response = await page.request.get(`${brand.site}/version.json`)
+      const body = await response.json().catch(() => null)
+      const latest = body?.latest ?? ''
+      checker.check('version.json 可读', response.ok() && /^\d+\.\d+\.\d+/.test(latest), latest)
+      checker.check('version.json 指向下载页', typeof body?.downloadUrl === 'string' && body.downloadUrl.startsWith('https://'), String(body?.downloadUrl))
+      const downloadHtml = await (await page.request.get(`${brand.site}/download`)).text()
+      checker.check('version.json 与下载页版本一致', downloadHtml.includes(latest), latest)
+    }
+
+    await page.goto('about:blank')
     const topUp = await page.goto(`${brand.app}/top_up`, { waitUntil: 'domcontentloaded' })
     checker.check('充值入口跳到迷你站充值页', page.url().includes('/me/topup'), page.url())
     checker.check('充值页可访问', topUp?.status() === 200, `status=${topUp?.status()}`)

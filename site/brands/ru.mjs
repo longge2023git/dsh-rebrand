@@ -15,11 +15,11 @@ export default {
   downloads: [
     {
       platform: 'macOS · Apple Silicon',
-      version: '0.2.1-rc.2.20261105.1',
+      version: '0.2.1-rc.2.20261105.2',
       arch: 'arm64',
       size: '253 MiB',
-      file: 'deepseek-ru-0.2.1-rc.2.20261105.1-mac-arm64-unsigned.dmg',
-      sha256: 'c94d2f8989cd04f9f7fbb42f3fdbfdc10397422fda3c3d5fa6545fafabf3f519',
+      file: 'deepseek-ru-0.2.1-rc.2.20261105.2-mac-arm64-unsigned.dmg',
+      sha256: 'dc2ba78e8c7e0946f1bdb399e340ae3f0c2a2373a6552d71c5a58dcbad71c688',
     },
   ],
   windows: {

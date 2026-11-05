@@ -59,6 +59,11 @@ for (const brand of selected) {
   await writeFile(join(brandOut, 'styles.css'), styles)
   await cp(join(here, 'assets', brand.id), join(brandOut, 'site-assets'), { recursive: true })
   await writeFile(join(brandOut, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: https://${brand.domain}/sitemap.xml\n`)
+  // Desktop clients poll this to notice a newer release (unsigned builds cannot self-update).
+  await writeFile(join(brandOut, 'version.json'), JSON.stringify({
+    latest: brand.downloads[0].version,
+    downloadUrl: `https://${brand.domain}/download`,
+  }, null, 2) + '\n')
 
   const urls = []
   for (const locale of brand.locales) {
