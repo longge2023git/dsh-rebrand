@@ -89,6 +89,7 @@ var DICT = {
       colTime: 'زمان', colAmount: 'مبلغ', colMethod: 'روش', colStatus: 'وضعیت',
       statusPending: 'در انتظار', statusSuccess: 'موفق', statusFailed: 'ناموفق',
       methodRedeem: 'کد شارژ',
+      methodGift: 'شارژ هدیه',
       guide: 'راهنما',
     },
     dsh: {
@@ -296,6 +297,7 @@ var DICT = {
       colTime: 'Время', colAmount: 'Сумма', colMethod: 'Способ', colStatus: 'Статус',
       statusPending: 'Ожидает', statusSuccess: 'Успешно', statusFailed: 'Ошибка',
       methodRedeem: 'Код пополнения',
+      methodGift: 'Подарочный кредит',
       guide: 'Справка',
     },
     dsh: {
@@ -503,6 +505,7 @@ var DICT = {
       colTime: 'Time', colAmount: 'Amount', colMethod: 'Method', colStatus: 'Status',
       statusPending: 'Pending', statusSuccess: 'Completed', statusFailed: 'Failed',
       methodRedeem: 'Top-up code',
+      methodGift: 'Gift credit',
       guide: 'Help',
     },
     dsh: {

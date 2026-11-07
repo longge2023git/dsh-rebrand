@@ -761,7 +761,9 @@ async function loadTopup() {
     return `<tr>
       <td>${stamp(item.create_time)}</td>
       <td>${item.money > 0 ? '$' + Number(item.money).toFixed(2) : credit(item.amount)}</td>
-      <td>${item.payment_method === 'redeem' ? t('topup.methodRedeem') : (item.payment_method || '—')}</td>
+      <td>${item.payment_method === 'redeem' ? t('topup.methodRedeem')
+        : item.payment_method === 'gift' ? t('topup.methodGift')
+        : (item.payment_method || '—')}</td>
       <td>${status}</td>
     </tr>`
   }).join('')
