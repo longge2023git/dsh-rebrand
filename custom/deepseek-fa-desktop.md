@@ -13,7 +13,7 @@
 | Electron userData | `~/Library/Application Support/DeepSeek-FA` |
 | 协议 scheme | 第一版保留 `dsh://` |
 | 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
-| 默认网关 | `https://ds.openrouters.org` |
+| 默认网关 | FA：`https://deepseekfa.com`；RU：`https://deepseek-ru.org` |
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
@@ -43,13 +43,13 @@
 ```yaml
 - id: deepseek-account
   config:
-    platformOrigin: https://ds.openrouters.org
-    inferenceOrigin: https://ds.openrouters.org
-    usagePath: /console/log
-    topUpPath: /console/topup
+    platformOrigin: https://deepseekfa.com
+    inferenceOrigin: https://deepseekfa.com
+    usagePath: /me/
+    topUpPath: /me/topup
 - id: llm-deepseek-account
   config:
-    baseURL: https://ds.openrouters.org/v1
+    baseURL: https://deepseekfa.com/v1
 ```
 
 文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置。
@@ -70,17 +70,29 @@ export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 export CUSTOM_DMGBUILD_PATH=/tmp/dmgbuild-extract/dmgbuild
 
 pnpm --dir apps/desktop run package:mac:arm64:unsigned \
-  --build-version 0.2.1-rc.2.20261023.1
+  --build-version 0.2.1-rc.2.20261103.1
 ```
 
 产物：
 
 ```text
 apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
-  deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg
+  deepseek-fa-0.2.1-rc.2.20261105.2-mac-arm64-unsigned.dmg
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
+
+RU 品牌同一套命令，换分支 `brand/ru-deepseek-ru`（`PRODUCT_NAME=DeepSeek-RU`、`APP_ID=com.deepseekru.harness`、`GATEWAY_ORIGIN=https://deepseek-ru.org`），产物前缀为 `deepseek-ru`。
+
+产物身份校验（发布前必做）：
+
+```bash
+MP=$(hdiutil attach -nobrowse -readonly <dmg> | grep -o '/Volumes/.*' | head -1)
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+grep -ac 'https://deepseekfa.com' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"   # 应为非 0
+hdiutil detach "$MP" -quiet
+```
 
 ## 安装验证
 
@@ -88,7 +100,7 @@ apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
 2. 未签名包首次启动在“隐私与安全性”中允许；
 3. 应用名/关于/退出文案显示 `DeepSeek-FA`；
 4. 首次启动创建 `~/.deepseek-fa`；
-5. 登录页来自 `ds.openrouters.org`，注册/登录；
+5. 登录页来自 `deepseekfa.com`（RU 为 `deepseek-ru.org`），注册/登录；
 6. 文本、图片、查询用量/充值；
 7. 官方 Harness 的 `~/.dsh` 和 `~/Library/Application Support/@deepseek-ai/dsh-desktop` 不受影响。
 
@@ -132,3 +144,17 @@ apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/
 - 第一版保留 `dsh://`，与官方 Harness 同时安装时深链归属可能冲突；
 - 正式品牌发布前还需确认 Logo/版权、签名证书、更新策略；
 - `~/.deepseek-fa` 与官方 `~/.dsh` 是两套数据，不迁移历史会话。
+
+## 版本提醒（unsigned 包）
+
+macOS 的自动更新依赖签名（Squirrel.Mac 校验签名），Windows 的 electron-updater 需要 NSIS 安装包；我们目前都是 unsigned + portable，所以**不做自动安装**，改为「提醒 + 手动下载」：
+
+| 环节 | 实现 |
+|---|---|
+| 版本源 | 站点构建产出 `/version.json`：`{ latest, downloadUrl }` |
+| 客户端 | `apps/desktop/src/update-notice.ts`：启动 5 秒后检查，之后每 6 小时；用 semver 比较当前版本 |
+| 提示 | 对话框「新版本 X，当前 Y」→ 「去下载」（打开 `downloadUrl`）/「暂不提醒」（记在 `userData/release-notice.json`，同一版本不再弹） |
+| 失败 | 网络错误或 404 静默，不打扰用户 |
+| 生效 | **需要用户升级到带该模块的版本**；旧版本客户端不会提示 |
+
+升级到真正的自动更新（签名就绪后）：macOS 打 zip + `latest-mac.yml`，Windows 改 NSIS + `latest.yml`，把 `app-update.yml` 写进 `Resources` 并把 feed 指到我们的域名；当前模块可保留作为兜底提醒。

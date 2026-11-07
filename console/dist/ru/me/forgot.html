@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="forgot" data-page-title="account.forgotTitle">
+<header>
+  <a class="brand" href="https://deepseek-ru.org/"><img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU</a>
+  <nav>
+    <a href="/me/login" data-i18n="auth.loginLink">Войти</a>
+    <span class="lang">
+      <a data-lang-link="ru" hreflang="ru">RU</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main class="narrow">
+  <h1 data-i18n="account.forgotTitle">Восстановление пароля</h1>
+  <p class="hint" data-i18n="account.forgotHint">Укажите почту аккаунта, и мы отправим ссылку для восстановления.</p>
+  <form id="forgot-form" class="stack" novalidate>
+    <label><span data-i18n="auth.email">Эл. почта</span>
+      <input type="email" name="email" autocomplete="email" dir="ltr">
+    </label>
+    <p id="error" class="form-error" hidden></p>
+    <p id="sent" class="hint ok" hidden data-i18n="account.resetSent">Ссылка отправлена.</p>
+    <button class="button" type="submit" data-i18n="account.sendReset">Отправить ссылку</button>
+  </form>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

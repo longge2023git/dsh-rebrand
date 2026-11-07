@@ -1,5 +1,7 @@
 # 需求基线与澄清清单
 
+> 状态：历史资料（2026-10-21）。当前事实以 [progress.md](progress.md) 与 [site.md](site.md) / [console.md](console.md) 为准。
+
 > 原则：每条需求必须有可观察的验收标准；未决项标 **BLOCKING**（不澄清就不开工）。
 > 状态：`已冻结` / `假设` / `待确认`。
 

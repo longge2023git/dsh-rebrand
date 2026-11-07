@@ -1,5 +1,7 @@
 # DSH 登录/网关协议规范 v1.1
 
+> 状态：历史资料（2026-10-22）。relay 已合并进网关（见 [ADR-002](adr-002-merge-relay-into-newapi.md)），本文的 relay 实现不再存在。
+
 > 适用基线：`dsh-v0.2.1-rc.2`（`deepseek-account-platform`）
 > 目标：你的网关实现本文档后，**DSH 客户端不改代码**，只改 `platformOrigin` / `inferenceOrigin` 即可完成换登录。
 > 来源：`packages/credentials/deepseek-account-platform/src/{protocol,index,details,logout}.ts`、`packages/llm/llm-deepseek-account/src/index.ts`。

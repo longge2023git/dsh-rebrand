@@ -1,5 +1,7 @@
 # Files API 调研（2026-10-21）
 
+> 状态：历史资料（2026-10-22）。Files API 已实现并验收，现状见 [progress.md](progress.md)。
+
 > 结论：`/v1/files` 是 Anthropic 的标准 Files API；上传/管理操作不单独计费，文件内容进入 Messages 时按输入 token 计费。DeepSeek 官方实现遵循同一模式。该能力已在 `new-api-deepseek` 二开实现并验收（Issue #11 已关闭）；本文保留原生 NewAPI 的对比与方案调研。
 
 ---

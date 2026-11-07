@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="usage" data-page-title="nav.usage">
+<header>
+  <a class="brand" href="https://deepseek-ru.org/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU
+  </a>
+  <nav>
+    <a href="/me/" aria-current="page" data-i18n="nav.usage">Расход</a>
+    <a href="/me/keys" data-i18n="nav.keys">Ключи</a>
+    <a href="/me/topup" data-i18n="nav.topup">Пополнение</a>
+    <a href="https://deepseek-ru.org/download" data-i18n="nav.download">Скачать</a>
+    <a href="/me/account" data-i18n="account.title">Аккаунт</a>
+    <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">Выйти</button>
+    <span class="lang">
+      <a data-lang-link="ru" hreflang="ru">RU</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginUsage">Войдите, чтобы видеть расход и ключи.</span>
+    <a class="button" href="/me/login?next=/me/" data-i18n="auth.signIn">Войти</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">Создать аккаунт</a>
+  </div>
+
+  <section id="app" hidden>
+    <div id="announcements" hidden></div>
+    <h1 id="who">—</h1>
+
+    <div class="cards">
+      <div class="card"><span class="label" data-i18n="usage.balance">Баланс</span><strong id="balance">—</strong></div>
+      <div class="card"><span class="label" data-i18n="usage.used">Израсходовано</span><strong id="used">—</strong></div>
+      <div class="card"><span class="label" data-i18n="usage.requests">Запросов</span><strong id="requests">—</strong></div>
+    </div>
+
+    <div class="shortcuts">
+      <a class="button secondary" href="/me/account" data-i18n="account.title">Аккаунт</a>
+      <a class="button secondary" href="/me/keys" data-i18n="nav.keys">Ключи</a>
+      <a class="button secondary" href="/me/topup" data-i18n="nav.topup">Пополнение</a>
+      <a class="button secondary" href="/me/pricing" data-i18n="nav.pricing">Тарифы</a>
+    </div>
+
+    <section id="stats">
+      <h2 data-i18n="stats.title">Статистика использования</h2>
+      <p class="hint">
+        <label class="row"><span data-i18n="stats.period">Период</span>
+          <select id="stats-period">
+            <option value="7" data-i18n="stats.days7">7 дней</option>
+            <option value="30" data-i18n="stats.days30">30 дней</option>
+          </select>
+        </label>
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colDay">День</th>
+            <th data-i18n="stats.colRequests">Запросы</th>
+            <th data-i18n="stats.colTokens">Токены</th>
+            <th data-i18n="stats.colCost">Стоимость</th>
+          </tr></thead>
+          <tbody id="stats-days"><tr><td colspan="4" class="empty" data-i18n="common.loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="stats.colModel">Модель</th>
+            <th data-i18n="stats.colRequests">Запросы</th>
+            <th data-i18n="stats.colTokens">Токены</th>
+            <th data-i18n="stats.colCost">Стоимость</th>
+          </tr></thead>
+          <tbody id="stats-models"><tr><td colspan="4" class="empty" data-i18n="common.loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="invite" hidden>
+      <h2 data-i18n="invite.title">Приглашение друзей</h2>
+      <div class="cards">
+        <div class="card"><span class="label" data-i18n="invite.code">Ваш код приглашения</span>
+          <strong id="aff-code" dir="ltr">—</strong>
+          <button type="button" class="linkish" id="aff-copy" data-i18n="invite.copy">Копировать</button>
+        </div>
+        <div class="card"><span class="label" data-i18n="invite.invited">Приглашено</span><strong id="aff-count">—</strong></div>
+        <div class="card"><span class="label" data-i18n="invite.earned">Бонус за приглашения</span><strong id="aff-quota">—</strong>
+          <button type="button" class="linkish" id="aff-transfer" data-i18n="invite.transfer">Перевести на баланс</button>
+        </div>
+      </div>
+      <p class="hint"><span data-i18n="invite.share">Ссылка-приглашение</span>:
+        <code id="aff-link" dir="ltr">—</code>
+        <button type="button" class="linkish" id="aff-link-copy" data-i18n="invite.copy">Копировать</button>
+      </p>
+      <p class="hint" data-i18n="invite.hint">За каждого приглашённого — $1 вам и $0.50 другу; перевод доступен от $1.</p>
+    </section>
+
+    <h2 data-i18n="usage.recent">Последний расход</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="usage.colTime">Время</th>
+            <th data-i18n="usage.colModel">Модель</th>
+            <th data-i18n="usage.colPrompt">Вход</th>
+            <th data-i18n="usage.colCompletion">Выход</th>
+            <th data-i18n="usage.colCost">Стоимость</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="6" class="empty" data-i18n="common.loading">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <button id="prev" type="button" data-i18n="common.prev">Новее</button>
+      <span id="pageinfo"></span>
+      <button id="next" type="button" data-i18n="common.next">Старее</button>
+    </div>
+
+    <p class="hint">
+      <span data-i18n="usage.keysHint">Ключ API — на странице</span>
+      <a href="/me/keys" data-i18n="usage.keysLink">ключей</a>
+      <span data-i18n="usage.keysHintEnd">. Ключ создаётся автоматически при входе в приложение.</span>
+    </p>
+  </section>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

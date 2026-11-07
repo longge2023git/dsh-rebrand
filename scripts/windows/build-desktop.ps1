@@ -1,7 +1,7 @@
 # Build the DeepSeek desktop installer for Windows x64 on a Windows machine.
 #
 #   pwsh -File scripts/windows/build-desktop.ps1 -Brand fa
-#   pwsh -File scripts/windows/build-desktop.ps1 -Brand ru -BuildVersion 0.2.1-rc.2.20261105.2
+#   pwsh -File scripts/windows/build-desktop.ps1 -Brand ru -BuildVersion 0.2.1-rc.2.20261106.1
 #
 # The script only produces an unsigned test installer: no code-signing certificate,
 # no update-policy file, no .env.windows. It fails fast when the checkout is dirty,

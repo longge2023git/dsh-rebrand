@@ -14,6 +14,27 @@
 
 SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
 
+## 三套部署（2026-11-03）
+
+| 站点 | 服务器 | 容器 | 镜像 | 端口 | 数据库 |
+|---|---|---|---|---|---|
+| `deepseekfa.com` | 87.107.108.14 | `dsh-newapi` | `dsh/new-api-deepseek:20261103-mini-login4` | 3104 | `/opt/dsh-gateway/data/one-api.db` |
+| `deepseek-ru.org` | 104.248.155.54 | `dsh-newapi-ru` | `dsh/new-api-deepseek:20261103-mini-login4` | 3105 | `/opt/dsh-gateway-ru/data/one-api.db` |
+| `ds.openrouters.org` | 104.248.155.54 | `dsh-newapi` | `dsh/new-api-deepseek:20261025a` | 3104 | `/opt/dsh-gateway/data/one-api.db` |
+
+三套库**互不相通**（FA 与 ds.openrouters.org 从 2026-10-28 起分叉）。FA 的环境变量：
+
+```text
+TZ=Asia/Shanghai
+DSH_PUBLIC_ORIGIN=https://deepseekfa.com
+DSH_ALLOW_REGISTRATION=true
+DSH_NEW_USER_QUOTA=1000000000
+FILE_CHANNEL_ID=1
+DSH_BRAND_NAME=DeepSeek-FA
+```
+
+`DSH_NEW_USER_QUOTA` 是网关自身的建号额度；实际到账看 `QuotaForNewUser` 选项（见 [console.md](console.md)），两者不同步，改额度时都要看。
+
 ## 运行单元
 
 ```text
@@ -25,7 +46,7 @@ SSH：`ssh root@104.248.155.54`（需要已授权的 key）。
 ```
 
 - 容器：`dsh-newapi`
-- 镜像：`dsh/new-api-deepseek:20261025a`
+- 镜像：`dsh/new-api-deepseek:20261025a`（ds.openrouters.org，冻结）；FA/RU 用 `20261103-mini-login4`
 - 端口：`127.0.0.1:3104 -> 3000`
 - 重启策略：`unless-stopped`
 - 数据：SQLite `/opt/dsh-gateway/data/one-api.db`

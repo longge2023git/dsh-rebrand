@@ -1,3 +1,5 @@
+> 状态：**已作废**（2026-11-03）。`deepseek-fa.org` 方案放弃，实际使用 `deepseekfa.com`；本文仅作历史记录，不要再按此操作。
+
 # 待办：网关域名切换到 deepseek-fa.org
 
 > 状态：**未执行**。证书已收到，线上仍是 `https://ds.openrouters.org`。
