@@ -2,6 +2,15 @@
 
 > 状态：2026-11-07 方案稿。目标是把 FA 和 RU 交给两个团队，各自独立开发、发布、部署。
 
+## 0. 决策（2026-11-07）
+
+| 事项 | 结论 |
+|---|---|
+| 团队关系 | 两个**独立**团队，各自负责一个品牌 |
+| 服务端 | **也拆**：每团队一个网关仓库（共享基线保留） |
+| `brand/vv-worker` | **留在旧仓库**，逐步停止维护 |
+| 第 0 步（合并站点分支） | **已完成**：`brand/deepseekfa` = `81b32e2e56`，`brand/ru-deepseek-ru` = `dba1bd0f1c`，两分支均含 `console/ site/ tools/` |
+
 ## 1. 现状（事实）
 
 | 仓库 | 内容 | 规模 |
@@ -74,6 +83,7 @@ deepseek-ru-gateway            RU 团队
 | `apps/`、`packages/`、`vendor/`、`docs/` | harness（品牌分支已含定制） | 品牌团队 |
 | `site/`、`console/` | `feat/mini-login` 分支 | 品牌团队 |
 | `tools/e2e/` | `feat/mini-login` 分支 | 品牌团队（先复制，后续可抽共享包） |
+| `console/dist/`、`site/dist/` | **当前被 git 跟踪（32 个文件）** | 新仓库应停止跟踪：加 `.gitignore` + `git rm -r --cached`，发布时本地构建 |
 | `custom/` | 品牌分支已有的品牌文档 + 站点分支的 `site.md`/`console.md`/`console-spec.md`/`windows-handoff.md` | 品牌团队 |
 | `deploy/` | **新增**：从服务器导出并脱敏的 compose、env 模板、nginx 配置 | 品牌团队 |
 | `scripts/windows/` | 已有打包脚本 | 品牌团队 |
@@ -165,8 +175,13 @@ git branch -m brand/deepseekfa main
 | 合并 `feat/mini-login` 时冲突较大 | 先在一个品牌分支做，解决完再把该分支合到另一个；冲突原则见第 0 步 |
 | 密钥/证书随仓库泄露 | `deploy/` 只放模板；真实值留在 secret store |
 
+## 7.1 拆分时顺带清理的两笔债
+
+1. **构建产物入库**：`console/dist`、`site/dist` 共 32 个文件被跟踪，每次构建都会产生 diff。新仓库里移除跟踪，部署脚本负责本地构建 + rsync。
+2. **仓库里的 nginx 配置落后于生产**：`custom/nginx/deepseek-ru.org.conf` 仍是 www 双域名结构，线上早已是单域名。拆分时从生产导出到 `deploy/nginx/`，仓库只保留这一份为准。
+
 ## 8. 建议执行顺序
 
-1. **今天**：把 `feat/mini-login` 合并进两个品牌分支（消除错位）——我可以直接做。
+1. ~~今天：把 `feat/mini-login` 合并进两个品牌分支~~ **已完成**（见第 0 节）。
 2. **本周**：建两个新仓库、推送、补 `deploy/`、配 CI。
 3. **下周**：两个团队各自跑通一次完整发布（Windows + macOS + 部署），旧仓库归档。
