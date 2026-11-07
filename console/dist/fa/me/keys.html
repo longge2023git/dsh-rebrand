@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-default-lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-FA</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="keys" data-page-title="keys.title">
+<header>
+  <a class="brand" href="https://deepseekfa.com/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
+  </a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" aria-current="page" data-i18n="nav.keys">کلیدها</a>
+    <a href="/me/topup" data-i18n="nav.topup">شارژ</a>
+    <a href="https://deepseekfa.com/download" data-i18n="nav.download">دانلود برنامه</a>
+    <a href="/me/account" data-i18n="account.title">حساب کاربری</a>
+    <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">خروج</button>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginKeys">برای دیدن کلیدها باید وارد شوید.</span>
+    <a class="button" href="/me/login?next=/me/keys" data-i18n="auth.signIn">ورود</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">ساخت حساب</a>
+  </div>
+
+  <section id="app" hidden>
+    <h1 data-i18n="keys.title">کلیدهای API</h1>
+    <p class="hint" data-i18n="keys.hint">هنگام ورود به برنامه یک کلید ساخته می‌شود. می‌توانید همان را کپی کنید یا کلید تازه بسازید.</p>
+
+    <form id="create" class="create">
+      <input id="name" type="text" maxlength="50" data-i18n-placeholder="keys.namePlaceholder" placeholder="نام کلید (اختیاری)">
+      <button class="button" type="submit" data-i18n="keys.create">ساخت کلید</button>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="keys.colName">نام</th>
+            <th data-i18n="keys.colKey">کلید</th>
+            <th data-i18n="keys.colUsed">مصرف</th>
+            <th data-i18n="keys.colStatus">وضعیت</th>
+            <th data-i18n="keys.colLastUsed">آخرین استفاده</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="6" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section id="stale" hidden>
+      <h2 data-i18n="keys.staleTitle">کلیدهای قدیمی</h2>
+      <p class="hint" id="stale-hint"></p>
+      <ul id="stale-list" class="codes"></ul>
+      <button class="button secondary" type="button" id="stale-clean" data-i18n="keys.staleClean">پاک‌سازی کلیدهای قدیمی</button>
+    </section>
+
+    <p class="hint">
+      <span data-i18n="keys.baseUrlHint">کلید را در agent یا برنامهٔ خود همراه آدرس پایه {base} قرار دهید.</span>
+      <code dir="ltr">https://deepseekfa.com/v1</code>
+    </p>
+  </section>
+</main>
+
+<dialog id="edit-dialog">
+  <form id="edit-form" class="stack" novalidate>
+    <h2 data-i18n="keys.editTitle">ویرایش کلید</h2>
+    <label><span data-i18n="keys.colName">نام</span>
+      <input type="text" name="name" maxlength="50">
+    </label>
+    <label class="row"><input type="checkbox" name="unlimited"> <span data-i18n="keys.unlimited">بدون محدودیت سهمیه</span></label>
+    <label><span data-i18n="keys.quota">سهمیه (دلار)</span>
+      <input type="number" name="quota" min="0" step="0.01" dir="ltr">
+    </label>
+    <label><span data-i18n="keys.expiry">تاریخ انقضا</span>
+      <input type="date" name="expiry" dir="ltr">
+    </label>
+    <label><span data-i18n="keys.allowIps">آی‌پی‌های مجاز</span>
+      <textarea name="allowIps" rows="2" dir="ltr"></textarea>
+    </label>
+    <p id="edit-error" class="form-error" hidden></p>
+    <div class="actions">
+      <button class="button" type="submit" data-i18n="common.save">ذخیره</button>
+      <button class="button secondary" type="button" id="edit-cancel" data-i18n="common.cancel">انصراف</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

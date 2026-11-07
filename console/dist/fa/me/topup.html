@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-default-lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-FA</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="topup" data-page-title="topup.title">
+<header>
+  <a class="brand" href="https://deepseekfa.com/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-FA
+  </a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">مصرف</a>
+    <a href="/me/keys" data-i18n="nav.keys">کلیدها</a>
+    <a href="/me/topup" aria-current="page" data-i18n="nav.topup">شارژ</a>
+    <a href="https://deepseekfa.com/download" data-i18n="nav.download">دانلود برنامه</a>
+    <a href="/me/account" data-i18n="account.title">حساب کاربری</a>
+    <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">خروج</button>
+    <span class="lang">
+      <a data-lang-link="fa" hreflang="fa">FA</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginUsage">برای دیدن مصرف و کلیدها باید وارد شوید.</span>
+    <a class="button" href="/me/login?next=/me/topup" data-i18n="auth.signIn">ورود</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">ساخت حساب</a>
+  </div>
+
+  <section id="app" hidden>
+    <h1 data-i18n="topup.title">شارژ حساب</h1>
+
+    <div class="cards">
+      <div class="card" style="max-width:240px"><span class="label" data-i18n="usage.balance">موجودی</span><strong id="balance">—</strong></div>
+    </div>
+
+    <h2 data-i18n="topup.redeemTitle">استفاده از کد شارژ</h2>
+    <form id="redeem" class="create">
+      <input id="code" type="text" autocomplete="off" dir="ltr" data-i18n-placeholder="topup.codePlaceholder" placeholder="کد شارژ را وارد کنید">
+      <button class="button" type="submit" data-i18n="topup.redeem">اعمال کد</button>
+    </form>
+    <p id="message" class="hint" hidden></p>
+
+    <p class="hint"><span data-i18n="topup.contact">برای شارژ از طریق پرداخت، با پشتیبانی تماس بگیرید.</span>
+      <a href="https://deepseekfa.com/docs" data-i18n="topup.guide">راهنما</a></p>
+
+    <h2 data-i18n="topup.historyTitle">سابقهٔ شارژ</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="topup.colTime">زمان</th>
+            <th data-i18n="topup.colAmount">مبلغ</th>
+            <th data-i18n="topup.colMethod">روش</th>
+            <th data-i18n="topup.colStatus">وضعیت</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="empty" data-i18n="common.loading">در حال بارگذاری…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

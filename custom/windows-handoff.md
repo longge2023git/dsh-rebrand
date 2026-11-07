@@ -29,7 +29,7 @@
 ```powershell
 git clone https://github.com/longge2023git/dsh-rebrand.git
 cd dsh-rebrand
-pwsh -File scripts/windows/build-desktop.ps1 -Brand fa -BuildVersion 0.2.1-rc.2.20261103.1
+pwsh -File scripts/windows/build-desktop.ps1 -Brand fa -BuildVersion 0.2.1-rc.2.20261106.1
 ```
 
 脚本会：校验 Node 版本 → 激活 pnpm → 设国内镜像 → 切到对应分支并 `pull --ff-only` → 拒绝脏工作区 → `pnpm install --frozen-lockfile` → 打包 → 输出 SHA256 与 `build-report.json`。
@@ -38,13 +38,37 @@ RU 版把 `-Brand fa` 换成 `-Brand ru`；不传 `-BuildVersion` 时默认 `0.2
 
 两个品牌可以在一台 Windows 上连续构建（脚本会切分支）；但**每次换品牌都要重新 `pnpm install`**（`--frozen-lockfile`），不要复用同一份 node_modules 快照。
 
-**版本号规则**：`0.2.1-rc.2.<yyyyMMdd>.<序号>`，同一天第二次构建序号递增（`.2`），不得与已发布版本重复。
+**版本号规则**：`0.2.1-rc.2.<yyyyMMdd>.<序号>`，同一天第二次构建序号递增，不得与已发布版本重复。**Windows 与 macOS 必须同号**——当前两站已发布 macOS `0.2.1-rc.2.20261106.1`，Windows 也用这个号（两个品牌都要重打）；站点 `/version.json` 的 `latest` 就是这个值，客户端据此判断是否有新版。
+
+## 3.1 什么时候需要重打包
+
+只有**客户端代码**变了才需要：
+
+| 改动 | 要重打包吗 |
+|---|---|
+| `apps/desktop/config/brand.mjs`（域名、产品名、appId） | 要 |
+| `apps/desktop/src`、`packages/*`（客户端逻辑、UI） | 要 |
+| 网关逻辑：登录页 302、`/me/dsh`、完成接口、额度、邀请奖励 | **不要**，服务端改动对已发包同样生效 |
+| 官网、迷你控制台页面 | **不要** |
+
+截至 2026-11-05，客户端有三处**需要重打包**的改动（两品牌相同）：
+
+1. `usagePath` / `topUpPath` 从 `/console/log`、`/console/topup` 改为 `/me/`、`/me/topup`（点「用量/充值」不再打开旧 SPA）
+2. 新增版本提醒模块（`apps/desktop/src/update-notice.ts`）：启动后与每 6 小时读取站点 `/version.json`，有新版弹对话框
+3. `brand.ts` 抽出 `PLATFORM_ORIGIN` 常量（行为不变）
+4. RU 安装器字标修正为 DeepSeek-RU（`da30db271a`，只影响 RU 的 NSIS 安装器）
+
+所以 **FA 与 RU 的 Windows 包都必须用 `0.2.1-rc.2.20261106.1` 重打**。旧包仍能登录使用，但没有版本提醒，且「用量/充值」仍指向旧控制台。
+
+补充：客户端对 `auth_init.authorize_url`（`/dsh/authorize`）和 `auth_exchange.authorized_url`（`/dsh/authorized`）**两条路径都做硬校验**，换页面只能靠网关 302，见 [console.md](console.md#桌面登录的路径约束改之前必读)。
 
 ## 4. 产物
 
 ```text
 apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\
-  deepseek-fa-0.2.1-rc.2.20261103.1-win-x64-unsigned.exe
+  deepseek-fa-0.2.1-rc.2.20261106.1-win-x64-unsigned.exe
+  deepseek-fa-win-x64-unsigned.exe        # 稳定名，站点按这个名字下载
+  deepseek-fa-win-x64-unsigned.json       # 清单：版本/大小/SHA，页面据此显示
   build-report.json
 ```
 
@@ -54,6 +78,15 @@ apps\desktop\.desktop-build\targets\win-x64\unsigned-artifacts\
 apps\desktop\.desktop-build\packaging-runs\<timestamp>-<id>\
   events.jsonl  stdout.log  stderr.log
 ```
+
+## 4.1 上传（脚本会打印，但这里也记一份）
+
+| 品牌 | 目标目录 |
+|---|---|
+| FA | `87.107.108.14:/opt/dsh-gateway/downloads/`（**不是** `/var/www/fa-site/downloads`，站点根目录不再存放安装包） |
+| RU | `104.248.155.54:/opt/dsh-gateway-ru/downloads/` |
+
+先传 `.exe.part` 再 `mv` 成正式名，避免用户下到半个文件；`.json` 清单让下载页自动显示版本/大小/SHA。
 
 ## 5. 安装验收（在第 3 生产包前必须做）
 

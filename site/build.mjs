@@ -1,0 +1,116 @@
+#!/usr/bin/env node
+/**
+ * Build the per-brand static sites.
+ *
+ * Usage:
+ *   node site/build.mjs              # every brand into site/dist/<brand>
+ *   node site/build.mjs fa           # one brand only
+ *
+ * Output layout (per brand):
+ *   dist/<brand>/index.html  download.html  docs.html  styles.css  favicon.svg
+ *   dist/<brand>/en/index.html  en/download.html  en/docs.html
+ */
+import { mkdir, writeFile, readFile, cp, rm } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import faBrand from './brands/fa.mjs'
+import ruBrand from './brands/ru.mjs'
+import faCopy from './copy/fa.mjs'
+import ruCopy from './copy/ru.mjs'
+import enCopy from './copy/en.mjs'
+import { layout, homeBody, downloadBody, docsBody, notFoundBody, prefixOf, fillDeep } from './src/render.mjs'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const outRoot = join(here, 'dist')
+
+/** Each brand's pages must not mention the other brand by name or domain. */
+const FORBIDDEN = {
+  fa: ['DeepSeek-RU', 'deepseek-ru.org'],
+  ru: ['DeepSeek-FA', 'deepseekfa.com'],
+}
+
+const brands = [faBrand, ruBrand]
+const copies = { fa: faCopy, ru: ruCopy, en: enCopy }
+
+const pages = [
+  { id: '', file: 'index.html', body: homeBody },
+  { id: 'download', file: 'download.html', body: downloadBody },
+  { id: 'docs', file: 'docs.html', body: docsBody },
+]
+
+const only = process.argv[2]
+const selected = only ? brands.filter((brand) => brand.id === only) : brands
+if (selected.length === 0) {
+  console.error(`unknown brand ${JSON.stringify(only)}; expected one of ${brands.map((brand) => brand.id).join(', ')}`)
+  process.exit(1)
+}
+
+const styles = await readFile(join(here, 'src', 'styles.css'), 'utf8')
+// Cache-busting suffix: CDNs (Cloudflare) cache .css for hours, so the URL must change with content.
+const assetVersion = createHash('sha256').update(styles).digest('hex').slice(0, 8)
+
+await rm(outRoot, { recursive: true, force: true })
+
+for (const brand of selected) {
+  const brandOut = join(outRoot, brand.id)
+  await mkdir(brandOut, { recursive: true })
+  await writeFile(join(brandOut, 'styles.css'), styles)
+  await cp(join(here, 'assets', brand.id), join(brandOut, 'site-assets'), { recursive: true })
+  await writeFile(join(brandOut, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: https://${brand.domain}/sitemap.xml\n`)
+  // Desktop clients poll this to notice a newer release (unsigned builds cannot self-update).
+  await writeFile(join(brandOut, 'version.json'), JSON.stringify({
+    latest: brand.downloads[0].version,
+    downloadUrl: `https://${brand.domain}/download`,
+  }, null, 2) + '\n')
+
+  const urls = []
+  for (const locale of brand.locales) {
+    const raw = copies[locale]
+    if (!raw) throw new Error(`missing copy for locale ${locale} (brand ${brand.id})`)
+    const copy = fillDeep(raw, brand)
+    const prefix = prefixOf(brand, locale)
+    const dir = prefix ? join(brandOut, prefix.slice(1)) : brandOut
+    await mkdir(dir, { recursive: true })
+
+    for (const page of pages) {
+      const body = page.body(brand, copy, assetVersion)
+      const html = layout({ brand, copy, locale, page: page.id, body, version: assetVersion })
+      await writeFile(join(dir, page.file), html)
+      urls.push(`https://${brand.domain}${prefix === '' ? '/' : `${prefix}/`}${page.file === 'index.html' ? '' : page.file}`)
+    }
+    // Branded 404; nginx maps error_page 404 to /404.html of the requested locale where possible.
+    await writeFile(join(dir, '404.html'), layout({ brand, copy, locale, page: '', body: notFoundBody(brand, copy), version: assetVersion }))
+  }
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+    .map((url) => `  <url><loc>${url}</loc></url>`)
+    .join('\n')}\n</urlset>\n`
+  await writeFile(join(brandOut, 'sitemap.xml'), sitemap)
+
+  // Guard the multi-brand build: no foreign brand name/domain, no unresolved tokens.
+  const problems = []
+  for (const page of pages) {
+    for (const locale of brand.locales) {
+      const prefix = prefixOf(brand, locale)
+      const file = join(brandOut, ...(prefix ? [prefix.slice(1)] : []), page.file)
+      const html = await readFile(file, 'utf8')
+      for (const needle of FORBIDDEN[brand.id]) {
+        if (html.includes(needle)) problems.push(`${file}: 含有其它品牌字样 "${needle}"`)
+      }
+      const leftover = html.match(/\{\{[a-z]+\}\}/g)
+      if (leftover) problems.push(`${file}: 未替换的占位符 ${[...new Set(leftover)].join(', ')}`)
+    }
+  }
+  if (problems.length > 0) {
+    console.error(`site/${brand.id} 构建校验失败：\n  ` + problems.join('\n  '))
+    process.exit(1)
+  }
+
+  console.log(`built ${brand.id}: ${brand.locales.length} locales, ${urls.length} pages -> ${resolve(brandOut)}`)
+}
+
+if (!only) {
+  console.log('\nDeploy: rsync -a --delete site/dist/<brand>/ root@<host>:/var/www/<brand>-site/')
+}

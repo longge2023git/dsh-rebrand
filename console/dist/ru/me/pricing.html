@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="icon" href="/me/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="pricing" data-page-title="pricing.title">
+<header>
+  <a class="brand" href="https://deepseek-ru.org/"><img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU</a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">Расход</a>
+    <a href="/me/keys" data-i18n="nav.keys">Ключи</a>
+    <a href="/me/topup" data-i18n="nav.topup">Пополнение</a>
+    <a href="/me/pricing" aria-current="page" data-i18n="nav.pricing">Тарифы</a>
+    <a href="/me/account" data-i18n="account.title">Аккаунт</a>
+    <span class="lang">
+      <a data-lang-link="ru" hreflang="ru">RU</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <h1 data-i18n="pricing.title">Тарифы моделей</h1>
+  <p class="hint" data-i18n="pricing.hint">Цены указаны в долларах за миллион токенов.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="pricing.colModel">Модель</th>
+          <th data-i18n="pricing.colInput">Ввод</th>
+          <th data-i18n="pricing.colOutput">Вывод</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="3" class="empty" data-i18n="common.loading">Загрузка…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

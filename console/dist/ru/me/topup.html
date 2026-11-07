@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru" dir="ltr" data-default-lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DeepSeek-RU</title>
+<link rel="icon" type="image/svg+xml" href="/me/icon.svg">
+<link rel="apple-touch-icon" href="/me/icon-180.png">
+<link rel="stylesheet" href="/me/styles.css">
+</head>
+<body data-page="topup" data-page-title="topup.title">
+<header>
+  <a class="brand" href="https://deepseek-ru.org/">
+    <img src="/me/icon.svg" alt="" width="28" height="28">DeepSeek-RU
+  </a>
+  <nav>
+    <a href="/me/" data-i18n="nav.usage">Расход</a>
+    <a href="/me/keys" data-i18n="nav.keys">Ключи</a>
+    <a href="/me/topup" aria-current="page" data-i18n="nav.topup">Пополнение</a>
+    <a href="https://deepseek-ru.org/download" data-i18n="nav.download">Скачать</a>
+    <a href="/me/account" data-i18n="account.title">Аккаунт</a>
+    <button type="button" class="linkish" id="sign-out" hidden data-i18n="auth.signOut">Выйти</button>
+    <span class="lang">
+      <a data-lang-link="ru" hreflang="ru">RU</a>
+      <a data-lang-link="en" hreflang="en">EN</a>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <div id="auth" class="notice" hidden>
+    <span data-i18n="auth.needLoginUsage">Войдите, чтобы видеть расход и ключи.</span>
+    <a class="button" href="/me/login?next=/me/topup" data-i18n="auth.signIn">Войти</a>
+    <a class="button secondary" href="/me/register" data-i18n="auth.signUp">Создать аккаунт</a>
+  </div>
+
+  <section id="app" hidden>
+    <h1 data-i18n="topup.title">Пополнение баланса</h1>
+
+    <div class="cards">
+      <div class="card" style="max-width:240px"><span class="label" data-i18n="usage.balance">Баланс</span><strong id="balance">—</strong></div>
+    </div>
+
+    <h2 data-i18n="topup.redeemTitle">Активировать код пополнения</h2>
+    <form id="redeem" class="create">
+      <input id="code" type="text" autocomplete="off" dir="ltr" data-i18n-placeholder="topup.codePlaceholder" placeholder="Введите код пополнения">
+      <button class="button" type="submit" data-i18n="topup.redeem">Применить код</button>
+    </form>
+    <p id="message" class="hint" hidden></p>
+
+    <p class="hint"><span data-i18n="topup.contact">Для пополнения оплатой обратитесь в поддержку.</span>
+      <a href="https://deepseek-ru.org/docs" data-i18n="topup.guide">Справка</a></p>
+
+    <h2 data-i18n="topup.historyTitle">История пополнений</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="topup.colTime">Время</th>
+            <th data-i18n="topup.colAmount">Сумма</th>
+            <th data-i18n="topup.colMethod">Способ</th>
+            <th data-i18n="topup.colStatus">Статус</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="empty" data-i18n="common.loading">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/me/dict.js"></script>
+<script src="/me/app.js"></script>
+<script src="/me/boot.js"></script>
+</body>
+</html>

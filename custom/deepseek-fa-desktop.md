@@ -1,6 +1,6 @@
 # DeepSeek-FA 桌面端
 
-> 状态：macOS arm64 unsigned 测试包已构建（最新 `0.2.1-rc.2.20261028.1`，网关 `https://deepseekfa.com`）；Windows 只保留方案。
+> 状态：macOS arm64 unsigned 测试包已构建；Windows 只保留方案。
 
 ## 身份
 
@@ -13,7 +13,7 @@
 | Electron userData | `~/Library/Application Support/DeepSeek-FA` |
 | 协议 scheme | 第一版保留 `dsh://` |
 | 图标 | Persian whale 圆角方形应用图标 + 简化鲸鱼托盘图标 |
-| 默认网关 | `https://deepseekfa.com` |
+| 默认网关 | FA：`https://deepseekfa.com`；RU：`https://deepseek-ru.org` |
 
 与官方 DeepSeek Harness 完全隔离：不读写 `~/.dsh`，不共用 Electron userData、单实例锁、profile、credentials、sessions。
 
@@ -45,16 +45,14 @@
   config:
     platformOrigin: https://deepseekfa.com
     inferenceOrigin: https://deepseekfa.com
-    usagePath: /console/log
-    topUpPath: /console/topup
+    usagePath: /me/
+    topUpPath: /me/topup
 - id: llm-deepseek-account
   config:
     baseURL: https://deepseekfa.com/v1
 ```
 
-文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置（见 [runbook 1.2](runbook.md#12-桌面端启动纪律)：从 DSH 会话里直接 exec 二进制会把 FA 挂到官方 `~/.dsh`）。
-
-**换域名对老用户无效**：首次启动只在 `cordis.patch.yml` 不存在时写入，已装机器升级后仍连旧域名。本地验证时手动把三处 origin 改掉（先备份），正式发版前需要补迁移逻辑或引导用户删除该文件。
+文件已存在时不覆盖。显式设置 `DSH_HOME` 时尊重用户设置。
 
 ## 构建（macOS arm64 unsigned）
 
@@ -72,45 +70,29 @@ export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 export CUSTOM_DMGBUILD_PATH=/tmp/dmgbuild-extract/dmgbuild
 
 pnpm --dir apps/desktop run package:mac:arm64:unsigned \
-  --build-version 0.2.1-rc.2.20261023.1
+  --build-version 0.2.1-rc.2.20261103.1
 ```
 
 产物：
 
 ```text
 apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/
-  deepseek-fa-0.2.1-rc.2.20261023.1-mac-arm64-unsigned.dmg
+  deepseek-fa-0.2.1-rc.2.20261105.2-mac-arm64-unsigned.dmg
 ```
 
 > `dmgbuild` 是 electron-builder 的 GitHub 二进制工具，不在 npm 镜像里。使用代理下载或 `CUSTOM_DMGBUILD_PATH` 指定本地已解压工具。Electron 与 npm 依赖分别由 `ELECTRON_MIRROR` 和 `DSH_DESKTOP_NPM_REGISTRY` 走国内镜像。
 
-已验证的 dmgbuild 获取方式（arm64，22 MB）：
+RU 品牌同一套命令，换分支 `brand/ru-deepseek-ru`（`PRODUCT_NAME=DeepSeek-RU`、`APP_ID=com.deepseekru.harness`、`GATEWAY_ORIGIN=https://deepseek-ru.org`），产物前缀为 `deepseek-ru`。
+
+产物身份校验（发布前必做）：
 
 ```bash
-curl -x http://127.0.0.1:10808 -L -o /tmp/dmgbuild-bundle.tar.gz \
-  https://github.com/electron-userland/electron-builder-binaries/releases/download/dmg-builder@1.2.5/dmgbuild-bundle-arm64-75c8a6c.tar.gz
-rm -rf /tmp/dmgbuild-extract && mkdir -p /tmp/dmgbuild-extract && tar xzf /tmp/dmgbuild-bundle.tar.gz -C /tmp/dmgbuild-extract
-export CUSTOM_DMGBUILD_PATH=/tmp/dmgbuild-extract/dmgbuild
-```
-
-构建前置：`prepare:dsh` 阶段的运行时冒烟测试会真实分配伪终端。在受限沙箱（例如 `posix_openpt: Operation not permitted`）里 node-pty 会直接 `SIGABRT`，与代码无关；换到不受限的终端重跑即可。
-
-## 验证产物（发布前必做）
-
-构建成功不等于包里有正确域名，挂载 dmg 后按下面两条核对：
-
-```bash
-DMG=apps/desktop/.desktop-build/targets/mac-arm64/unsigned-artifacts/deepseek-fa-<版本>-mac-arm64-unsigned.dmg
-MP=$(hdiutil attach -nobrowse -readonly "$DMG" | grep -o '/Volumes/.*' | head -1)
-# 1) 身份
+MP=$(hdiutil attach -nobrowse -readonly <dmg> | grep -o '/Volumes/.*' | head -1)
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$MP/DeepSeek-FA.app/Contents/Info.plist"
-# 2) 包内网关域名：新域名应命中、旧域名应为 0
-grep -ac 'https://deepseekfa.com' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"
-grep -ac 'ds\.openrouters\.org' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$MP/DeepSeek-FA.app/Contents/Info.plist"
+grep -ac 'https://deepseekfa.com' "$MP/DeepSeek-FA.app/Contents/Resources/app.asar"   # 应为非 0
 hdiutil detach "$MP" -quiet
 ```
-
-要确认编译进去的首启 profile 原文，可用 `@electron/asar` 抽 `lib/main.js` 看 `DESKTOP_PROFILE_PATCH` 字面量。
 
 ## 安装验证
 
@@ -118,7 +100,7 @@ hdiutil detach "$MP" -quiet
 2. 未签名包首次启动在“隐私与安全性”中允许；
 3. 应用名/关于/退出文案显示 `DeepSeek-FA`；
 4. 首次启动创建 `~/.deepseek-fa`；
-5. 登录页来自 `deepseekfa.com`，注册/登录；
+5. 登录页来自 `deepseekfa.com`（RU 为 `deepseek-ru.org`），注册/登录；
 6. 文本、图片、查询用量/充值；
 7. 官方 Harness 的 `~/.dsh` 和 `~/Library/Application Support/@deepseek-ai/dsh-desktop` 不受影响。
 
@@ -162,3 +144,17 @@ apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/
 - 第一版保留 `dsh://`，与官方 Harness 同时安装时深链归属可能冲突；
 - 正式品牌发布前还需确认 Logo/版权、签名证书、更新策略；
 - `~/.deepseek-fa` 与官方 `~/.dsh` 是两套数据，不迁移历史会话。
+
+## 版本提醒（unsigned 包）
+
+macOS 的自动更新依赖签名（Squirrel.Mac 校验签名），Windows 的 electron-updater 需要 NSIS 安装包；我们目前都是 unsigned + portable，所以**不做自动安装**，改为「提醒 + 手动下载」：
+
+| 环节 | 实现 |
+|---|---|
+| 版本源 | 站点构建产出 `/version.json`：`{ latest, downloadUrl }` |
+| 客户端 | `apps/desktop/src/update-notice.ts`：启动 5 秒后检查，之后每 6 小时；用 semver 比较当前版本 |
+| 提示 | 对话框「新版本 X，当前 Y」→ 「去下载」（打开 `downloadUrl`）/「暂不提醒」（记在 `userData/release-notice.json`，同一版本不再弹） |
+| 失败 | 网络错误或 404 静默，不打扰用户 |
+| 生效 | **需要用户升级到带该模块的版本**；旧版本客户端不会提示 |
+
+升级到真正的自动更新（签名就绪后）：macOS 打 zip + `latest-mac.yml`，Windows 改 NSIS + `latest.yml`，把 `app-update.yml` 写进 `Resources` 并把 feed 指到我们的域名；当前模块可保留作为兜底提醒。
