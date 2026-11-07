@@ -9,6 +9,12 @@
 | `dsh-rebrand` | harness fork；`main` + `brand/deepseekfa` + `brand/ru-deepseek-ru` + `brand/vv-worker`；站点/控制台在独立分支 `feat/mini-login` | 22k 提交，.git 397MB |
 | `new-api-deepseek` | 网关（new-api fork），两个品牌共用；`new-api-deepseek-fa` 是它的 worktree | 5.2k 提交，.git 89MB |
 
+**实测数据（2026-11-07）**：
+
+- 合并预演（`git merge-tree` + 真实 worktree 试合并）：`feat/mini-login` 合进 `brand/deepseekfa` **只有 6 个冲突**，全部是文档和打包脚本（`custom/backlog.md`、`deepseek-fa-desktop.md`、`deepseek-fa-domain-migration.md`、`progress.md`、`windows-handoff.md`、`scripts/windows/build-desktop.ps1`）。代码文件全部自动合并，`update-notice.ts`、`brand.ts` 的 `/me/` 路径、版本提醒、上传目录都保留。
+- 仓库体积：`.git` 397MB，分支跟踪内容 129MB；克隆一次约 400MB（checkout 129MB）。
+- 网关：相对官方 upstream **只有 15 个自有提交**，且**没有任何品牌硬编码**（品牌全部来自 `DSH_BRAND_NAME` / `DSH_PUBLIC_ORIGIN` / `DSH_EMAIL_LANG`）。
+
 **两个必须先纠正的错位**：
 
 1. **站点/控制台不在品牌分支上**。`console/`（48 文件）、`site/`（17）、`tools/`（12）、`custom/`（29）都只在 `feat/mini-login` 上；`brand/*` 分支里 `console:0 site:0`。任何人从品牌分支打包都拿不到官网和迷你站。
@@ -26,8 +32,40 @@ dsh-upstream       官方 harness fork（可选，作为两仓库的 upstream re
 取舍说明：
 
 - **不做"薄仓库 + 共享 core"**：那样要维护一个私有的 harness 包和一套版本兼容矩阵，两个团队谁也跑不起来。每个品牌一份完整 fork 反而简单、可离线、可独立升级。
-- **网关继续共享**：代码是同一套，差异只在 `DSH_PUBLIC_ORIGIN` / `DSH_BRAND_NAME` / `DSH_EMAIL_LANG` 和部署配置。拆成两份会立刻分叉，且安全修复要打两遍。
+- **网关怎么拆**：见第 2.1 节，结论是"代码以共享基线为准、每个团队一个可独立发布的分支仓库"。
 - **官网/迷你站各归各团队**：文案、品牌、活动都要独立；接受分叉。等两边的确稳定了，再考虑抽 `dsh-brand-kit` 共享模板（第二阶段，不急）。
+
+## 2.1 网关（new-api）的拆法
+
+事实：
+
+| 项 | 值 |
+|---|---|
+| 我们的自有提交 | 15 个（其余是官方 upstream） |
+| 品牌硬编码 | 0 处（全部走环境变量） |
+| 与品牌相关的安全/协议代码 | 约 3,150 行（`dsh_auth`、`dsh_pages`、`twofa`、`user_password`、`middleware/auth`、`router`、`model/dsh`） |
+| 部署现状 | 已经是两套：两台服务器、两个域名、两个数据库、两个镜像 tag |
+
+三个选项：
+
+| 方案 | 做法 | 优点 | 代价 |
+|---|---|---|---|
+| A 共享代码 | 一个 `new-api-deepseek`，团队只拥有部署 | 安全修复一处、升级一次 | 代码改动要跨团队评审 |
+| **B 共享基线 + 每团队一个网关仓库（推荐）** | 保留 `new-api-deepseek` 作为基线；`deepseek-fa-gateway`、`deepseek-ru-gateway` 各自 fork，定期 merge 基线 | 团队端到端自治；安全修复仍只写一处（基线），两边合并 | 每次发布要 merge 基线；品牌差异化改动会沉淀在各自仓库 |
+| C 两个完全独立 fork | 各 fork 一份，不再合并 | 最自由 | 3,150 行安全代码双份维护，必然漂移；官方升级要做两遍 |
+
+方案 B 的结构：
+
+```
+QuantumNous/new-api            官方
+        ↓
+new-api-deepseek               共享基线（DSH 协议、2FA、改密、邮件多语言）
+        ↓ fork + 品牌定制
+deepseek-fa-gateway            FA 团队：自己的 compose/env/镜像 tag
+deepseek-ru-gateway            RU 团队
+```
+
+**防漂移**：每个品牌网关仓库加一个 CI 任务，把基线里的品牌中立文件（`controller/dsh_*.go`、`controller/twofa.go`、`controller/user_password.go`、`middleware/`、`router/`、`model/dsh.go`、`model/twofa.go`）与基线 HEAD 做 diff；有未合并的基线提交就开 issue。安全修复的规矩：**先改基线，再让两个仓库合并**，不允许直接在品牌仓库改这些文件。
 
 ## 3. 每个品牌仓库的内容
 
